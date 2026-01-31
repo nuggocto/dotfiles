@@ -1,0 +1,5 @@
+
+# Local omarchy theme files (not pushed to remote)
+config/nvim/lua/plugins/all-themes.lua
+config/nvim/lua/plugins/example.lua
+config/nvim/lua/plugins/omarchy-theme-hotreload.lua
