@@ -1,6 +1,6 @@
 ---
 name: elixir
-description: Elixir/Phoenix development following the BEAM way. Phoenix 1.8+, LiveView, Ecto, Oban, Enma, Bandit, Finch. Covers contexts, LiveView patterns, changesets, PubSub, testing with ExUnit, and deployment with Mix releases.
+description: Elixir/Phoenix development following the BEAM way. Phoenix 1.8+, LiveView, Ecto, Oban, Bandit, Finch. Covers contexts, LiveView patterns, changesets, PubSub, testing with ExUnit, and deployment with Mix releases.
 ---
 
 # Elixir/Phoenix Project Guidelines
@@ -37,7 +37,6 @@ This project follows **the BEAM way**: fault-tolerant, concurrent, and explicit.
 | **UI Layer** | Phoenix LiveView | **Required** | Streams 1.0+, AsyncResult |
 | **Database** | PostgreSQL 15+ | **Required** | JSONB for flexible attrs |
 | **ORM** | Ecto | **Required** | Changesets for validation |
-| **Productivity** | Enma | **Recommended** | Rails-like conventions (generators, policies, mailers) |
 | **Background Jobs** | Oban | **Required** | PostgreSQL-backed, retries, cron |
 | **HTTP Client** | Finch | **Required** | HTTP/1 & HTTP/2 pooling |
 | **Clustering** | DNSCluster | **Required** | Fly.io/K8s service discovery |
@@ -108,12 +107,6 @@ lib/
       oban_jobs.ex
       mailer.ex
       http_client.ex
-
-# Enma additions (if using)
-    accounts/
-      user_policy.ex        # Authorization (Bodyguard)
-      user_mailer.ex        # Context-specific mailers
-      user_query.ex         # Query builders
 ```
 
 ---
@@ -476,10 +469,6 @@ db-reset:
 
 release:
     mix release
-
-# Enma (if using)
-enma-resource name:
-    mix enma.gen.resource {{name}}
 ```
 
 ---
@@ -504,7 +493,6 @@ enma-resource name:
 **Mix tasks:**
 - `mix phx.new app --live` - New LiveView app
 - `mix phx.gen.live Context Schema attrs` - CRUD with LiveView
-- `mix enma.gen.resource Resource attrs` - Enma resource generator
 - `mix ecto.create/migrate/rollback` - DB ops
 - `mix release` - Production build
 
