@@ -5,3 +5,7 @@ vim.opt.relativenumber = false
 
 -- Use nvim-cmp instead of blink.cmp
 vim.g.lazyvim_cmp = "nvim-cmp"
+
+-- Font for GUI Neovim (Neovide, etc.)
+-- For terminal Neovim, set the font in your terminal emulator config
+vim.opt.guifont = "VictorMono Nerd Font Mono:h14"
