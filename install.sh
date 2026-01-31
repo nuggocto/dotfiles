@@ -1,0 +1,56 @@
+#!/bin/bash
+
+set -e
+
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_DIR="$HOME/.config"
+
+echo "Installing dotfiles from $DOTFILES_DIR"
+
+# Create .config directory if it doesn't exist
+mkdir -p "$CONFIG_DIR"
+
+# Function to create symlink with backup
+link_config() {
+    local src="$1"
+    local dest="$2"
+    
+    if [ -L "$dest" ]; then
+        echo "Removing existing symlink: $dest"
+        rm "$dest"
+    elif [ -e "$dest" ]; then
+        echo "Backing up existing config: $dest -> $dest.backup"
+        mv "$dest" "$dest.backup"
+    fi
+    
+    echo "Linking: $src -> $dest"
+    ln -s "$src" "$dest"
+}
+
+# Link nvim config
+echo ""
+echo "==> Setting up Neovim config..."
+link_config "$DOTFILES_DIR/config/nvim" "$CONFIG_DIR/nvim"
+
+# Link opencode config
+echo ""
+echo "==> Setting up OpenCode config..."
+link_config "$DOTFILES_DIR/config/opencode" "$CONFIG_DIR/opencode"
+
+# Install opencode dependencies if bun is available
+if command -v bun &> /dev/null; then
+    echo ""
+    echo "==> Installing OpenCode dependencies with bun..."
+    cd "$CONFIG_DIR/opencode"
+    bun install
+else
+    echo ""
+    echo "Warning: bun not found. Skipping OpenCode dependency installation."
+    echo "Install bun and run 'cd ~/.config/opencode && bun install' manually."
+fi
+
+echo ""
+echo "Done! Dotfiles installed successfully."
+echo ""
+echo "Neovim: Run 'nvim' to start - Lazy.nvim will auto-install plugins on first launch"
+echo "OpenCode: Configuration ready at ~/.config/opencode"
