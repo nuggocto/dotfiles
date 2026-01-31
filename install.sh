@@ -37,6 +37,11 @@ echo ""
 echo "==> Setting up OpenCode config..."
 link_config "$DOTFILES_DIR/config/opencode" "$CONFIG_DIR/opencode"
 
+# Link ghostty config
+echo ""
+echo "==> Setting up Ghostty config..."
+link_config "$DOTFILES_DIR/config/ghostty" "$CONFIG_DIR/ghostty"
+
 # Install opencode dependencies if bun is available
 if command -v bun &> /dev/null; then
     echo ""
@@ -54,3 +59,5 @@ echo "Done! Dotfiles installed successfully."
 echo ""
 echo "Neovim: Run 'nvim' to start - Lazy.nvim will auto-install plugins on first launch"
 echo "OpenCode: Configuration ready at ~/.config/opencode"
+echo "Ghostty: Restart ghostty for changes to take effect"
+echo "         Toggle theme: ~/.config/ghostty/toggle-theme.sh"

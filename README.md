@@ -1,6 +1,6 @@
 # dotfiles
 
-Personal dotfiles for Neovim and OpenCode configurations.
+Personal dotfiles for Neovim, OpenCode, and Ghostty configurations.
 
 ## What's Included
 
@@ -34,6 +34,16 @@ Based on [LazyVim](https://www.lazyvim.org/) with custom configurations:
 
 - **MCP Servers:** playwright, chrome-devtools, context7
 - **Custom Skills:** postgresql-sql, astro-frontend, solid-frontend, svelte-frontend, gleam-backend, zig-backend, rust-backend, go-backend, frontend-design
+
+### Ghostty (`config/ghostty`)
+
+- **Font:** VictorMono Nerd Font Mono (size 14)
+- **Dark theme:** Aether (matches nvim colorscheme)
+- **Light theme:** Rose Pine Dawn
+- **Transparency:** 0.9 background opacity
+- **Keybinds:** Tab navigation (alt+1-5), splits (ctrl+shift+o), fullscreen (F11)
+
+**Toggle theme:** Run `~/.config/ghostty/toggle-theme.sh` (restart ghostty after)
 
 ## Installation
 
@@ -71,6 +81,7 @@ git clone git@github.com:katsutoo/dotfiles.git ~/dotfiles
 # Create symlinks
 ln -s ~/dotfiles/config/nvim ~/.config/nvim
 ln -s ~/dotfiles/config/opencode ~/.config/opencode
+ln -s ~/dotfiles/config/ghostty ~/.config/ghostty
 
 # Install OpenCode dependencies
 cd ~/.config/opencode && bun install
@@ -109,9 +120,15 @@ dotfiles/
 │   │   │   └── plugins/    # Plugin configurations
 │   │   └── plugin/
 │   │       └── after/      # Post-load configs (transparency)
-│   └── opencode/       # OpenCode configuration
-│       ├── opencode.json   # Main config
-│       └── skills/         # Custom AI skills
+│   ├── opencode/       # OpenCode configuration
+│   │   ├── opencode.json   # Main config
+│   │   └── skills/         # Custom AI skills
+│   └── ghostty/        # Ghostty terminal configuration
+│       ├── config          # Main config
+│       ├── themes/         # Theme files
+│       │   ├── aether-dark.conf
+│       │   └── rose-pine-dawn.conf
+│       └── toggle-theme.sh # Theme toggle script
 ├── install.sh          # Installation script
 └── README.md
 ```

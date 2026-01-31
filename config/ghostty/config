@@ -1,0 +1,45 @@
+# Ghostty Configuration
+# Theme: change to rose-pine-dawn.conf for light mode
+config-file = themes/aether-dark.conf
+
+# Font
+font-family = "VictorMono Nerd Font Mono"
+font-style = Regular
+font-size = 14
+
+# Window
+window-padding-x = 14
+window-padding-y = 14
+confirm-close-surface = false
+resize-overlay = never
+background-opacity = 0.9
+maximize = true
+
+# Cursor styling
+cursor-style = block
+cursor-style-blink = false
+shell-integration-features = no-cursor
+
+# Keyboard bindings - General
+keybind = f11=toggle_fullscreen
+keybind = shift+insert=paste_from_clipboard
+keybind = control+insert=copy_to_clipboard
+
+# Keyboard bindings - Tab navigation
+keybind = alt+1=goto_tab:1
+keybind = alt+2=goto_tab:2
+keybind = alt+3=goto_tab:3
+keybind = alt+4=goto_tab:4
+keybind = alt+5=goto_tab:5
+
+# Keyboard bindings - Splits
+keybind = ctrl+shift+o=new_split:right
+keybind = alt+h=goto_split:left
+keybind = alt+l=goto_split:right
+keybind = super+control+shift+alt+arrow_down=resize_split:down,100
+keybind = super+control+shift+alt+arrow_up=resize_split:up,100
+keybind = super+control+shift+alt+arrow_left=resize_split:left,100
+keybind = super+control+shift+alt+arrow_right=resize_split:right,100
+
+# Mouse
+mouse-scroll-multiplier = 0.95
