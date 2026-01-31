@@ -16,15 +16,15 @@ return {
 				base06 = "#a4a4a4", -- Light foreground
 				base07 = "#dbd9d3", -- Light background
 
-				-- Accent colors (base08-base0F)
-				base08 = "#e19e74", -- Variables, errors, red
-				base09 = "#984b1e", -- Integers, constants, orange
-				base0A = "#c6c4b0", -- Classes, types, yellow
-				base0B = "#a5a297", -- Strings, green
-				base0C = "#e1d574", -- Support, regex, cyan
-				base0D = "#605d5b", -- Functions, keywords, blue
-				base0E = "#8a8575", -- Keywords, storage, magenta
-				base0F = "#8f4445", -- Deprecated, brown/yellow
+			-- Accent colors (base08-base0F)
+			base08 = "#e8a0a0", -- Variables, errors - pastel coral/red
+			base09 = "#e8c08a", -- Integers, constants - pastel peach
+			base0A = "#e8d8a0", -- Classes, types - pastel gold
+			base0B = "#a8d4a8", -- Strings - pastel sage green
+			base0C = "#a8d4d4", -- Support, regex - pastel teal
+			base0D = "#a8c0d8", -- Functions, keywords - pastel sky blue
+			base0E = "#d0a8d0", -- Keywords, storage - pastel lavender
+			base0F = "#d4a8a0", -- Deprecated - pastel dusty rose
 			},
 		},
 	},
