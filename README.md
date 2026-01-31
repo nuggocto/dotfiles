@@ -10,7 +10,9 @@ Based on [LazyVim](https://www.lazyvim.org/) with custom configurations:
 
 - **Colorscheme:** [aether.nvim](https://github.com/bjarneo/aether.nvim) with custom dark monotone palette
 - **Light theme:** [rose-pine](https://github.com/rose-pine/neovim) (dawn variant)
-- **Transparent backgrounds** for all UI elements
+- **Font:** VictorMono Nerd Font Mono (set in terminal or GUI Neovim)
+- **Transparent backgrounds** for all UI elements (dark theme)
+- **Theme toggle:** `<leader>tt` to switch between dark/light
 - **Theme hot-reload** for quick colorscheme switching
 - **Copilot integration** with `<C-l>` to accept suggestions
 - **99 plugin** (ThePrimeagen) with Claude Opus 4.5 for AI assistance
@@ -18,6 +20,9 @@ Based on [LazyVim](https://www.lazyvim.org/) with custom configurations:
 - **Neo-tree** for file exploration
 
 **Available Themes:** aether, bamboo, catppuccin, everforest, flexoki, gruvbox, kanagawa, matteblack, monokai-pro, nord, rose-pine, tokyonight
+
+**Theme Keymaps:**
+- `<leader>tt` - Toggle dark (aether) / light (rose-pine dawn) theme
 
 **99 Keymaps:**
 - `<leader>9f` - Fill in function with AI
@@ -37,7 +42,7 @@ Based on [LazyVim](https://www.lazyvim.org/) with custom configurations:
 - [Neovim](https://neovim.io/) >= 0.9.0
 - [Git](https://git-scm.com/)
 - [Bun](https://bun.sh/) (for OpenCode dependencies)
-- A [Nerd Font](https://www.nerdfonts.com/) (optional, for icons)
+- [VictorMono Nerd Font](https://www.nerdfonts.com/font-downloads) - set this in your terminal emulator
 
 ### Quick Install
 
