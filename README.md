@@ -23,7 +23,7 @@ cd ~/dotfiles && ./install.sh
 | Light theme | [rose-pine](https://github.com/rose-pine/neovim) dawn |
 | Font | VictorMono Nerd Font Mono |
 | Completion | nvim-cmp + Copilot (`<C-l>` to accept) |
-| AI | 99 plugin with Claude Opus 4.5 |
+| AI | 99 plugin |
 | File explorer | Neo-tree |
 
 **Keymaps:**
@@ -31,9 +31,8 @@ cd ~/dotfiles && ./install.sh
 | Key | Action |
 |-----|--------|
 | `<leader>tt` | Toggle dark/light theme |
-| `<leader>9f` | AI fill in function |
-| `<leader>9v` | AI on visual selection |
-| `<leader>9p` | AI on selection with prompt |
+| `<leader>9v` | Prompt on visual selection |
+| `<leader>9s` | Stop the prompt |
 
 ### Ghostty
 
@@ -49,7 +48,7 @@ cd ~/dotfiles && ./install.sh
 ### OpenCode
 
 - **MCP Servers:** playwright, chrome-devtools, context7
-- **Skills:** go, rust, zig, gleam backends + astro, solid, svelte frontends + postgresql
+- **Skills:** go, rust, zig astro, solid, svelte
 
 ## Updating
 
