@@ -5,6 +5,7 @@ return {
       local _99 = require("99")
       local cwd = vim.uv.cwd()
       local basename = vim.fs.basename(cwd)
+      local completion_source = nil
 
       _99.setup({
         model = "anthropic/claude-opus-4-5",
@@ -14,7 +15,7 @@ return {
           print_on_error = true,
         },
         completion = {
-          source = "cmp",
+          source = completion_source,
           custom_rules = {
             vim.fn.expand("~/.config/opencode/skills/"),
           },
