@@ -22,7 +22,7 @@ cd ~/dotfiles && ./install.sh
 | Dark theme | [aether.nvim](https://github.com/bjarneo/aether.nvim) (custom monotone palette) |
 | Light theme | [rose-pine](https://github.com/rose-pine/neovim) dawn |
 | Font | VictorMono Nerd Font Mono |
-| Completion | nvim-cmp + Copilot (`<C-l>` to accept) |
+| Completion | blink.cmp + Copilot (`<C-l>` to accept) |
 | AI | 99 plugin |
 | File explorer | Neo-tree |
 
