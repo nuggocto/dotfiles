@@ -1,5 +1,5 @@
 {
-  "99": { "branch": "master", "commit": "a5130c1ec63c4b6bbceedbc61906cd9803bfabf8" },
+  "99": { "branch": "master", "commit": "82e5573f753793e89ab614429e3a390c808b1048" },
   "LazyVim": { "branch": "main", "commit": "28db03f958d58dfff3c647ce28fdc1cb88ac158d" },
   "aether": { "branch": "main", "commit": "e4c485f6fea6170fe2da17e87ca98cd25d215cd5" },
   "bamboo.nvim": { "branch": "master", "commit": "1309bc88bffcf1bedc3e84e7fa9004de93da774a" },
@@ -27,7 +27,7 @@
   "mini.icons": { "branch": "main", "commit": "68c178e0958d95b3977a771f3445429b1bded985" },
   "mini.pairs": { "branch": "main", "commit": "4089aa6ea6423e02e1a8326a7a7a00159f6f5e04" },
   "monokai-pro.nvim": { "branch": "master", "commit": "d8884d4473667c48bd17a68d08383d38839136a3" },
-  "neo-tree.nvim": { "branch": "main", "commit": "ccc9f8cf9620eae9c68e42bf97a2073e7561cf6c" },
+  "neo-tree.nvim": { "branch": "main", "commit": "9a1f0461c4cc62e64616bafe9425572ff6a5f245" },
   "noice.nvim": { "branch": "main", "commit": "7bfd942445fb63089b59f97ca487d605e715f155" },
   "nord.nvim": { "branch": "master", "commit": "80c1e5321505aeb22b7a9f23eb82f1e193c12470" },
   "nui.nvim": { "branch": "main", "commit": "de740991c12411b663994b2860f1a4fd0937c130" },
