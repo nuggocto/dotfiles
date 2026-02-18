@@ -1,6 +1,6 @@
 # dotfiles
 
-Personal dotfiles for Neovim, Ghostty, and OpenCode.
+Personal dotfiles for Neovim, Ghostty, Zed, and OpenCode.
 
 ## Quick Install
 
@@ -45,10 +45,28 @@ cd ~/dotfiles && ./install.sh
 
 **Keybinds:** `alt+1-5` tabs, `ctrl+shift+o` split, `F11` fullscreen
 
+### Zed
+
+| Feature | Details |
+|---------|---------|
+| Theme | Rosé Pine Dawn (light) / Rosé Pine (dark) |
+| Font | VictorMono Nerd Font Mono |
+| Vim mode | Enabled |
+
 ### OpenCode
 
 - **MCP Servers:** playwright, chrome-devtools, context7
-- **Skills:** go, rust, zig astro, solid, svelte
+- **Skills:** go, rust, zig, astro, solid, svelte
+
+## Post-Install (Neovim)
+
+After running the installer on a fresh machine:
+
+1. Open `nvim` once and wait for Lazy.nvim to finish installing plugins.
+2. Run `:Lazy sync`.
+3. Run `:TSUpdate`.
+4. If needed, run `:TSInstall all` (or install only specific parsers).
+5. Run `:checkhealth` and fix any missing dependencies reported.
 
 ## Updating
 

@@ -1,0 +1,56 @@
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      "alt-t": "terminal_panel::ToggleFocus",
+    },
+  },
+  {
+    "context": "Terminal",
+    "bindings": {
+      "alt-t": "workspace::ToggleBottomDock",
+    },
+  },
+  {
+    "context": "Editor && vim_mode == normal",
+    "bindings": {
+      "space space": "file_finder::Toggle",
+    },
+  },
+  {
+    "context": "Editor && vim_mode == normal",
+    "bindings": {
+      "space w v": "pane::SplitRight",
+      "space w s": "pane::SplitDown",
+    },
+  },
+
+  {
+    "context": "Editor && vim_mode == normal",
+    "bindings": {
+      "space w q": "pane::CloseActiveItem",
+    },
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "ctrl-alt-a": "agent::ToggleFocus",
+      "ctrl-alt-b": "workspace::ToggleRightDock",
+    },
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "ctrl-alt-q": "workspace::ToggleLeftDock",
+    },
+  },
+  {
+    "context": "Editor && vim_mode == normal",
+    "bindings": {
+      "space w h": "workspace::ActivatePaneLeft",
+      "space w l": "workspace::ActivatePaneRight",
+      "space w j": "workspace::ActivatePaneDown",
+      "space w k": "workspace::ActivatePaneUp",
+    },
+  },
+]
