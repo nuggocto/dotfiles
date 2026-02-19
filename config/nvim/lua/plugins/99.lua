@@ -2,7 +2,7 @@ return {
   {
     "ThePrimeagen/99",
     dependencies = {
-      { "saghen/blink.compat", version = "2.*" },
+      { "saghen/blink.compat", version = "2.*", opts = {} },
     },
     config = function()
       local _99 = require("99")
@@ -31,7 +31,7 @@ return {
       })
 
       vim.keymap.set("v", "<leader>9v", _99.visual, { desc = "99: Prompt on visual selection" })
-      vim.keymap.set("n", "<leader>9s", _99.search, { desc = "99: Search" })
+      vim.keymap.set("n", "<leader>9ss", _99.search, { desc = "99: Search" })
       vim.keymap.set({ "n", "v" }, "<leader>9x", _99.stop_all_requests, { desc = "99: Stop all requests" })
 
       vim.keymap.set("n", "<leader>9wd", worker.set_work, { desc = "99: Set work item" })
@@ -41,5 +41,14 @@ return {
       vim.keymap.set("n", "<leader>9ww", worker.work, { desc = "99: Run work search" })
       vim.keymap.set("n", "<leader>9wr", worker.last_search_results, { desc = "99: Last work results" })
     end,
+  },
+  {
+    "saghen/blink.cmp",
+    optional = true,
+    opts = {
+      sources = {
+        compat = { "99" },
+      },
+    },
   },
 }
