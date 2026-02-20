@@ -9,23 +9,25 @@ return {
       local worker = _99.Extensions.Worker
       local cwd = vim.uv.cwd()
       local basename = vim.fs.basename(cwd)
-      local completion_source = "blink"
 
       _99.setup({
         model = "openai/gpt-5.3-codex",
+        tmp_dir = "./tmp",
         logger = {
           level = _99.DEBUG,
           path = "/tmp/" .. basename .. ".99.debug",
           print_on_error = true,
         },
         completion = {
-          source = completion_source,
+          source = "blink",
           custom_rules = {
             vim.fn.expand("~/.config/opencode/skills/"),
           },
+          files = {},
         },
         md_files = {
           "AGENT.md",
+          "AGENTS.md",
         },
         display_errors = true,
       })
@@ -45,10 +47,12 @@ return {
   {
     "saghen/blink.cmp",
     optional = true,
-    opts = {
-      sources = {
-        compat = { "99" },
-      },
-    },
+    opts = function(_, opts)
+      opts.sources = opts.sources or {}
+      opts.sources.compat = opts.sources.compat or {}
+      if not vim.tbl_contains(opts.sources.compat, "99") then
+        table.insert(opts.sources.compat, "99")
+      end
+    end,
   },
 }
