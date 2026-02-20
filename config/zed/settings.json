@@ -16,11 +16,11 @@
     "default_profile": "ask",
     "inline_assistant_model": {
       "provider": "copilot_chat",
-      "model": "claude-opus-4.5"
+      "model": "gpt-5.3-codex"
     },
     "default_model": {
       "provider": "copilot_chat",
-      "model": "claude-opus-4.5"
+      "model": "gpt-5.3-codex"
     },
     "play_sound_when_agent_done": true,
     "model_parameters": []
@@ -35,7 +35,7 @@
   "icon_theme": {
     "mode": "system",
     "light": "Catppuccin Latte",
-    "dark": "Catppuccin Latte"
+    "dark": "Catppuccin Mocha"
   },
   "base_keymap": "VSCode",
   "ui_font_size": 20.0,
