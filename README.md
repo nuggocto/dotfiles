@@ -22,7 +22,7 @@ cd ~/dotfiles && ./install.sh
 | Dark theme | [aether.nvim](https://github.com/bjarneo/aether.nvim) (custom monotone palette) |
 | Light theme | [rose-pine](https://github.com/rose-pine/neovim) dawn |
 | Font | VictorMono Nerd Font Mono |
-| Completion | blink.cmp + Copilot (`<C-l>` to accept) |
+| Completion | blink.cmp + Copilot |
 | AI | 99 plugin |
 | File explorer | Neo-tree |
 
@@ -49,14 +49,14 @@ cd ~/dotfiles && ./install.sh
 
 | Feature | Details |
 |---------|---------|
-| Theme | Rosé Pine Dawn (light) / Rosé Pine (dark) |
+| Theme | Rosé Pine Dawn (light) / Gruvbox Material Dark Mix (dark) |
 | Font | VictorMono Nerd Font Mono |
 | Vim mode | Enabled |
 
 ### OpenCode
 
 - **MCP Servers:** playwright, chrome-devtools, context7
-- **Skills:** go, rust, zig, astro, solid, svelte
+- **Skills:** go, rust, zig, astro, solid, svelte, postgres, mysql, neki
 
 ## Post-Install (Neovim)
 
