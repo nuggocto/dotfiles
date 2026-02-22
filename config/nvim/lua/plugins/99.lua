@@ -7,10 +7,12 @@ return {
     config = function()
       local _99 = require("99")
       local worker = _99.Extensions.Worker
+      local telescope = require("99.extensions.telescope")
       local cwd = vim.uv.cwd()
       local basename = vim.fs.basename(cwd)
 
       _99.setup({
+        provider = _99.Providers.OpenCodeProvider,
         model = "openai/gpt-5.3-codex",
         tmp_dir = "./tmp",
         logger = {
@@ -33,8 +35,11 @@ return {
       })
 
       vim.keymap.set("v", "<leader>9v", _99.visual, { desc = "99: Prompt on visual selection" })
+      vim.keymap.set("n", "<leader>9s", _99.search, { desc = "99: Search" })
       vim.keymap.set("n", "<leader>9ss", _99.search, { desc = "99: Search" })
       vim.keymap.set({ "n", "v" }, "<leader>9x", _99.stop_all_requests, { desc = "99: Stop all requests" })
+      vim.keymap.set("n", "<leader>9m", telescope.select_model, { desc = "99: Select model" })
+      vim.keymap.set("n", "<leader>9p", telescope.select_provider, { desc = "99: Select provider" })
 
       vim.keymap.set("n", "<leader>9wd", worker.set_work, { desc = "99: Set work item" })
       vim.keymap.set("n", "<leader>9wg", function()
