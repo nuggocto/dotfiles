@@ -7,14 +7,72 @@ return {
     config = function()
       local _99 = require("99")
       local worker = _99.Extensions.Worker
-      local telescope = require("99.extensions.telescope")
+      local utils = require("99.utils")
       local cwd = vim.uv.cwd()
       local basename = vim.fs.basename(cwd)
+      local tmp_dir = "./tmp"
+      local picker
+
+      vim.fn.mkdir(vim.fn.expand(tmp_dir), "p")
+
+      do
+        local has_telescope, telescope = pcall(require, "99.extensions.telescope")
+        if has_telescope then
+          picker = telescope
+        else
+          local has_fzf_lua, fzf_lua = pcall(require, "99.extensions.fzf_lua")
+          if has_fzf_lua then
+            picker = fzf_lua
+          end
+        end
+      end
+
+      local function get_current_work_item()
+        local current_work_item = worker.current_work_item
+        if current_work_item and current_work_item ~= "" then
+          return current_work_item
+        end
+
+        local work_item_path = utils.named_tmp_file(_99.__get_state():tmp_dir(), "work-item")
+        local work_item_file = io.open(work_item_path, "r")
+        if not work_item_file then
+          return nil
+        end
+
+        local work_item = work_item_file:read("*a")
+        work_item_file:close()
+
+        if not work_item or work_item == "" then
+          return nil
+        end
+
+        worker.current_work_item = work_item
+        return work_item
+      end
+
+      local function open_last_work_results()
+        local request_id = worker.last_work_search
+        if not request_id then
+          vim.notify("99: No work search results yet", vim.log.levels.WARN)
+          return
+        end
+
+        local requests = _99.__get_state():requests()
+        for i = #requests, 1, -1 do
+          local request = requests[i]
+          if request.xid == request_id then
+            _99.open_qfix_for_request(request)
+            return
+          end
+        end
+
+        vim.notify("99: Could not find last work search request", vim.log.levels.WARN)
+      end
 
       _99.setup({
         provider = _99.Providers.OpenCodeProvider,
         model = "openai/gpt-5.3-codex",
-        tmp_dir = "./tmp",
+        tmp_dir = tmp_dir,
         logger = {
           level = _99.DEBUG,
           path = "/tmp/" .. basename .. ".99.debug",
@@ -38,15 +96,25 @@ return {
       vim.keymap.set("n", "<leader>9s", _99.search, { desc = "99: Search" })
       vim.keymap.set("n", "<leader>9ss", _99.search, { desc = "99: Search" })
       vim.keymap.set({ "n", "v" }, "<leader>9x", _99.stop_all_requests, { desc = "99: Stop all requests" })
-      vim.keymap.set("n", "<leader>9m", telescope.select_model, { desc = "99: Select model" })
-      vim.keymap.set("n", "<leader>9p", telescope.select_provider, { desc = "99: Select provider" })
+
+      if picker then
+        vim.keymap.set("n", "<leader>9m", picker.select_model, { desc = "99: Select model" })
+        vim.keymap.set("n", "<leader>9p", picker.select_provider, { desc = "99: Select provider" })
+      end
 
       vim.keymap.set("n", "<leader>9wd", worker.set_work, { desc = "99: Set work item" })
       vim.keymap.set("n", "<leader>9wg", function()
-        print(worker.current_work_item or "No current work item")
+        local work_item = get_current_work_item()
+        if work_item then
+          print(work_item)
+          return
+        end
+
+        vim.notify("99: No current work item", vim.log.levels.INFO)
       end, { desc = "99: Show work item" })
-      vim.keymap.set("n", "<leader>9ww", worker.work, { desc = "99: Run work search" })
-      vim.keymap.set("n", "<leader>9wr", worker.last_search_results, { desc = "99: Last work results" })
+      vim.keymap.set("n", "<leader>9wu", worker.update_work, { desc = "99: Update work item" })
+      vim.keymap.set("n", "<leader>9ww", worker.search, { desc = "99: Run work search" })
+      vim.keymap.set("n", "<leader>9wr", open_last_work_results, { desc = "99: Last work results" })
     end,
   },
   {
