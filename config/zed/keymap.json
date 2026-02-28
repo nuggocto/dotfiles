@@ -1,4 +1,11 @@
+
 [
+  {
+    "context": "Editor",
+    "bindings": {
+      "ctrl-enter": "assistant::InlineAssist"
+    }
+  },
   {
     "context": "Workspace",
     "bindings": {
