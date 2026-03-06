@@ -25,7 +25,7 @@
     },
     "default_model": {
       "provider": "copilot_chat",
-      "model": "claude-opus-4.6",
+      "model": "gpt-5.4",
     },
     "play_sound_when_agent_done": true,
     "model_parameters": [],
