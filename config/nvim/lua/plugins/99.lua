@@ -13,6 +13,10 @@ return {
       local tmp_dir = "./tmp"
       local picker
 
+      local function map(modes, lhs, rhs, desc)
+        vim.keymap.set(modes, lhs, rhs, { desc = desc })
+      end
+
       vim.fn.mkdir(vim.fn.expand(tmp_dir), "p")
 
       do
@@ -71,7 +75,7 @@ return {
 
       _99.setup({
         provider = _99.Providers.OpenCodeProvider,
-        model = "openai/gpt-5.3-codex",
+        model = "openai/gpt-5.4",
         tmp_dir = tmp_dir,
         logger = {
           level = _99.DEBUG,
@@ -92,18 +96,21 @@ return {
         display_errors = true,
       })
 
-      vim.keymap.set("v", "<leader>9v", _99.visual, { desc = "99: Prompt on visual selection" })
-      vim.keymap.set("n", "<leader>9s", _99.search, { desc = "99: Search" })
-      vim.keymap.set("n", "<leader>9ss", _99.search, { desc = "99: Search" })
-      vim.keymap.set({ "n", "v" }, "<leader>9x", _99.stop_all_requests, { desc = "99: Stop all requests" })
+      map("v", "<leader>9v", _99.visual, "99: Prompt on visual selection")
+      map("n", "<leader>9s", _99.search, "99: Search")
+      map("n", "<leader>9t", _99.tutorial, "99: Tutorial")
+      map("n", "<leader>9o", _99.open, "99: Open request")
+      map("n", "<leader>9l", _99.view_logs, "99: View logs")
+      map("n", "<leader>9c", _99.clear_previous_requests, "99: Clear history")
+      map({ "n", "v" }, "<leader>9x", _99.stop_all_requests, "99: Stop all requests")
 
       if picker then
-        vim.keymap.set("n", "<leader>9m", picker.select_model, { desc = "99: Select model" })
-        vim.keymap.set("n", "<leader>9p", picker.select_provider, { desc = "99: Select provider" })
+        map("n", "<leader>9m", picker.select_model, "99: Select model")
+        map("n", "<leader>9p", picker.select_provider, "99: Select provider")
       end
 
-      vim.keymap.set("n", "<leader>9wd", worker.set_work, { desc = "99: Set work item" })
-      vim.keymap.set("n", "<leader>9wg", function()
+      map("n", "<leader>9wd", worker.set_work, "99: Set work item")
+      map("n", "<leader>9wg", function()
         local work_item = get_current_work_item()
         if work_item then
           print(work_item)
@@ -111,10 +118,11 @@ return {
         end
 
         vim.notify("99: No current work item", vim.log.levels.INFO)
-      end, { desc = "99: Show work item" })
-      vim.keymap.set("n", "<leader>9wu", worker.update_work, { desc = "99: Update work item" })
-      vim.keymap.set("n", "<leader>9ww", worker.search, { desc = "99: Run work search" })
-      vim.keymap.set("n", "<leader>9wr", open_last_work_results, { desc = "99: Last work results" })
+      end, "99: Show work item")
+      map("n", "<leader>9wu", worker.update_work, "99: Update work item")
+      map("n", "<leader>9ww", worker.search, "99: Run work search")
+      map("n", "<leader>9wv", worker.vibe, "99: Run work vibe")
+      map("n", "<leader>9wr", open_last_work_results, "99: Last work results")
     end,
   },
   {
