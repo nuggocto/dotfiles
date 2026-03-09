@@ -22,7 +22,6 @@ cd ~/dotfiles && ./install.sh
 | Dark theme | [aether.nvim](https://github.com/bjarneo/aether.nvim) (custom monotone palette) |
 | Light theme | [rose-pine](https://github.com/rose-pine/neovim) dawn |
 | Font | VictorMono Nerd Font Mono |
-| Completion | blink.cmp + Copilot |
 | AI | 99 plugin |
 | File explorer | Neo-tree |
 
@@ -31,8 +30,6 @@ cd ~/dotfiles && ./install.sh
 | Key | Action |
 |-----|--------|
 | `<leader>tt` | Toggle dark/light theme |
-| `<leader>9v` | Prompt on visual selection |
-| `<leader>9s` | Stop the prompt |
 
 ### Ghostty
 
@@ -43,7 +40,7 @@ cd ~/dotfiles && ./install.sh
 | Opacity | 0.9 |
 | Toggle | `~/.config/ghostty/toggle-theme.sh` |
 
-**Keybinds:** `alt+1-5` tabs, `ctrl+shift+o` split, `F11` fullscreen
+**Keybinds:** `alt+1-5` tabs, `ctrl+shift+o` split, `F11` fullscreen, `Ctrl+Shift+T` new tab, `Ctrl+Shift+P` open command palette
 
 ### Zed
 
