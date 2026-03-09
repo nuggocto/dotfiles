@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="$HOME/.config"
@@ -10,49 +10,74 @@ echo "Installing dotfiles from $DOTFILES_DIR"
 # Create .config directory if it doesn't exist
 mkdir -p "$CONFIG_DIR"
 
-# Function to create symlink with backup
+# Return the next available backup path for a config.
+next_backup_path() {
+    local path="$1"
+    local backup_path="${path}.backup"
+    local index=1
+
+    while [ -e "$backup_path" ] || [ -L "$backup_path" ]; do
+        backup_path="${path}.backup.${index}"
+        index=$((index + 1))
+    done
+
+    printf '%s\n' "$backup_path"
+}
+
+# Create a symlink and preserve any existing config safely.
 link_config() {
     local src="$1"
     local dest="$2"
-    
+    local backup_path
+    local current_target
+
+    if [ ! -e "$src" ]; then
+        echo "Error: source config not found: $src" >&2
+        exit 1
+    fi
+
     if [ -L "$dest" ]; then
+        current_target="$(readlink "$dest")"
+        if [ "$current_target" = "$src" ]; then
+            echo "Already linked: $dest"
+            return
+        fi
+
         echo "Removing existing symlink: $dest"
         rm "$dest"
     elif [ -e "$dest" ]; then
-        echo "Backing up existing config: $dest -> $dest.backup"
-        mv "$dest" "$dest.backup"
+        backup_path="$(next_backup_path "$dest")"
+        echo "Backing up existing config: $dest -> $backup_path"
+        mv "$dest" "$backup_path"
     fi
-    
+
     echo "Linking: $src -> $dest"
     ln -s "$src" "$dest"
 }
 
-# Link nvim config
-echo ""
-echo "==> Setting up Neovim config..."
-link_config "$DOTFILES_DIR/config/nvim" "$CONFIG_DIR/nvim"
+# Link one config directory by name.
+setup_config() {
+    local name="$1"
+    local dir_name="$2"
 
-# Link opencode config
-echo ""
-echo "==> Setting up OpenCode config..."
-link_config "$DOTFILES_DIR/config/opencode" "$CONFIG_DIR/opencode"
+    echo ""
+    echo "==> Setting up $name config..."
+    link_config "$DOTFILES_DIR/config/$dir_name" "$CONFIG_DIR/$dir_name"
+}
 
-# Link ghostty config
-echo ""
-echo "==> Setting up Ghostty config..."
-link_config "$DOTFILES_DIR/config/ghostty" "$CONFIG_DIR/ghostty"
-
-# Link zed config
-echo ""
-echo "==> Setting up Zed config..."
-link_config "$DOTFILES_DIR/config/zed" "$CONFIG_DIR/zed"
+setup_config "Neovim" "nvim"
+setup_config "OpenCode" "opencode"
+setup_config "Ghostty" "ghostty"
+setup_config "Zed" "zed"
 
 # Install opencode dependencies if bun is available
 if command -v bun &> /dev/null; then
     echo ""
     echo "==> Installing OpenCode dependencies with bun..."
-    cd "$CONFIG_DIR/opencode"
-    bun install
+    (
+        cd "$CONFIG_DIR/opencode"
+        bun install
+    )
 else
     echo ""
     echo "Warning: bun not found. Skipping OpenCode dependency installation."

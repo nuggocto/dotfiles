@@ -9,7 +9,7 @@ git clone git@github.com:katsutoo/dotfiles.git ~/dotfiles
 cd ~/dotfiles && ./install.sh
 ```
 
-**Prerequisites:** [Neovim](https://neovim.io/) >= 0.9.0, [Bun](https://bun.sh/), [VictorMono Nerd Font](https://www.nerdfonts.com/font-downloads)
+**Prerequisites:** [Neovim](https://neovim.io/) >= 0.9.0 and [VictorMono Nerd Font](https://www.nerdfonts.com/font-downloads). [Bun](https://bun.sh/) is optional and only needed to install OpenCode dependencies automatically.
 
 ## What's Included
 
