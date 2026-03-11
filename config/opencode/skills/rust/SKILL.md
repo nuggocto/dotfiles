@@ -3,361 +3,144 @@ name: rust
 description: >
   Production-grade Rust backend guidance focused on idiomatic design,
   explicit error handling, safe concurrency, and reliable operations.
+license: MIT
+metadata:
+  author: opencode
+  version: "2.0.0"
 ---
 
-# Rust Skill
+# Rust
 
-## Core Philosophy
+Use this skill for production-grade Rust services, APIs, workers, and backend tooling. Prefer the repository's existing stack over generic defaults; use the defaults below only when the codebase has no clear standard.
 
-Be an honest, insightful programming partner. Challenge code when there are clear improvements in:
+## Workflow
 
-1. Efficiency
-2. Readability and maintainability
-3. Robustness and error handling
-4. Scalability
-5. Best practices and conventions
-6. Security
+1. Identify the service shape and constraints: runtime, entrypoint, storage, external I/O, latency target, and deployment model.
+2. Read only the files that govern the change: `Cargo.toml`, entrypoints, config, router, domain/service/repository modules, tests, migrations, and CI.
+3. Preserve existing framework and crate choices unless they are unsafe, broken, or clearly blocking the request.
+4. Make the smallest change that keeps ownership, module boundaries, and error flow obvious.
+5. Verify with the narrowest useful commands first; widen to full fmt/lint/test/build checks for broader changes.
 
-If a solution is already idiomatic and solid, affirm it. Avoid churn and "refactor for refactor's sake." Explain the "why" behind suggestions.
+## Default posture
 
-## Rule Levels
+- Prefer stable Rust, explicit ownership, and strong type boundaries.
+- Prefer concrete types first; extract traits only for a real second implementation or a real test seam.
+- Prefer thin transport layers, explicit transactions, and structured observability.
+- Prefer clear synchronous-looking async code over clever abstractions.
+- Do not add `unsafe`, deep macro magic, or unnecessary generics without a concrete payoff.
 
-Use this priority model to avoid over-constraining normal Rust work.
+## Defaults when the repo has no standard
 
-- MUST: hard requirements for reliability, correctness, and security.
-- SHOULD: strong defaults; deviate only with clear context.
-- MAY: optional choices based on scale, constraints, or product needs.
+| Area | Default | Notes |
+| --- | --- | --- |
+| Toolchain | Rust stable | Keep CI and local tooling aligned |
+| Edition | 2025 | Follow the repo if already pinned |
+| HTTP | Axum + Tower | Good default for composable services |
+| Async runtime | Tokio | Use one runtime consistently |
+| Database | SQLx | Prefer SQL-first access and explicit queries |
+| Errors | `thiserror` + `anyhow` | `anyhow` for internal app boundaries only |
+| Logging | `tracing` + `tracing-subscriber` | Structured logs and spans |
+| Validation | `garde` or existing repo choice | Keep validation centralized |
+| Secrets | `secrecy` | Reduce accidental secret exposure |
+| Password hashing | `argon2` (Argon2id) | If the service stores passwords |
+| IDs | `uuid` (UUIDv7) | Prefer one ID strategy per service |
+| Date/time | `time` | Use one time crate consistently |
+| Integration tests | `testcontainers-rs` | When behavior depends on external services |
+| Security checks | `cargo-deny`, `cargo-audit` | Use when deps or security posture change |
 
-## Code Quality Principles
+If the repository already uses alternatives such as Actix, SeaORM, Diesel, or `chrono`, stay consistent unless the user asks for a migration.
 
-- Prefer iterators and combinators when they improve clarity.
-- Keep functions focused and easy to scan; split only when it helps understanding.
-- Make illegal states unrepresentable with enums/newtypes when practical.
-- Handle errors explicitly; no silent failure paths.
-- Minimize deep nesting and unnecessary indirection.
-- Favor composition and traits over inheritance-style design.
-- Enforce quality gates with tooling in CI.
+## Architecture defaults
 
-## Project Philosophy
+- Keep handlers/controllers focused on transport: parse input, call service, map output.
+- Keep business rules, orchestration, and transaction ownership in services.
+- Keep SQL, persistence mapping, and driver details in repositories.
+- Keep startup, config, tracing setup, and graceful shutdown in dedicated bootstrap code.
+- Keep shared middleware, extractors, pagination, and error envelopes in a small shared layer.
 
-- Prefer zero-cost abstractions, explicit ownership, and strong type boundaries.
-- Use dependencies intentionally; "stdlib-first" does not mean "no dependencies."
-- Default to secure and observable behavior for networked services.
+Suggested layout when starting from scratch:
 
-## Default Stack
+```text
+src/
+  main.rs
+  lib.rs
+  startup.rs
+  config.rs
+  router.rs
+  domain/
+  infrastructure/
+  shared/
+tests/
+sql/migrations/
+```
 
-These are default choices, not universal hard requirements.
+## Rust conventions
 
-| Category | Default | Level | Notes |
-|----------|---------|-------|-------|
-| Language | Rust stable | MUST | Keep toolchain pinned in CI |
-| Edition | 2024 | SHOULD | Follow repository edition consistently |
-| Web framework | Axum | SHOULD | Composable with Tower |
-| Async runtime | Tokio | SHOULD | Production async runtime |
-| DB access | SQLx | SHOULD | Async SQL, strong typing |
-| Middleware | Tower / tower-http | SHOULD | Timeouts, tracing, limits |
-| Error types | thiserror | MUST | Domain and application error enums |
-| Error context | anyhow | MAY | Internal app/service boundaries |
-| Logging | tracing + tracing-subscriber | MUST | Structured logs and spans |
-| Validation | garde | SHOULD | Derive-based validation |
-| Password hashing | argon2 (Argon2id) | MUST (if passwords) | Store parameters with hash |
-| Secret handling | secrecy | SHOULD | Reduce accidental secret exposure |
-| HTTP client | reqwest | SHOULD | Explicit timeout/retry policy |
-| IDs | uuid (UUIDv7) | SHOULD | Time-sortable IDs |
-| Date/time | time | SHOULD | Prefer one crate consistently |
-| Dev reload | cargo-watch | MAY | Local dev loop (`cargo watch -x run`) |
-| Integration tests | testcontainers-rs | SHOULD | Use when external deps affect behavior |
-| Parameterized tests | rstest | MAY | Improves test readability |
-| Security audit | cargo-deny + cargo-audit | SHOULD | Dependency/license hygiene |
-| Message queues | lapin, async-nats | MAY | Add only when async workflow demands it |
+- Use `snake_case` for modules, files, functions, and variables.
+- Use `PascalCase` for structs, enums, traits, and type aliases.
+- Use `SCREAMING_SNAKE_CASE` for constants.
+- Use `Error` suffix for error types, `Builder` suffix for builders, and `try_` for fallible constructors.
+- Use `Id`, not `ID`; use `Uuid`, not `UUID`; do not suffix async functions with `_async`.
+- Prefer domain newtypes at boundaries instead of passing raw `String`, `i64`, or `Uuid` values everywhere.
 
-## Naming Conventions
+## Modules, traits, and imports
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Files/modules | `snake_case` | `user_repository.rs`, `mod user_service` |
-| Structs/enums/traits | PascalCase | `UserService`, `UserRole`, `EmailSender` |
-| Functions/methods | `snake_case` | `get_by_id`, `validate_input` |
-| Variables | `snake_case` | `user_id`, `donation_count` |
-| Constants | `SCREAMING_SNAKE_CASE` | `MAX_RETRIES` |
-| Type aliases | PascalCase | `type AppResult<T> = Result<T, AppError>` |
-| Error types | `Error` suffix | `UserError`, `AppError` |
-| Builders | `Builder` suffix | `UserBuilder` |
-| Fallible ctors | `try_` prefix | `Config::try_from_env()` |
-| Booleans | `is_`, `has_`, `can_` | `is_active`, `has_permission` |
-| Unsafe APIs | `*_unchecked` suffix | `get_unchecked` |
-
-Rust idioms:
-
-- Use `Id`, not `ID`: `UserId`, `user_id`.
-- Use `Uuid`, not `UUID`: `Uuid::now_v7()`.
-- No `_async` suffix for async functions.
-- Prefer explicit domain newtypes over raw primitives at boundaries.
-
-## Traits, Modules, Imports
-
-- Define traits at the consumer boundary by default.
-- Start with concrete types; extract traits when multiple implementations or test seams are real.
+- Define traits at the consumer boundary by default, not beside the implementation.
 - Keep traits small and behavior-focused.
-- Prefer explicit `crate::` imports in production modules.
-- Use `super::*` mainly in tests where locality is clear.
+- Prefer `crate::...` imports in production modules.
+- Reserve `use super::*;` mostly for tests where locality is obvious.
+- Split modules when it improves ownership and readability, not just to create more files.
 
-Example:
+## Errors and observability
 
-```rust
-// good
-use crate::domain::user::{model::User, service::UserService};
+- Never `unwrap()`, `expect()`, or `panic!` in request paths, jobs, or business logic.
+- Use `thiserror` enums for domain and application errors.
+- Add context at I/O boundaries with `anyhow::Context` or equivalent internal wrappers.
+- Convert infrastructure errors before they cross transport boundaries.
+- Never leak internal error details to clients; log internals and return stable public codes.
+- Use `tracing` fields and spans for request-scoped context such as `request_id`, `user_id`, and `trace_id`.
 
-// acceptable in tests
-use super::*;
-```
+## Async and concurrency
 
-## Project Layout (Template)
-
-Use this as a starting point and adapt names to your domain.
-
-```text
-project/
-├── src/
-│   ├── main.rs                     # entrypoint
-│   ├── lib.rs
-│   ├── startup.rs                  # bootstrapping, tracing, shutdown
-│   ├── config.rs                   # env/config parsing
-│   ├── router.rs                   # route wiring only
-│   │
-│   ├── domain/
-│   │   ├── mod.rs
-│   │   └── user/
-│   │       ├── mod.rs
-│   │       ├── model.rs
-│   │       ├── service.rs
-│   │       ├── repository.rs
-│   │       ├── handlers.rs
-│   │       └── error.rs
-│   │
-│   ├── infrastructure/
-│   │   ├── mod.rs
-│   │   ├── database.rs
-│   │   ├── cache.rs
-│   │   ├── queue.rs
-│   │   └── security/
-│   │       ├── mod.rs
-│   │       ├── password.rs
-│   │       └── token.rs
-│   │
-│   └── shared/
-│       ├── mod.rs
-│       ├── errors.rs
-│       ├── extractors.rs
-│       ├── pagination.rs
-│       └── middleware/
-│           ├── mod.rs
-│           ├── request_id.rs
-│           ├── security_headers.rs
-│           └── metrics.rs
-│
-├── sql/
-│   ├── migrations/
-│   └── queries/
-│
-├── tests/
-│   ├── integration/
-│   │   ├── mod.rs
-│   │   ├── helpers.rs
-│   │   └── user_tests.rs
-│   └── testutil/
-│       └── fixtures.rs
-│
-├── Cargo.toml
-├── Cargo.lock
-├── clippy.toml
-├── rustfmt.toml
-├── .cargo/config.toml
-├── justfile
-├── docker-compose.yml
-└── README.md
-```
-
-## Request Flow
-
-```text
-HTTP Request
-    -> Handlers    (extract + map transport)
-    -> Service     (business rules + orchestration + transactions)
-    -> Repository  (SQLx query/mapping)
-    -> Database
-```
-
-### Layer Responsibilities
-
-| Layer | Does | Does NOT | Test Focus |
-|-------|------|----------|------------|
-| Handlers | Extract path/query/body, call services, map errors to responses | Business rules, SQL | Serialization, status codes, auth extraction |
-| Service | Business rules, transactions, orchestration | HTTP concerns, raw SQL | Rules, rollback behavior, error paths |
-| Repository | SQLx operations and mapping | Domain policy, HTTP concerns | Query correctness, mapping, DB errors |
-
-## Anti-Patterns to Avoid
-
-No god modules:
-
-```text
-bad:  domain/user/handlers.rs with all domain logic mixed in
-good: split model/service/repository/handlers with explicit boundaries
-```
-
-Avoid fire-and-forget tasks:
-
-- Do not `tokio::spawn` and ignore `JoinHandle` for critical work.
 - Every spawned task needs an owner, cancellation path, and shutdown behavior.
+- Prefer bounded concurrency (`Semaphore`, worker pools, backpressure) over unbounded fan-out.
+- Use `spawn_blocking` for CPU-heavy or blocking work in async services.
+- Avoid holding mutex guards across `.await` points.
+- Prefer message passing when ownership transfer is clearer than shared mutable state.
 
-Never ignore failures:
-
-- No `unwrap()`/`expect()` in request paths or business logic.
-- No `println!` for operational logs; use `tracing`.
-- No `panic!` outside startup and tests.
-
-## Error Handling
-
-| Situation | Use |
-|-----------|-----|
-| Domain/application errors | `thiserror` enums |
-| Internal context wrapping | `anyhow::Context` (internal only) |
-| Public result alias | `type AppResult<T> = Result<T, AppError>` |
-| Error propagation | `?` operator |
-| Optional value required | `ok_or(...)` / `ok_or_else(...)` |
-
-Rules:
-
-- Add contextual error messages at infrastructure boundaries.
-- Convert infra errors to domain/app errors before returning to transport.
-- Never leak internal error details to clients; log internals, return stable codes.
-
-## Logging and Tracing
-
-- Use structured logs with `tracing` fields.
-- Add spans for handlers/services (`#[instrument]`) and skip heavy args.
-- Include correlation fields where possible (`request_id`, `user_id`, `trace_id`).
-
-Example:
-
-```rust
-#[tracing::instrument(skip(self, db), fields(user_id = %user_id))]
-pub async fn create_user(&self, db: &sqlx::PgPool, user_id: Uuid) -> AppResult<()> {
-    tracing::info!("user_created");
-    Ok(())
-}
-```
-
-## Validation
-
-- Validate request DTOs at handler boundaries.
-- Enforce domain invariants again in service layer when correctness matters.
-- Keep validation rules centralized and reusable.
-- Reject unknown/extra fields when strict API contracts are expected.
-
-## Security Defaults
-
-- Passwords: Argon2id with tuned parameters for your hardware/latency budget.
-- Secrets: use `SecretString`/`SecretVec` where practical.
-- Tokens/JWT: short-lived access tokens, explicit claim validation (`exp`, `iat`, `sub`, audience/issuer as needed).
-- SQL: parameterized queries only (never string-concatenated SQL).
-- Headers: enforce security headers middleware (HSTS, CSP, frame protections) where appropriate.
-
-## Async and Concurrency
-
-- Use bounded concurrency (`Semaphore`, worker pools, backpressure) for fan-out work.
-- Use cancellation-aware orchestration (`tokio::select!`, shutdown signals, cancellation token patterns).
-- Use `spawn_blocking` for CPU-heavy or blocking operations in async contexts.
-- Avoid long-held mutex guards across `.await` points.
-- Prefer message passing/channels where ownership transfer is clearer than shared mutable state.
-
-## HTTP Standards and Safety
+## HTTP, database, and security
 
 - Use `http::StatusCode` constants, not numeric literals.
-- Set body size limits (`DefaultBodyLimit` / explicit limits on upload routes).
-- Set timeout policy for handlers and outbound calls.
-- Configure CORS explicitly (origins, methods, headers), not wildcard by default.
-- Keep response envelope and error schema stable across endpoints.
-
-Recommended response envelopes:
-
-- Success: `{ "data": T }`
-- Error: `{ "error": string, "code": string, "details": map }`
-- Paginated: `{ "data": []T, "total": int, "page": int, "per_page": int }`
-
-## Database and Transactions
-
+- Set body size limits, handler timeouts, outbound timeouts, and explicit CORS rules.
+- Keep response and error envelopes stable within a service.
 - Service layer owns transaction boundaries.
-- Repositories accept `&mut Transaction<'_, Postgres>` (or compatible executor abstraction).
-- Keep SQL in repositories and business decisions in services.
-- Prevent N+1 query patterns on hot endpoints.
-- Prefer explicit migrations over implicit schema drift.
+- Keep SQL and persistence mapping in repositories; avoid policy logic in query code.
+- Use parameterized queries only; watch for N+1 patterns on hot paths.
+- Prefer explicit migrations in `sql/migrations/` with one naming convention per repo.
+- Use Argon2id for passwords, short-lived tokens, and explicit validation for token claims.
+- Use secret wrappers where practical and avoid logging sensitive values.
 
-## SQLx Migrations
+## Testing and verification
 
-- Location: `sql/migrations/`.
-- Naming default: `YYYYMMDDHHMMSS_description.sql`.
-- Keep migrations reversible when possible.
-- Use one naming strategy per repository and keep it consistent.
+- Keep unit tests close to the code when that improves locality.
+- Add integration tests with real dependencies when external systems affect behavior.
+- Use property tests, fuzzing, or benchmarks when invariants or performance justify them.
+- Run `cargo fmt --all`, `cargo clippy --all-targets --all-features -- -D warnings`, and `cargo test --all-features` for substantial changes.
+- Run `cargo deny check` or `cargo audit` when dependency or security-sensitive work is involved.
 
-## Workspace Lints and Tooling
+## Guardrails
 
-- Configure workspace-wide lints in root `Cargo.toml`.
-- Avoid enabling `clippy::pedantic` wholesale; enable targeted lints instead.
-- Keep lint levels pragmatic for application code, stricter for libraries.
+- Do not mix handler, service, and repository responsibilities in one module.
+- Do not introduce global mutable state when scoped ownership will do.
+- Do not fire-and-forget critical work.
+- Do not add dependencies for tiny conveniences without a clear maintenance win.
+- Do not refactor broadly when a small targeted fix solves the problem.
 
-Minimal pattern:
+## Response expectations
 
-```toml
-[workspace.lints.rust]
-unsafe_code = "deny"
-rust_2018_idioms = { level = "warn", priority = -1 }
+When using this skill:
 
-[workspace.lints.clippy]
-all = { level = "warn", priority = -1 }
-```
-
-## Testing Standards
-
-### Unit Tests
-
-- Prefer table-driven/parameterized tests (`rstest`) when many cases exist.
-- Cover happy path, error path, and edge cases.
-- Keep tests close to code with `#[cfg(test)] mod tests` where practical.
-- Use `#[tokio::test]` for async behavior.
-
-### Integration Tests
-
-- Use real dependencies (often via `testcontainers-rs`) when behavior depends on them.
-- Isolate state with per-test databases/schemas or robust cleanup.
-- Keep setup deterministic and CI-friendly.
-
-### Other Test Types
-
-- Add property tests for invariant-heavy logic (`proptest`) when valuable.
-- Add benchmarks for hot paths (`criterion`).
-- Add fuzz tests for parser/decoder boundaries (`cargo-fuzz`) where risk justifies it.
-
-### Contract Testing
-
-For external APIs, use record/replay or contract tests when provider changes can break CI.
-
-## Code Quality Checklist
-
-Before committing:
-
-- [ ] Business logic stays in services, not handlers.
-- [ ] No `unwrap()`/`expect()` in production paths.
-- [ ] Structured logs/spans with `tracing` (no `println!`).
-- [ ] Input validation present for external-facing endpoints.
-- [ ] Outbound I/O has explicit timeout and retry policy.
-- [ ] Spawned tasks have ownership and shutdown behavior.
-- [ ] Transaction boundaries are explicit and tested.
-- [ ] Migrations are applied and validated in test/dev flow.
-- [ ] `cargo fmt --all` passes.
-- [ ] `cargo clippy --all-targets --all-features -- -D warnings` passes.
-- [ ] `cargo test --all-features` passes.
-- [ ] `cargo deny check` reviewed.
-- [ ] `cargo audit` reviewed.
-- [ ] Graceful shutdown handles SIGINT/SIGTERM.
-- [ ] No `TODO`/`FIXME` without issue reference.
+1. State the architecture impact of the change in plain language.
+2. Call out trade-offs when choosing crates, async patterns, or boundaries.
+3. Prefer concrete file-level guidance over abstract Rust advice.
+4. End with the most relevant verification commands or follow-up checks.

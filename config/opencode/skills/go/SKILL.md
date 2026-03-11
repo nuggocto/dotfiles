@@ -3,356 +3,142 @@ name: go
 description: >
   Production-grade Go backend guidance focused on idiomatic code, clear
   architecture boundaries, reliability, and testability.
+license: MIT
+metadata:
+  author: opencode
+  version: "2.0.0"
 ---
 
-# Go Skill
+# Go
 
-## Core Philosophy
+Use this skill for production-grade Go services, APIs, workers, and internal backend tooling. Prefer the repository's existing patterns over generic defaults; use the defaults below when the codebase does not already have a clear standard.
 
-Be an honest, insightful programming partner. Challenge code when there are clear improvements in:
+## Workflow
 
-1. Efficiency
-2. Readability and maintainability
-3. Robustness and error handling
-4. Scalability
-5. Best practices and conventions
-6. Security
+1. Identify the service shape and constraints: entrypoint, transport, storage, concurrency model, latency target, and deployment model.
+2. Read only the files that control the behavior you are changing: `go.mod`, `cmd/`, `internal/`, `sql/`, config, tests, migrations, and CI.
+3. Preserve established framework and package choices unless they are unsafe, broken, or clearly fighting the request.
+4. Make the smallest change that keeps package boundaries, error flow, and ownership easy to follow.
+5. Verify with the narrowest useful commands first; expand to broader fmt/lint/test/build checks for larger work.
 
-If a solution is already idiomatic and solid, affirm it. Avoid churn and "refactor for refactor's sake." Explain the "why" behind suggestions.
+## Default posture
 
-## Rule Levels
+- Prefer the standard library and small dependencies.
+- Prefer concrete types first; introduce interfaces only for real seams.
+- Prefer constructor injection, explicit context propagation, and structured logging.
+- Prefer simple package layouts over layered ceremony.
+- Do not add abstractions, frameworks, or concurrency machinery before they are needed.
 
-Use this priority model to avoid over-constraining normal Go work.
+## Defaults when the repo has no standard
 
-- MUST: hard requirements for reliability, correctness, and security.
-- SHOULD: strong defaults; deviate only with clear context.
-- MAY: optional choices based on scale, constraints, or product needs.
+| Area | Default | Notes |
+| --- | --- | --- |
+| HTTP | `net/http` + Chi | Small surface area, stdlib-friendly |
+| Database | `pgx` + `sqlc` | SQL-first and type-safe generated access |
+| Migrations | Goose SQL migrations | Prefer SQL migrations over Go migrations |
+| Logging | `log/slog` | Structured logging only |
+| Validation | `go-playground/validator` | Keep custom validators centralized |
+| Password hashing | Argon2id | If the service stores passwords |
+| IDs | UUIDv7 | Prefer one ID strategy per service |
+| Integration tests | `testcontainers-go` | When external deps affect behavior |
+| Static analysis | `go vet`, `staticcheck` | Treat both as normal quality gates |
+| Vulnerability review | `govulncheck` | Run when deps or exposure change |
 
-## Code Quality Principles
+If the repository already uses Echo, Gin, Fiber, GORM, Bun, or another established stack, stay consistent unless the user explicitly asks for a migration.
 
-- Prefer `range` loops over index loops unless index arithmetic is required.
-- Keep functions focused and easy to scan; split only when it improves clarity.
-- Make illegal states unrepresentable through types where practical.
-- Handle errors explicitly; no silent failure paths.
-- Minimize indirection and deep nesting.
-- Favor composition over inheritance-style abstractions.
-- Enforce quality gates with tooling, not style debates.
+## Architecture defaults
 
-## Default Stack
+- Keep handlers thin: parse transport input, validate, call service, write response.
+- Keep business rules, orchestration, and transaction ownership in services.
+- Keep SQL, persistence details, and generated query code in repository or database packages.
+- Keep startup, wiring, config, and graceful shutdown near `cmd/` or bootstrap packages.
+- Keep middleware, API error mapping, validation helpers, and shared clients small and explicit.
 
-These are default choices, not universal hard requirements.
+Suggested layout when starting from scratch:
 
-| Category | Default | Level | Notes |
-|----------|---------|-------|-------|
-| Router | Chi | SHOULD | stdlib-friendly, small API surface |
-| Database access | `pgx` + `sqlc` | SHOULD | SQL-first, type-safe generated code |
-| Migrations | Goose (SQL migrations) | SHOULD | Prefer SQL migrations over Go migrations |
-| Logging | `log/slog` | MUST | Structured logging only |
-| Validation | `go-playground/validator` | SHOULD | Add custom validators as needed |
-| Password hashing | Argon2id | MUST (if passwords) | `golang.org/x/crypto/argon2` |
-| IDs | UUIDv7 | SHOULD | Time-sortable IDs; choose one ID strategy per service |
-| Integration tests | `testcontainers-go` | SHOULD | Use when external deps are part of behavior |
-| CI/CD | GitHub Actions | MAY | Use any equivalent CI platform |
-| Caching | Redis or Dragonfly | MAY | Add only when measurable bottleneck exists |
-| Message queues | RabbitMQ, RedPanda, NATS | MAY | Add only when async workflows justify it |
-| API docs | Swag or ogen | MAY | Use where OpenAPI contract matters |
-| Local dev reload | Air | MAY | Live reload in development via `air.toml` |
+```text
+cmd/server/main.go
+internal/handler/
+internal/service/
+internal/repository/
+internal/middleware/
+internal/model/
+internal/database/sqlc/
+sql/schema/
+sql/queries/
+test/
+```
 
-## Naming Conventions
+## Go conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Files | `snake_case` | `user_repository.go` |
-| Packages | lowercase, short, concrete | `handler`, `service` |
-| Structs | PascalCase | `UserService` |
-| Interfaces | PascalCase | `UserRepository`, `EmailSender` |
-| Variables | camelCase | `userID`, `donationCount` |
-| Constants | PascalCase (exported) | `MaxRetries` |
-| Errors | `Err` prefix | `ErrUserNotFound` |
-| Handlers | `<Entity>Handler` | `UserHandler` |
-| Services | `<Entity>Service` | `UserService` |
-| Repositories | `<Entity>Repository` | `UserRepository` |
-| Constructors | `New<Type>` | `NewUserService` |
-| Context keys | unexported type | `type ctxKey string` |
-| Mutexes | `mu` prefix/suffix | `mu sync.Mutex`, `usersMu` |
+- Use short, concrete, lowercase package names.
+- Use `PascalCase` for exported identifiers and `camelCase` for local variables.
+- Keep initialisms consistent: `ID`, `HTTP`, `URL`, `JSON`.
+- Avoid `Get` for simple field accessors; use it when the method implies lookup or I/O.
+- Use `ErrX` for sentinel errors and `NewType` for constructors.
+- Use an unexported custom type for context keys.
 
-Getter naming:
+## Interfaces, packages, and dependency flow
 
-- Avoid `Get` for simple field accessors: `user.Name()`, `cfg.Timeout()`.
-- Use `Get` when it implies lookup/I/O/side effects: `repo.GetByID(ctx, id)`.
-
-ID and acronym casing:
-
-- Use `ID`, not `Id` (`userID`, `GetByID`).
-- Keep initialisms consistent (`httpClient`, `ServeHTTP`, `XMLName`).
-
-## Interfaces and Abstractions
-
-- Define interfaces at the consumer boundary, not in the implementation package by default.
-- Start with concrete types; introduce interfaces when a second implementation or a test seam is truly needed.
+- Define interfaces where they are consumed, not where they are implemented.
 - Keep interfaces small and behavior-focused.
+- Prefer concrete dependencies until a second implementation or real test seam appears.
+- Use constructor injection; avoid setter injection and hidden global dependencies.
+- Keep packages cohesive; split god packages before adding more helpers to them.
 
-## Project Layout (Template)
+## Errors and observability
 
-Use as a starting point. Adapt names to your domain.
+- Never ignore errors without explicit justification.
+- Wrap errors with `%w` and inspect them with `errors.Is` and `errors.As`.
+- Keep transport error mapping in handlers, not in services or repositories.
+- Use `slog` structured fields and always log operational errors with an `err` field.
+- Include request-scoped keys such as `request_id`, `user_id`, and `trace_id` when available.
+- Do not use `fmt.Println` for operational logs.
 
-```text
-project/
-├── cmd/
-│   └── server/
-│       └── main.go                  # entrypoint
-│
-├── internal/
-│   ├── handler/
-│   │   ├── auth_handler.go
-│   │   ├── user_handler.go
-│   │   └── health_handler.go
-│   │
-│   ├── service/
-│   │   ├── auth_service.go
-│   │   ├── user_service.go
-│   │   └── transaction.go           # TxManager
-│   │
-│   ├── repository/
-│   │   └── user_repo.go
-│   │
-│   ├── middleware/
-│   │   ├── auth.go
-│   │   ├── logging.go
-│   │   ├── cors.go
-│   │   ├── security.go
-│   │   └── rate_limit.go
-│   │
-│   ├── model/
-│   │   └── user.go
-│   │
-│   ├── database/
-│   │   └── sqlc/                    # generated -- NEVER edit
-│   │       ├── db.go
-│   │       ├── models.go
-│   │       └── querier.go
-│   │
-│   ├── apierror/
-│   │   └── errors.go
-│   │
-│   ├── validator/
-│   │   └── validator.go
-│   │
-│   └── client/
-│       └── email_client.go
-│
-├── sql/
-│   ├── sqlc.yaml
-│   ├── schema/
-│   │   ├── 20260219120000_create_users.sql
-│   │   └── 20260219121000_create_sessions.sql
-│   └── queries/
-│       ├── users.sql
-│       └── sessions.sql
-│
-├── test/
-│   ├── integration/
-│   │   └── user_test.go
-│   └── testutil/
-│       └── fixtures.go
-│
-├── .github/workflows/ci.yml
-├── Dockerfile
-├── docker-compose.yml
-├── air.toml
-├── justfile
-├── go.mod
-├── go.sum
-└── README.md
-```
+## Context and concurrency
 
-## Request Flow
+- `context.Context` is the first parameter and should be named `ctx`.
+- Never store context in a struct.
+- Propagate context through DB, cache, queue, and HTTP client calls.
+- Every goroutine needs an owner, cancellation path, and shutdown behavior.
+- Use `errgroup.WithContext` for related concurrent work that should fail or cancel together.
+- Avoid unbounded goroutine creation; use worker pools or backpressure for fan-out.
+- Run `go test -race ./...` for non-trivial concurrent code.
 
-```text
-HTTP Request
-    -> Handler   (transport parsing, response mapping)
-    -> Service   (business rules, orchestration, transactions)
-    -> Repository(DB queries + mapping)
-    -> Database
-```
+## HTTP, database, and security
 
-### Layer Responsibilities
+- Use `http.Status...` constants, not numeric literals.
+- Set server and client timeouts explicitly.
+- Limit request body size for JSON and upload endpoints.
+- Keep response and error envelopes consistent within an API surface.
+- Service layer owns transaction boundaries.
+- Keep SQL in queries or repository code, not in handlers.
+- Treat `sqlc` output as generated code: regenerate it, do not hand-edit it.
+- Prefer SQL migrations with reversible `Up`/`Down` steps when possible.
+- Use Argon2id for passwords and avoid logging secrets or raw tokens.
 
-| Layer | Does | Does NOT | Test Focus |
-|-------|------|----------|------------|
-| Handler | Parse/validate transport fields, call service, write response | Domain business logic, raw SQL | Serialization, status codes, request validation |
-| Service | Business rules, transactions, orchestration | HTTP concerns, raw SQL | Rules, rollback behavior, error paths |
-| Repository | SQL queries, persistence mapping | Domain policy, HTTP concerns | Query correctness, mapping, DB errors |
+## Testing and verification
 
-## Anti-Patterns to Avoid
+- Prefer table-driven tests when a behavior has multiple cases.
+- Use `t.Run`, `t.Helper()`, `t.Cleanup()`, and `t.Parallel()` where they improve clarity and speed.
+- Add integration tests with real dependencies when mocks would hide important behavior.
+- Use fuzz tests, benchmarks, or golden tests when the problem shape justifies them.
+- Run `go test ./...`, `go vet ./...`, and `staticcheck ./...` for substantial changes.
+- Run `govulncheck ./...` when dependency or exposure changes matter.
 
-No god handlers/services:
+## Guardrails
 
-```text
-bad:  handler/sports.go (1600+ lines, many unrelated entities)
-good: handler/team_handler.go, handler/player_handler.go
-```
+- Do not let handlers accumulate business logic.
+- Do not let services silently reach into transport concerns.
+- Do not introduce interface-heavy architecture without evidence it helps.
+- Do not start background goroutines without ownership and shutdown.
+- Do not widen package scope when a smaller focused change will solve the problem.
 
-Constructor injection only:
+## Response expectations
 
-```go
-// bad
-h.Rating = NewRatingHandler(...)
-h.Rating.SetCache(cache)
+When using this skill:
 
-// good
-ratingService := service.NewRatingService(repo, cache, notifier)
-h.Rating = NewRatingHandler(ratingService)
-```
-
-Never ignore errors:
-
-- No `data, _ := fn()` unless there is explicit, documented justification.
-- No `fmt.Println` for operational logs; use `slog`.
-- No `panic` outside startup/bootstrapping paths in `main`.
-
-## Error Handling
-
-| Situation | Use |
-|-----------|-----|
-| Define domain error | `var ErrX = errors.New("x")` |
-| Return domain error | `return ErrUserNotFound` |
-| Wrap with context | `fmt.Errorf("doing X: %w", err)` |
-| Check specific error | `errors.Is(err, ErrX)` |
-| Check error type | `errors.As(err, &target)` |
-
-Rules:
-
-- Always use `%w` when wrapping errors.
-- Keep transport-level error mapping in handlers, not in services/repositories.
-- Add stable machine-readable error codes for API consumers.
-
-## Logging with slog
-
-- Use structured fields (`slog.String`, `slog.Int`, `slog.Any`, etc.).
-- Include request-scoped keys where available (`request_id`, `user_id`, `trace_id`).
-- Log errors with explicit `err` field.
-
-```go
-slog.Info("user_created",
-    slog.String("user_id", user.ID.String()),
-    slog.Duration("duration", time.Since(start)),
-)
-```
-
-## Validation
-
-- Validate request DTOs at handler boundaries.
-- Enforce domain invariants in service layer.
-- For JSON decoding, prefer `DisallowUnknownFields` where strict contracts are desired.
-- Keep custom validators in one package and reuse via tags.
-
-Example tag: `validate:"required,email,uuidv7,min=3,max=50"`.
-
-## Password Hashing (Argon2id)
-
-- Use Argon2id for password storage.
-- Store algorithm parameters alongside the hash for future tuning.
-- Tune memory/time cost to match hardware and latency budget.
-
-Starting points (review periodically against current OWASP guidance):
-
-- Memory-heavy profile: `m=47104, t=1, p=1`
-- CPU-heavy profile: `m=19456, t=2, p=1`
-
-## Context Handling
-
-- `context.Context` is the first parameter, named `ctx`.
-- Never store context in structs.
-- Avoid `context.Background()` in request paths; use it only at process roots.
-- Propagate context to DB, HTTP, cache, and queue calls.
-- Check cancellation in long-running loops and worker operations.
-
-## Concurrency and Goroutines
-
-- Every started goroutine must have a clear owner and shutdown path.
-- Use `errgroup.WithContext` for fan-out work that should cancel together.
-- Avoid unbounded goroutine creation; use worker pools or backpressure.
-- Close channels from the sender side only.
-- Run race detection regularly: `go test -race ./...`.
-
-## HTTP Standards and Safety
-
-- Use `net/http` status constants (`http.StatusOK`, not numeric literals).
-- Set server timeouts explicitly (`ReadHeaderTimeout`, `ReadTimeout`, `WriteTimeout`, `IdleTimeout`).
-- Limit request body size for JSON endpoints (`http.MaxBytesReader`).
-- Use explicit client timeouts and sane transport settings for outbound calls.
-- Keep response envelopes consistent per API surface.
-
-Recommended JSON envelope patterns:
-
-- Success: `{ "data": T }`
-- Error: `{ "error": string, "code": string, "details": map }`
-- Paginated: `{ "data": []T, "total": int, "page": int, "per_page": int }`
-
-## Testing Standards
-
-### Unit Tests
-
-- Prefer table-driven tests when one behavior has many input/output cases.
-- Cover happy path, error path, and edge cases.
-- Use `t.Run` names that describe behavior, not only inputs.
-- Use `t.Parallel()` for independent tests.
-- Use `t.Helper()` for helper functions.
-- Use `t.Cleanup()` for shared teardown and `defer` for local, immediate cleanup.
-
-### Integration Tests
-
-- Use real dependencies (often via `testcontainers-go`) when behavior depends on them.
-- Isolate state with per-test schema/database or cleanup in `t.Cleanup()`.
-- Keep integration test setup deterministic and CI-friendly.
-
-### Other Test Types
-
-- Add fuzz tests for parser/decoder and boundary-heavy logic (`go test -fuzz`).
-- Add benchmarks for hot paths (`go test -bench=.`).
-- Use golden tests where output shape matters and is intentionally stable.
-
-### Contract Testing
-
-For external APIs, prefer record/replay (`go-vcr`) or contract tests (Pact) when API drift can break CI.
-
-## Goose Migrations
-
-- Location: `sql/schema/`.
-- Naming (default): `YYYYMMDDHHMMSS_description.sql`.
-- Include both `-- +goose Up` and `-- +goose Down`.
-- Keep migrations reversible whenever possible; document any intentional one-way migration.
-- Pick one naming convention per repository and stay consistent.
-
-## sqlc Configuration
-
-- Config path: `sql/sqlc.yaml`.
-- Use `pgx/v5` as `sql_package`.
-- Common options: `emit_json_tags`, `emit_interface`.
-- Output path: `internal/database/sqlc` (generated code, never hand-edit).
-
-## Code Quality Checklist
-
-Before committing:
-
-- [ ] Business logic lives in service layer, not handlers.
-- [ ] No ignored errors without explicit justification.
-- [ ] Structured logging with `slog` (no `fmt.Println`).
-- [ ] Input validation present for external-facing endpoints.
-- [ ] Context propagated through all I/O boundaries.
-- [ ] Goroutines have cancellation/shutdown path.
-- [ ] Transaction boundaries are explicit and tested.
-- [ ] Table-driven tests added where they improve coverage clarity.
-- [ ] Integration tests added/updated when external deps are involved.
-- [ ] Migrations include valid Up/Down and match repo naming convention.
-- [ ] `sqlc` regenerated when schema/queries change.
-- [ ] Never manually edit `internal/database/sqlc/`.
-- [ ] `go test ./...` passes.
-- [ ] `go test -race ./...` passes for non-trivial concurrent code.
-- [ ] `go vet ./...` passes.
-- [ ] `staticcheck ./...` passes.
-- [ ] `govulncheck ./...` reviewed for known CVEs.
-- [ ] Graceful shutdown handles SIGINT/SIGTERM.
-- [ ] Production DB URLs use secure TLS settings (for Postgres, `sslmode=require` or stronger).
-- [ ] No `panic` in request path.
+1. State the architecture impact of the change in plain language.
+2. Call out trade-offs when choosing libraries, concurrency patterns, or package boundaries.
+3. Prefer concrete file-level recommendations over broad Go advice.
+4. End with the most relevant verification commands or follow-up checks.
