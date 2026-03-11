@@ -53,7 +53,7 @@ cd ~/dotfiles && ./install.sh
 ### OpenCode
 
 - **MCP Servers:** playwright, chrome-devtools, context7
-- **Skills:** go, rust, frontend-design, postgres, mysql, neki
+- **Skills:** go, rust, frontend-design, postgres, mysql, neki, railway, cloudflare, wrangler, tiger_style, web_perf
 
 ## Post-Install (Neovim)
 
