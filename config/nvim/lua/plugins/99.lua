@@ -8,6 +8,8 @@ return {
       local _99 = require("99")
       local worker = _99.Extensions.Worker
       local utils = require("99.utils")
+      local default_provider = _99.Providers.OpenCodeProvider
+      local default_model = vim.env.OPENCODE_99_MODEL or "opencode-go/kimi-k2.5"
       local cwd = vim.uv.cwd()
       local basename = vim.fs.basename(cwd)
       local tmp_dir = "./tmp"
@@ -74,8 +76,8 @@ return {
       end
 
       _99.setup({
-        provider = _99.Providers.OpenCodeProvider,
-        model = "openai/gpt-5.4",
+        provider = default_provider,
+        model = default_model,
         tmp_dir = tmp_dir,
         logger = {
           level = _99.DEBUG,
