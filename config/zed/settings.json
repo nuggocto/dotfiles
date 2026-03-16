@@ -21,11 +21,11 @@
     "default_profile": "ask",
     "inline_assistant_model": {
       "provider": "copilot_chat",
-      "model": "gpt-5.4",
+      "model": "gpt-5.3-codex",
     },
     "default_model": {
       "provider": "copilot_chat",
-      "model": "gpt-5.4",
+      "model": "gpt-5.3-codex",
     },
     "play_sound_when_agent_done": true,
     "model_parameters": [],

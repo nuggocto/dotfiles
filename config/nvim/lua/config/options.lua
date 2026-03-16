@@ -6,3 +6,5 @@ vim.opt.relativenumber = false
 -- Font for GUI Neovim (Neovide, etc.)
 -- For terminal Neovim, set the font in your terminal emulator config
 vim.opt.guifont = "VictorMono Nerd Font Mono:h14"
+
+vim.opt.guicursor = "a:block"
