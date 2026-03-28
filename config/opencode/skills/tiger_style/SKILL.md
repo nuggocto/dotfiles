@@ -2,19 +2,19 @@
 name: tiger_style
 description: >
   Apply Tiger-style engineering principles: safety first, performance second,
-  developer experience third. Use when reviewing or writing Go, Rust, or Odin
-  systems code, performance-sensitive backends, storage engines, core
+  developer experience third. Use when reviewing or writing Go, Rust, Zig, or
+  Odin systems code, performance-sensitive backends, storage engines, core
   infrastructure, or when the user wants a strict, disciplined coding style.
 license: MIT
 metadata:
   author: opencode
-  version: "1.0.0"
+  version: "1.1.0"
   inspired-by: /home/bun/Downloads/TIGER_STYLE.md
 ---
 
 # Tiger Style
 
-Use this skill when the user wants a strict, systems-oriented coding style for Go, Rust, or Odin with strong opinions about safety, performance, simplicity, and disciplined implementation. This style is especially useful for storage engines, databases, distributed systems, infrastructure, and performance-sensitive backend code.
+Use this skill when the user wants a strict, systems-oriented coding style for Go, Rust, Zig, or Odin with strong opinions about safety, performance, simplicity, and disciplined implementation. This style is especially useful for storage engines, databases, distributed systems, infrastructure, and performance-sensitive backend code.
 
 ## Core priority order
 
@@ -111,6 +111,7 @@ Apply the principles idiomatically rather than mechanically:
 
 - In Rust, map the style to explicit ownership, assertions, bounded async/concurrency, and careful allocation behavior.
 - In Go, map it to explicit error handling, bounded goroutines, small interfaces, and predictable package boundaries.
+- In Zig, map it to explicit allocator ownership, bounded work, careful pointer and slice handling, simple control flow, and data layouts that stay easy to reason about.
 - In Odin, map it to explicit data layout, simple control flow, manual discipline around allocation and lifetimes, and strong boundary checks.
 
 Do not force one language's idioms onto the other; preserve the spirit of explicitness, boundedness, invariants, and disciplined performance reasoning.
