@@ -5,7 +5,7 @@ Personal dotfiles for Neovim, Ghostty, Zed, and OpenCode.
 ## Quick Install
 
 ```bash
-git clone git@github.com:katsutoo/dotfiles.git ~/dotfiles
+git clone git@github.com:nuggocto/dotfiles.git ~/dotfiles
 cd ~/dotfiles && ./install.sh
 ```
 
