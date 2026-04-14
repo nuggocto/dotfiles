@@ -41,7 +41,6 @@ path_prepend "$OMARCHY_PATH/bin"
 path_prepend "$HOME/.config/composer/vendor/bin"
 path_prepend "$HOME/.resend/bin"
 path_append "$HOME/.radicle/bin"
-path_append "$HOME/.local/share/JetBrains/Toolbox/scripts"
 path_dedupe
 
 export PATH
