@@ -4,13 +4,29 @@ set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="$HOME/.config"
+HOME_DOTFILES_DIR="$DOTFILES_DIR/home"
+
+CONFIG_ITEMS=(
+    nvim
+    opencode
+    ghostty
+    zed
+    uwsm
+)
+
+HOME_ITEMS=(
+    .profile
+    .zshenv
+    .zprofile
+    .zshrc
+)
 
 echo "Installing dotfiles from $DOTFILES_DIR"
 
-# Create .config directory if it doesn't exist
+# Create config directories if they don't exist.
 mkdir -p "$CONFIG_DIR"
 
-# Return the next available backup path for a config.
+# Return the next available backup path for a managed path.
 next_backup_path() {
     local path="$1"
     local backup_path="${path}.backup"
@@ -24,7 +40,7 @@ next_backup_path() {
     printf '%s\n' "$backup_path"
 }
 
-# Create a symlink and preserve any existing config safely.
+# Create a symlink and preserve any existing file or directory safely.
 link_config() {
     local src="$1"
     local dest="$2"
@@ -55,20 +71,17 @@ link_config() {
     ln -s "$src" "$dest"
 }
 
-# Link one config directory by name.
-setup_config() {
-    local name="$1"
-    local dir_name="$2"
+echo ""
+echo "==> Linking ~/.config entries..."
+for item in "${CONFIG_ITEMS[@]}"; do
+    link_config "$DOTFILES_DIR/config/$item" "$CONFIG_DIR/$item"
+done
 
-    echo ""
-    echo "==> Setting up $name config..."
-    link_config "$DOTFILES_DIR/config/$dir_name" "$CONFIG_DIR/$dir_name"
-}
-
-setup_config "Neovim" "nvim"
-setup_config "OpenCode" "opencode"
-setup_config "Ghostty" "ghostty"
-setup_config "Zed" "zed"
+echo ""
+echo "==> Linking home dotfiles..."
+for item in "${HOME_ITEMS[@]}"; do
+    link_config "$HOME_DOTFILES_DIR/$item" "$HOME/$item"
+done
 
 # Install opencode dependencies if bun is available
 if command -v bun &> /dev/null; then
@@ -93,4 +106,6 @@ echo "        Optional: :TSInstall all (or install only specific parsers)"
 echo "OpenCode: Configuration ready at ~/.config/opencode"
 echo "Ghostty: Restart ghostty for changes to take effect"
 echo "         Toggle theme: ~/.config/ghostty/toggle-theme.sh"
+echo "Hyprland/UWSM: Log out and back in after install if shell session env changed"
 echo "Zed: Restart zed for changes to take effect"
+echo "Zsh: Open a new shell session after install"

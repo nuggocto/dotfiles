@@ -1,6 +1,6 @@
 # dotfiles
 
-Personal dotfiles for Neovim, Ghostty, Zed, and OpenCode.
+Personal dotfiles for Neovim, Ghostty, Zed, OpenCode, and Zsh.
 
 ## Quick Install
 
@@ -9,7 +9,7 @@ git clone git@github.com:nuggocto/dotfiles.git ~/dotfiles
 cd ~/dotfiles && ./install.sh
 ```
 
-**Prerequisites:** [Neovim](https://neovim.io/) >= 0.9.0 and [VictorMono Nerd Font](https://www.nerdfonts.com/font-downloads). [Bun](https://bun.sh/) is optional and only needed to install OpenCode dependencies automatically.
+**Prerequisites:** [Neovim](https://neovim.io/) >= 0.9.0, [Zsh](https://www.zsh.org/), [Ghostty](https://ghostty.org/), and [VictorMono Nerd Font](https://www.nerdfonts.com/font-downloads). [Bun](https://bun.sh/) is optional and only needed to install OpenCode dependencies automatically.
 
 ## What's Included
 
@@ -42,6 +42,19 @@ cd ~/dotfiles && ./install.sh
 
 **Keybinds:** `alt+1-5` tabs, `ctrl+shift+o` split, `F11` fullscreen, `Ctrl+Shift+T` new tab, `Ctrl+Shift+P` open command palette
 
+### Zsh
+
+| Feature | Details |
+|---------|---------|
+| Mode | Vi keybindings |
+| Prompt | Starship |
+| Navigation | Zoxide |
+| Runtime activation | Mise |
+| Completion | Native Zsh + fzf |
+| History | Shared, extended, safer defaults |
+
+The repo also includes `~/.profile` and Omarchy `uwsm` session files so Ghostty inherits the correct login shell on a fresh machine.
+
 ### Zed
 
 | Feature | Details |
@@ -72,3 +85,5 @@ cd ~/dotfiles && git pull
 ```
 
 Changes take effect immediately (symlinked). Restart nvim for plugin updates.
+
+For shell or session changes on Omarchy, log out and back in after pulling updates.
