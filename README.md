@@ -1,6 +1,6 @@
 # Personal Config
 
-Personal Linux config.
+Personal Linux config ;D
 
 - Zed settings and keymap.
 - Ghostty terminal config.
