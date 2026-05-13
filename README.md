@@ -1,6 +1,6 @@
 # Personal Config
 
-Personal Linux/Omarchy config.
+Personal config.
 
 - Zed settings and keymap.
 - Ghostty terminal config.
