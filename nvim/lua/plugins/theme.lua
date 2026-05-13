@@ -1,0 +1,1 @@
+/home/nuggocto/.config/omarchy/current/theme/neovim.lua
