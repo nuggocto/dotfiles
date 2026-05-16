@@ -1,122 +1,199 @@
 ---
 name: tiger_style
 description: >
-  Apply Tiger-style engineering principles: safety first, performance second,
-  developer experience third. Use when reviewing or writing Go, Rust, Zig, or
-  Odin systems code, performance-sensitive backends, storage engines, core
-  infrastructure, or when the user wants a strict, disciplined coding style.
+  Apply TigerStyle engineering principles: safety first, performance second,
+  developer experience third. Use when reviewing or writing performance-sensitive
+  systems, storage engines, infrastructure, or when the user wants a strict,
+  disciplined coding style.
 license: MIT
 metadata:
   author: opencode
-  version: "1.1.0"
+  version: "1.2.0"
   inspired-by: Tiger Style
 ---
 
-# Tiger Style
+# TigerStyle
 
-Use this skill when the user wants a strict, systems-oriented coding style for Go, Rust, Zig, or Odin with strong opinions about safety, performance, simplicity, and disciplined implementation. This style is especially useful for storage engines, databases, distributed systems, infrastructure, and performance-sensitive backend code.
+Use this skill when the user wants a strict, systems-oriented engineering style
+with strong opinions about safety, performance, simplicity, and disciplined
+implementation. The goal is to preserve the spirit of TigerStyle without tying
+the guidance to any specific stack.
 
-## Core priority order
+## The Essence Of Style
 
-Evaluate decisions in this order:
+Style is design. Evaluate code and designs by whether they improve safety,
+performance, and developer experience, in that order.
 
-1. Safety
-2. Performance
-3. Developer experience
+Readability matters, but it is not the end goal. It is table stakes for making
+code easier to reason about, test, operate, and maintain.
 
-Readability matters, but only insofar as it improves those outcomes. Prefer code that is explicit, bounded, measurable, and easy to reason about under stress.
+## Why Have Style?
+
+Use style to make decisions consistent under pressure. Good style answers these
+questions:
+
+1. Does this make the system safer?
+2. Does this make important paths faster or more predictable?
+3. Does this make the code easier for future readers to understand and operate?
+
+Prefer code that is explicit, bounded, measurable, and auditable line by line.
+
+## On Simplicity And Elegance
+
+Simplicity is not the first draft. It is the result of revision, discipline, and
+careful design.
+
+Look for the small, sharp design that solves safety, performance, and developer
+experience together. Do not use "simple" as an excuse for incomplete thinking,
+missing bounds, weak invariants, or deferred risk.
+
+## Technical Debt
+
+Treat known design risks as urgent while the code is still cheap to change.
+Avoid shipping foundational code with "fix later" assumptions.
+
+Do not allow avoidable latency spikes, unbounded work, unclear state transitions,
+or exponential behavior to slip through because they are inconvenient to solve
+now.
 
 ## Workflow
 
-1. Build a precise mental model of the system before changing code.
-2. Identify the failure modes first: corruption, unbounded work, latency spikes, bad state transitions, hidden allocations, and unclear ownership.
-3. Look for the smallest design that solves the problem without borrowing technical debt from the future.
+1. Build a precise mental model before changing code.
+2. Identify failure modes first: corruption, unbounded work, latency spikes,
+   bad state transitions, hidden allocations, and unclear ownership.
+3. Choose the smallest design that solves the problem without borrowing from the
+   future.
 4. Encode the model in assertions, invariants, limits, and tests.
-5. Explain why the design is correct, not just what it does.
+5. Explain why the design is correct, not only what it does.
 
-## General posture
-
-- Prefer simple, explicit control flow over cleverness.
-- Prefer a few excellent abstractions over many convenient ones.
-- Prefer bounded behavior over open-ended flexibility.
-- Prefer proactive design work over reactive cleanup.
-- Prefer code that can be audited line by line under pressure.
-
-## Safety rules
+## Safety
 
 - Treat safety as the primary design constraint.
-- Avoid recursion unless the bound is trivially obvious and accepted by the user; iterative control flow is the default.
-- Put a limit on everything: queues, retries, loops, buffers, batch sizes, concurrency, memory growth, and work per request.
+- Use simple, explicit control flow over cleverness.
+- Avoid recursion unless the bound is trivially obvious and intentionally
+  accepted.
+- Put a limit on everything: queues, retries, loops, buffers, batch sizes,
+  concurrency, memory growth, and work per request.
 - Use explicitly sized types where practical at critical boundaries.
 - Handle all errors explicitly; do not ignore error values.
-- Crash on programmer-error invariants; handle operational errors as normal control flow.
+- Crash on programmer-error invariants; handle operational errors as normal
+  control flow.
 - Keep variables in the smallest possible scope.
-- Keep functions small enough to understand in one screenful; split large functions by centralizing control flow in the parent and moving leaf work into helpers.
+- Keep functions small enough to understand in one screenful.
 - Prefer positive invariants over negated reasoning.
-- Split compound conditions when doing so makes the state space easier to verify.
+- Split compound conditions when doing so makes the state space easier to
+  verify.
+- Avoid hidden defaults at critical boundaries when explicit configuration is
+  possible.
 
-## Assertions and invariants
+## Assertions And Invariants
 
 - Assert preconditions, postconditions, and internal invariants aggressively.
-- Add assertions at multiple points for the same critical property when data crosses boundaries.
+- Assert function arguments and return values where incorrect values would mean
+  programmer error.
+- Add paired assertions for critical properties when data crosses boundaries.
 - Prefer separate assertions over one large compound assertion.
-- Use assertions as executable documentation for surprising but essential truths.
-- Test both the valid path and the invalid path; bugs often live at the boundary between them.
-- Do not let fuzzing or broad testing replace human reasoning; use tests to validate a model, not to discover one by accident.
+- Use assertions as executable documentation for surprising but essential
+  truths.
+- Assert both the positive space that is expected and the negative space that
+  must not happen.
+- Test valid paths and invalid paths; bugs often live at the boundary between
+  them.
+- Do not let fuzzing or broad testing replace human reasoning; use tests to
+  validate a model, not to discover one by accident.
 
-## Performance rules
+## Performance
 
 - Think about performance during design, not only after profiling.
 - Do quick back-of-the-envelope estimates for network, disk, memory, and CPU.
-- Optimize the slowest important resource first.
+- Estimate both bandwidth and latency for the resource that matters.
+- Optimize the slowest important resource first after accounting for frequency.
 - Batch work to amortize fixed costs.
 - Separate control-plane logic from data-plane throughput paths.
-- Prefer predictable access patterns and stable hot loops over branchy, scattered work.
-- Be explicit when performance depends on layout, caching, allocation, or copy behavior.
+- Prefer predictable access patterns and stable hot loops over branchy,
+  scattered work.
+- Be explicit when performance depends on layout, caching, allocation, copy
+  behavior, or external calls.
 
-## Simplicity and technical debt
+## Developer Experience
 
-- Simplicity is not the first draft; it is the result of revision and discipline.
-- Do not accept known technical debt as an easy shortcut for foundational code.
-- Solve design risks while the code is still hot and cheap to change.
-- Do not ship avoidable showstoppers with the intention of fixing them later.
+Developer experience comes after safety and performance, but it still matters.
+Good developer experience makes the correct design easier to preserve.
 
-## Naming and API design
+Prefer names, comments, APIs, and file organization that make the mental model
+obvious to a careful reader.
 
-- Take time to get nouns and verbs right.
-- Prefer descriptive names over abbreviations, except in narrow low-level contexts where the meaning is obvious.
-- Use consistent casing and acronym treatment within the language and repository.
-- Add units and qualifiers to names when they clarify meaning, especially for time, size, offsets, counts, and limits.
+## Naming Things
+
+- Get the nouns and verbs right.
+- Prefer descriptive names over abbreviations unless the short name is universal
+  in the local context.
+- Use casing and acronym treatment consistently within the repository.
+- Add units and qualifiers to names when they clarify time, size, offsets,
+  counts, limits, or resource ownership.
+- Put the most significant word first and qualifiers later when related names
+  should group together.
+- Keep related names symmetric when that improves visual scanning.
 - Design function signatures so call sites are easy to verify.
-- When arguments can be confused, use a struct or named options pattern if the language supports it.
-- Keep related names symmetric when that improves readability.
+- When arguments can be confused, use named options or a small parameter object
+  if the project supports that pattern.
+- Avoid overloading names with multiple domain meanings.
 
-## Comments and documentation
+## Cache Invalidation
+
+- Do not duplicate state or create aliases that can drift out of sync.
+- Shrink scope to reduce the number of variables in play.
+- Calculate or check values close to where they are used.
+- Avoid place-of-check to place-of-use gaps.
+- Keep ownership, lifetime, and mutation responsibilities explicit.
+- Watch for partially initialized or partially used buffers.
+- Group resource acquisition and release so leaks are easy to spot.
+
+## Off-By-One Errors
+
+- Treat indexes, counts, sizes, lengths, and offsets as distinct concepts.
+- Name units and qualifiers explicitly when arithmetic crosses those concepts.
+- Be explicit about rounding and division behavior.
+- Prefer positive bounds checks that match the direction of normal iteration.
+- Test edge cases at zero, one, maximum, and boundary-adjacent values.
+
+## Comments And Documentation
 
 - Always explain why a non-obvious decision exists.
-- Use comments to document rationale, invariants, and methodology, not to restate the code.
-- For tests, explain the goal and the shape of the verification when it is not immediately obvious.
+- Use comments to document rationale, invariants, and methodology, not to
+  restate the code.
+- For tests, explain the goal and the shape of the verification when it is not
+  immediately obvious.
+- Comments should be clear prose, not margin notes.
 - Write commit messages that preserve intent for future readers.
 
-## Dependencies and tooling
+## Style By The Numbers
+
+- Respect the repository formatter and strictest practical warning settings.
+- Keep line lengths bounded so nothing important hides behind horizontal
+  scrolling.
+- Keep functions short enough to review without losing the full control-flow
+  context.
+- Use consistent indentation and spacing from the surrounding project.
+- Add braces or explicit blocks where they reduce ambiguity and prevent mistakes.
+
+## Dependencies
 
 - Default to fewer dependencies.
 - Add a dependency only when its long-term maintenance cost is clearly worth it.
-- Prefer the language's standard tooling and existing project tooling over introducing new layers.
-- Standardize on a small toolbox when possible; too many tools add operational and cognitive cost.
+- Treat dependencies as safety, performance, supply-chain, installation, and
+  operational risks.
+- Prefer existing project facilities over new layers added for convenience.
 
-## Language mapping
+## Tooling
 
-Apply the principles idiomatically rather than mechanically:
+- Standardize on a small toolbox when possible.
+- Prefer existing project tooling over introducing specialized tools.
+- Add tools only when the benefit clearly outweighs operational and cognitive
+  cost.
+- Make automation portable, reproducible, and easy for the whole team to run.
 
-- In Rust, map the style to explicit ownership, assertions, bounded async/concurrency, and careful allocation behavior.
-- In Go, map it to explicit error handling, bounded goroutines, small interfaces, and predictable package boundaries.
-- In Zig, map it to explicit allocator ownership, bounded work, careful pointer and slice handling, simple control flow, and data layouts that stay easy to reason about.
-- In Odin, map it to explicit data layout, simple control flow, manual discipline around allocation and lifetimes, and strong boundary checks.
-
-Do not force one language's idioms onto the other; preserve the spirit of explicitness, boundedness, invariants, and disciplined performance reasoning.
-
-## What to look for in reviews
+## What To Look For In Reviews
 
 - Unbounded loops, queues, retries, recursion, or fan-out.
 - Hidden allocations or unnecessary copying in hot paths.
@@ -128,7 +205,7 @@ Do not force one language's idioms onto the other; preserve the spirit of explic
 - Dependencies added for convenience rather than necessity.
 - "Fix later" choices in foundational paths.
 
-## Response expectations
+## Response Expectations
 
 When using this skill:
 
@@ -140,8 +217,11 @@ When using this skill:
 
 ## Guardrails
 
-- Do not recommend abstract "cleanups" without tying them to safety, performance, or developer experience.
+- Do not recommend abstract cleanups without tying them to safety, performance,
+  or developer experience.
 - Do not praise cleverness that makes control flow or state harder to audit.
-- Do not accept hidden defaults at critical boundaries when explicit configuration is possible.
+- Do not accept hidden defaults at critical boundaries when explicit
+  configuration is possible.
 - Do not suggest unbounded background work, memory growth, or retries.
-- Do not hide uncertainty; if a bound or invariant is unknown, surface it clearly.
+- Do not hide uncertainty; if a bound or invariant is unknown, surface it
+  clearly.
