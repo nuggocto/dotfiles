@@ -9,7 +9,12 @@ return {
       ensure_installed = {
         "astro-language-server",
         "debugpy",
+        "docker-compose-language-service",
+        "dockerfile-language-server",
+        "hadolint",
+        "helm-ls",
         "htmx-lsp",
+        "kube-linter",
         "lua-language-server",
         "oxfmt",
         "oxlint",
@@ -19,19 +24,34 @@ return {
         "sqls",
         "stylua",
         "svelte-language-server",
+        "terraform-ls",
+        "tflint",
         "ty",
         "vtsls",
+        "yaml-language-server",
+        "yamlfmt",
       },
     },
   },
   {
     "neovim/nvim-lspconfig",
+    init = function()
+      vim.filetype.add({
+        filename = {
+          ["compose.yaml"] = "yaml.docker-compose",
+          ["compose.yml"] = "yaml.docker-compose",
+          ["docker-compose.yaml"] = "yaml.docker-compose",
+          ["docker-compose.yml"] = "yaml.docker-compose",
+        },
+      })
+    end,
     opts = {
       servers = {
         clangd = { mason = false },
         gopls = { mason = false },
         ols = { mason = false },
         sqls = {},
+        yamlls = { filetypes = { "yaml" } },
         zls = { mason = false },
       },
     },
@@ -44,6 +64,8 @@ return {
       opts.formatters_by_ft.cpp = { "clang_format" }
       opts.formatters_by_ft.python = { "ruff_organize_imports", "ruff_format" }
       opts.formatters_by_ft.sql = { "sqlfluff" }
+      opts.formatters_by_ft.yaml = { "yamlfmt" }
+      opts.formatters_by_ft["yaml.ansible"] = { "yamlfmt" }
 
       opts.formatters = opts.formatters or {}
       opts.formatters.sqlfluff = {
@@ -57,6 +79,10 @@ return {
     opts = function(_, opts)
       opts.linters_by_ft = opts.linters_by_ft or {}
       opts.linters_by_ft.lua = { "selene" }
+      opts.linters_by_ft.terraform = { "tflint" }
+      opts.linters_by_ft.tf = { "tflint" }
+      opts.linters_by_ft["terraform-vars"] = { "tflint" }
+      opts.linters_by_ft["yaml.ansible"] = { "ansible_lint" }
 
       opts.linters = opts.linters or {}
       opts.linters.selene = opts.linters.selene or {}
@@ -66,6 +92,11 @@ return {
 
       opts.linters.sqlfluff = opts.linters.sqlfluff or {}
       opts.linters.sqlfluff.args = { "lint", "--dialect=ansi", "--format=json", "-" }
+
+      opts.linters.terraform_validate = opts.linters.terraform_validate or {}
+      opts.linters.terraform_validate.condition = function()
+        return vim.fn.executable("terraform") == 1
+      end
     end,
   },
 }
