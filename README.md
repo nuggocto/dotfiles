@@ -6,3 +6,4 @@ Personal Linux config ;D
 - Ghostty terminal config.
 - Neovim LazyVim config, plugin specs, and lockfile.
 - Opencode config, TUI settings, skills, and package metadata.
+- Zellij keybinds and theme file.
