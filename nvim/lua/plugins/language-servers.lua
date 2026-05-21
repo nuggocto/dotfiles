@@ -18,6 +18,7 @@ return {
         "lua-language-server",
         "oxfmt",
         "oxlint",
+        "postgres-language-server",
         "ruff",
         "selene",
         "sqlfluff",
@@ -37,6 +38,10 @@ return {
     "neovim/nvim-lspconfig",
     init = function()
       vim.filetype.add({
+        extension = {
+          pgsql = "pgsql",
+          psql = "pgsql",
+        },
         filename = {
           ["compose.yaml"] = "yaml.docker-compose",
           ["compose.yml"] = "yaml.docker-compose",
@@ -44,12 +49,18 @@ return {
           ["docker-compose.yml"] = "yaml.docker-compose",
         },
       })
+      vim.treesitter.language.register("sql", "pgsql")
     end,
     opts = {
       servers = {
         clangd = { mason = false },
         gopls = { mason = false },
         ols = { mason = false },
+        postgres_lsp = {
+          filetypes = { "sql", "pgsql" },
+          root_markers = { "postgres-language-server.jsonc", "postgrestools.jsonc", ".sqlfluff", ".git" },
+          workspace_required = false,
+        },
         sqls = {},
         yamlls = { filetypes = { "yaml" } },
         zls = { mason = false },
@@ -63,7 +74,8 @@ return {
       opts.formatters_by_ft.c = { "clang_format" }
       opts.formatters_by_ft.cpp = { "clang_format" }
       opts.formatters_by_ft.python = { "ruff_organize_imports", "ruff_format" }
-      opts.formatters_by_ft.sql = { "sqlfluff" }
+      opts.formatters_by_ft.sql = { "sqlfluff_postgres" }
+      opts.formatters_by_ft.pgsql = { "sqlfluff_postgres" }
       opts.formatters_by_ft.yaml = { "yamlfmt" }
       opts.formatters_by_ft["yaml.ansible"] = { "yamlfmt" }
 
@@ -72,15 +84,31 @@ return {
         args = { "format", "--dialect=ansi", "-" },
         require_cwd = false,
       }
+      opts.formatters.sqlfluff_postgres = {
+        inherit = "sqlfluff",
+        args = { "format", "--dialect=postgres", "-" },
+        require_cwd = false,
+      }
     end,
   },
   {
     "mfussenegger/nvim-lint",
     opts = function(_, opts)
+      local function add_linters(ft, names)
+        opts.linters_by_ft[ft] = opts.linters_by_ft[ft] or {}
+        for _, name in ipairs(names) do
+          if not vim.tbl_contains(opts.linters_by_ft[ft], name) then
+            table.insert(opts.linters_by_ft[ft], name)
+          end
+        end
+      end
+
       opts.linters_by_ft = opts.linters_by_ft or {}
       opts.linters_by_ft.lua = { "selene" }
-      opts.linters_by_ft.terraform = { "tflint" }
-      opts.linters_by_ft.tf = { "tflint" }
+      opts.linters_by_ft.sql = { "sqlfluff_postgres" }
+      opts.linters_by_ft.pgsql = { "sqlfluff_postgres" }
+      add_linters("terraform", { "terraform_validate", "tflint" })
+      add_linters("tf", { "terraform_validate", "tflint" })
       opts.linters_by_ft["terraform-vars"] = { "tflint" }
       opts.linters_by_ft["yaml.ansible"] = { "ansible_lint" }
 
@@ -92,6 +120,16 @@ return {
 
       opts.linters.sqlfluff = opts.linters.sqlfluff or {}
       opts.linters.sqlfluff.args = { "lint", "--dialect=ansi", "--format=json", "-" }
+
+      opts.linters.sqlfluff_postgres = {
+        cmd = "sqlfluff",
+        args = { "lint", "--dialect=postgres", "--format=json", "-" },
+        stdin = true,
+        ignore_exitcode = true,
+        parser = function(output, bufnr)
+          return require("lint.linters.sqlfluff").parser(output, bufnr)
+        end,
+      }
 
       opts.linters.terraform_validate = opts.linters.terraform_validate or {}
       opts.linters.terraform_validate.condition = function()
