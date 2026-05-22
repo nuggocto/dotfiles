@@ -1,8 +1,13 @@
 # Runtime and dependency directories
 **/node_modules/
+opencode/package.json
 opencode/package-lock.json
+opencode/bun.lock
 **/tmp/
 **/.cache/
+**/.history/
+**/.local/
+**/state/
 
 # Logs and generated files
 *.log
@@ -16,14 +21,19 @@ opencode/package-lock.json
 **/.env
 **/.env.*
 **/auth.json
+**/accounts.json
 **/session.json
+**/storage.json
 **/credentials.json
 **/secrets.json
+**/hosts.yml
 **/auth*.json
 **/*session*.json
 **/*secret*.json
 **/*token*.json
 **/*credential*.json
+**/fish_variables
+**/keyring/
 **/*.secret
 **/*.token
 **/*.pem

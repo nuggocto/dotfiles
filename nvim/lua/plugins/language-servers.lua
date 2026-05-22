@@ -11,24 +11,18 @@ return {
         "debugpy",
         "docker-compose-language-service",
         "dockerfile-language-server",
-        "hadolint",
         "helm-ls",
         "htmx-lsp",
         "kube-linter",
         "lua-language-server",
-        "oxfmt",
         "oxlint",
         "postgres-language-server",
         "ruff",
         "selene",
-        "sqlfluff",
         "sqls",
-        "stylua",
         "svelte-language-server",
         "terraform-ls",
-        "tflint",
         "ty",
-        "vtsls",
         "yaml-language-server",
         "yamlfmt",
       },
@@ -54,7 +48,21 @@ return {
     opts = {
       servers = {
         clangd = { mason = false },
+        denols = {
+          root_dir = function(fname)
+            return vim.fs.root(fname, { "deno.json", "deno.jsonc" })
+          end,
+          settings = {
+            deno = {
+              enable = true,
+              lint = false,
+            },
+          },
+        },
         gopls = { mason = false },
+        htmx = {
+          filetypes = { "html", "templ", "astro", "svelte", "typescriptreact", "javascriptreact" },
+        },
         ols = { mason = false },
         postgres_lsp = {
           filetypes = { "sql", "pgsql" },
@@ -62,6 +70,15 @@ return {
           workspace_required = false,
         },
         sqls = {},
+        tsgo = {
+          root_dir = function(fname)
+            if vim.fs.root(fname, { "deno.json", "deno.jsonc" }) then
+              return nil
+            end
+            return vim.fs.root(fname, { "tsconfig.json", "package.json", "jsconfig.json", ".git" })
+          end,
+        },
+        vtsls = { enabled = false },
         yamlls = { filetypes = { "yaml" } },
         zls = { mason = false },
       },

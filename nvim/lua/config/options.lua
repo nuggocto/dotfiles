@@ -6,4 +6,4 @@ vim.opt.guicursor = "n-v-c-sm:block,r-cr-o:block,i-ci-ve:block-blinkwait700-blin
 
 vim.g.lazyvim_python_lsp = "ty"
 vim.g.lazyvim_python_ruff = "ruff"
-vim.g.lazyvim_ts_lsp = "vtsls"
+vim.g.lazyvim_ts_lsp = "tsgo"
