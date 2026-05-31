@@ -1,0 +1,164 @@
+@import "../omarchy/current/theme/waybar.css";
+
+* {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: @foreground;
+  font-family: 'VictorMono Nerd Font Mono', 'Noto Sans CJK JP';
+  font-size: 17px;
+  min-height: 0;
+}
+
+window#waybar {
+  background: @background;
+  border-right: 1px solid rgba(212, 190, 152, 0.14);
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+  margin: 8px 0;
+}
+
+#custom-omarchy,
+#custom-japanese-clock,
+#custom-weather,
+#custom-update,
+#custom-voxtype,
+#custom-screenrecording-indicator,
+#custom-idle-indicator,
+#custom-notification-silencing-indicator,
+#pulseaudio,
+#bluetooth,
+#network,
+#cpu,
+#battery,
+#custom-expand-icon,
+#tray {
+  background: rgba(212, 190, 152, 0.06);
+  border-radius: 14px;
+  margin: 3px 7px;
+  min-height: 34px;
+  min-width: 40px;
+}
+
+#custom-omarchy {
+  background: rgba(212, 190, 152, 0.12);
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 9px;
+  min-height: 40px;
+}
+
+#workspaces {
+  background: rgba(212, 190, 152, 0.045);
+  border-radius: 18px;
+  margin: 0 7px;
+  padding: 4px 0;
+}
+
+#workspaces button {
+  all: initial;
+  border-radius: 13px;
+  color: rgba(212, 190, 152, 0.78);
+  font-family: 'VictorMono Nerd Font Mono', 'Noto Sans CJK JP';
+  font-size: 16px;
+  margin: 2px 4px;
+  min-height: 31px;
+  min-width: 32px;
+  padding: 0;
+}
+
+#workspaces button:hover {
+  background: rgba(212, 190, 152, 0.1);
+}
+
+#workspaces button.active {
+  background: @foreground;
+  color: @background;
+  font-weight: 700;
+}
+
+#workspaces button.empty {
+  opacity: 0.38;
+}
+
+#custom-japanese-clock {
+  background: rgba(212, 190, 152, 0.1);
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  min-height: 150px;
+  padding: 11px 0;
+}
+
+#custom-weather {
+  font-size: 15px;
+}
+
+#custom-weather.unavailable,
+#custom-voxtype.idle,
+#custom-screenrecording-indicator.empty,
+#custom-idle-indicator.empty,
+#custom-notification-silencing-indicator.empty {
+  margin: 0;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+#custom-update {
+  color: #e0af68;
+  font-size: 15px;
+}
+
+#custom-screenrecording-indicator,
+#custom-idle-indicator,
+#custom-notification-silencing-indicator,
+#custom-voxtype {
+  font-size: 15px;
+}
+
+#custom-screenrecording-indicator.active,
+#custom-idle-indicator.active,
+#custom-notification-silencing-indicator.active,
+#custom-voxtype.recording {
+  background: rgba(165, 85, 85, 0.18);
+  color: #d3869b;
+}
+
+#pulseaudio.muted,
+#network.disconnected,
+#bluetooth.off,
+#bluetooth.disabled {
+  opacity: 0.55;
+}
+
+#battery.warning {
+  color: #e0af68;
+}
+
+#battery.critical {
+  background: rgba(165, 85, 85, 0.2);
+  color: #d3869b;
+}
+
+#custom-expand-icon {
+  color: rgba(212, 190, 152, 0.55);
+  font-size: 20px;
+  min-height: 24px;
+}
+
+#tray {
+  padding: 6px 0;
+}
+
+tooltip {
+  background: @background;
+  border: 1px solid rgba(212, 190, 152, 0.16);
+  border-radius: 10px;
+  padding: 6px;
+}

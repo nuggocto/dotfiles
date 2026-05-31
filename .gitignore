@@ -13,7 +13,14 @@ opencode/bun.lock
 *.log
 *.tmp
 *.bak
+*.bak.*
 .DS_Store
+
+# Omarchy-managed, per-machine artifacts (recreated by Omarchy/theme switches)
+**/current.theme
+
+# Tool-generated shell env stubs (recreated by the tool's own installer)
+**/conf.d/uv.env.fish
 
 # Local environment and secrets
 .env
