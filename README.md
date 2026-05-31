@@ -1,6 +1,6 @@
-# Personal Config
+# Config
 
-Personal Linux config for [Omarchy](https://omarchy.org) ;D
+Personal Linux config for [Omarchy](https://omarchy.org) (̿▀̿ ̿Ĺ̯̿̿▀̿ ̿)̄
 
 These are my customizations *on top of* a stock Omarchy install. Each tracked
 config is symlinked from this repo into `~/.config`, so any style tweak I make
