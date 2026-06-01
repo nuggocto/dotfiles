@@ -23,9 +23,6 @@
   "agent_buffer_font_size": 20.0,
   "agent_ui_font_size": 22.0,
   "agent_servers": {
-    "claude-acp": {
-      "type": "registry",
-    },
     "codex-acp": {
       "type": "registry",
     },
@@ -53,7 +50,6 @@
     "message_editor_min_lines": 4,
     "default_profile": "ask",
     "play_sound_when_agent_done": "always",
-    "model_parameters": [],
   },
   "ui_font_weight": 600.0,
   "buffer_font_weight": 700.0,
