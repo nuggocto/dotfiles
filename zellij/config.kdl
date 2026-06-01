@@ -305,6 +305,19 @@ themes {
         white 212 190 152
         orange 214 93 14
     }
+    omarchy-rose-pine {
+        fg 87 82 121
+        bg 250 244 237
+        black 242 233 225
+        red 180 99 122
+        green 40 105 131
+        yellow 234 157 52
+        blue 86 148 159
+        magenta 94 74 135
+        cyan 215 130 126
+        white 87 82 121
+        orange 234 157 52
+    }
 }
 
 web_client {
@@ -329,6 +342,13 @@ web_client {
 // Default: default
 // 
 theme "omarchy-gruvbox"
+
+// Auto-switch with the terminal's light/dark palette:
+//   Rose Pine (light) <-> gruvbox (dark). When both theme_dark and
+//   theme_light are set, zellij selects based on the host terminal's
+//   reported background color, so it follows the active Omarchy theme.
+theme_dark  "omarchy-gruvbox"
+theme_light "omarchy-rose-pine"
  
 // Theme to use when the host terminal reports a dark color palette.
 // Requires `theme_light` to also be set; otherwise `theme` is used.
