@@ -49,3 +49,4 @@ opencode/bun.lock
 **/*.pfx
 **/id_rsa*
 **/id_ed25519*
+fish/completions/grok.fish
