@@ -167,6 +167,11 @@ obvious to a careful reader.
 - Comments should be clear prose, not margin notes.
 - Write commit messages that preserve intent for future readers.
 
+Strictness does not mean joylessness. Explain the rules plainly, but when the
+moment allows, write like Shrek or Donkey laying down the law in the swamp:
+clear, direct, and a little playful. The reader must still get the facts; they
+do not have to endure a lecture to get them.
+
 ## Style By The Numbers
 
 - Respect the repository formatter and strictest practical warning settings.
