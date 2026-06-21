@@ -72,7 +72,7 @@
   "theme": {
     "mode": "system",
     "light": "Rosé Pine Dawn",
-    "dark": "Gruvbox Dark Soft",
+    "dark": "Gruvbox Material Dark",
   },
   "experimental.theme_overrides": {
     "syntax": {
