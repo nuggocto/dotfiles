@@ -2,7 +2,9 @@
 name: rust
 description: >
   Production-grade Rust backend guidance focused on idiomatic design,
-  explicit error handling, safe concurrency, and reliable operations.
+  explicit error handling, safe concurrency, and reliable operations. Use when
+  working with Rust code, .rs files, Cargo projects, or Rust services, APIs,
+  and workers.
 license: MIT
 metadata:
   author: opencode
@@ -12,6 +14,8 @@ metadata:
 # Rust
 
 Use this skill for production-grade Rust services, APIs, workers, and backend tooling. Prefer the repository's existing stack over generic defaults; use the defaults below only when the codebase has no clear standard.
+
+When library behavior is uncertain, prefer current official docs (docs.rs, or via context7) over memorized APIs. For performance-sensitive, systems-level, or storage/infra code, also apply `@tiger_style/`.
 
 ## Workflow
 
@@ -152,4 +156,5 @@ When using this skill:
 1. State the architecture impact of the change in plain language.
 2. Call out trade-offs when choosing crates, async patterns, or boundaries.
 3. Prefer concrete file-level guidance over abstract Rust advice.
-4. End with the most relevant verification commands or follow-up checks.
+4. Point to relevant crate docs (docs.rs) when library specifics matter.
+5. End with the most relevant verification commands or follow-up checks.

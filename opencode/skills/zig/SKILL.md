@@ -3,7 +3,8 @@ name: zig
 description: >
   Production-grade Zig systems and backend guidance focused on explicit memory
   management, predictable performance, clear boundaries, and operational
-  reliability.
+  reliability. Use when working with Zig code, .zig files, build.zig projects,
+  or Zig services, daemons, CLIs, and data-plane components.
 license: MIT
 metadata:
   author: opencode
@@ -13,6 +14,8 @@ metadata:
 # Zig
 
 Use this skill for production-grade Zig services, daemons, proxies, data-plane components, CLIs, and performance-sensitive backend tooling. Prefer the repository's existing stack over generic defaults; use the defaults below only when the codebase has no clear standard.
+
+When library behavior is uncertain, prefer current official Zig docs and source (or context7) over memorized APIs; Zig's standard library and APIs change quickly. For performance-sensitive, systems-level, or data-plane code, also apply `@tiger_style/`.
 
 ## Workflow
 
@@ -150,4 +153,5 @@ When using this skill:
 1. State the architecture and ownership impact of the change in plain language.
 2. Call out trade-offs when choosing allocators, `comptime`, concurrency, or FFI boundaries.
 3. Prefer concrete file-level guidance over abstract Zig advice.
-4. End with the most relevant verification commands or follow-up checks.
+4. Point to relevant Zig standard library or package docs when specifics matter.
+5. End with the most relevant verification commands or follow-up checks.

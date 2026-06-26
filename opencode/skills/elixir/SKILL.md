@@ -2,7 +2,9 @@
 name: elixir
 description: >
   Production-grade Elixir backend guidance focused on Phoenix, Ecto, the BEAM,
-  and reliable, observable services.
+  and reliable, observable services. Use when working with Elixir/Phoenix code,
+  .ex/.exs files, mix projects, Ecto schemas or migrations, LiveView, or BEAM
+  services.
 license: MIT
 metadata:
   author: opencode

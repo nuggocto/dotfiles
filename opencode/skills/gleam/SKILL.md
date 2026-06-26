@@ -3,6 +3,8 @@ name: gleam
 description: >
   Production-grade Gleam backend guidance focused on type-safe functional
   services on the BEAM, using Wisp, Mist, Squirrel, and the Gleam ecosystem.
+  Use when working with Gleam code, .gleam files, gleam.toml projects,
+  Wisp/Mist handlers, or Squirrel SQL.
 license: MIT
 metadata:
   author: opencode

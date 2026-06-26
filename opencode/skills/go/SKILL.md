@@ -2,7 +2,8 @@
 name: go
 description: >
   Production-grade Go backend guidance focused on idiomatic code, clear
-  architecture boundaries, reliability, and testability.
+  architecture boundaries, reliability, and testability. Use when working with
+  Go code, .go files, go.mod modules, or Go services, APIs, and workers.
 license: MIT
 metadata:
   author: opencode
@@ -12,6 +13,8 @@ metadata:
 # Go
 
 Use this skill for production-grade Go services, APIs, workers, and internal backend tooling. Prefer the repository's existing patterns over generic defaults; use the defaults below when the codebase does not already have a clear standard.
+
+When library behavior is uncertain, prefer current official docs (pkg.go.dev, or via context7) over memorized APIs.
 
 ## Workflow
 
@@ -43,6 +46,7 @@ Use this skill for production-grade Go services, APIs, workers, and internal bac
 | Validation | `go-playground/validator` | Keep custom validators centralized |
 | Password hashing | Argon2id | If the service stores passwords |
 | IDs | UUIDv7 | Prefer one ID strategy per service |
+| Date/time | `time` (stdlib) | Keep time zones explicit and consistent |
 | Integration tests | `testcontainers-go` | When external deps affect behavior |
 | Static analysis | `go vet`, `staticcheck` | Treat both as normal quality gates |
 | Vulnerability review | `govulncheck` | Run when deps or exposure change |
@@ -153,4 +157,5 @@ When using this skill:
 1. State the architecture impact of the change in plain language.
 2. Call out trade-offs when choosing libraries, concurrency patterns, or package boundaries.
 3. Prefer concrete file-level recommendations over broad Go advice.
-4. End with the most relevant verification commands or follow-up checks.
+4. Point to relevant package docs (pkg.go.dev) when library specifics matter.
+5. End with the most relevant verification commands or follow-up checks.
