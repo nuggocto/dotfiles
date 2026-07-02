@@ -79,7 +79,8 @@ test/
 ## Zig conventions
 
 - Use `snake_case` for files and package-style module names.
-- Use `camelCase` for functions, variables, parameters, and fields.
+- Use `camelCase` for functions.
+- Use `snake_case` for variables, parameters, and struct fields.
 - Use `PascalCase` for structs, enums, unions, error sets, and other named types.
 - Use `SCREAMING_SNAKE_CASE` only for foreign constants or when the repository already standardizes on it.
 - Name allocator parameters `allocator` unless a narrower name materially improves clarity.
