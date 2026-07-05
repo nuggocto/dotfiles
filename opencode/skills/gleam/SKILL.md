@@ -84,8 +84,8 @@ test/
 
 ## Gleam conventions
 
-- Use `PascalCase` for module names and custom types.
-- Use `snake_case` for functions, variables, files, and directories.
+- Use `snake_case` for module names, functions, variables, files, and directories.
+- Use `PascalCase` for custom types and constructors.
 - Use `Option` and `Result` instead of null-like sentinels.
 - Prefer custom types and records over loosely typed maps for domain data.
 - Use the pipe operator (`|>`) for sequences of transformations.
