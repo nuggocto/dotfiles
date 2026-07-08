@@ -1,7 +1,7 @@
 {
   "99": { "branch": "master", "commit": "c17422457027c913c76c75a921fca1e623d2678e" },
   "LazyVim": { "branch": "main", "commit": "c10948c50b18fae7f256433afdef09e432410480" },
-  "SchemaStore.nvim": { "branch": "main", "commit": "19adbfb1c4d4049b691be0d840936b109de0f5ea" },
+  "SchemaStore.nvim": { "branch": "main", "commit": "e954496f8ef22904e8a84f5078f4a110fdc7a0d3" },
   "aether.nvim": { "branch": "v3", "commit": "02af9ba1ef9d6f136a6b20404d39f2a4e3857e16" },
   "bamboo.nvim": { "branch": "master", "commit": "1309bc88bffcf1bedc3e84e7fa9004de93da774a" },
   "blink.cmp": { "branch": "main", "commit": "78336bc89ee5365633bcf754d93df01678b5c08f" },
@@ -51,7 +51,7 @@
   "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
   "retro-82.nvim": { "branch": "master", "commit": "41b8c42ed0099eb43824903ef606a6b051d33505" },
   "rose-pine": { "branch": "main", "commit": "ff483051a47e27d84bdef47703538df1ed9f4a47" },
-  "rustaceanvim": { "branch": "main", "commit": "8c7b4e0a8333f21e3c981d2009c2af237904e803" },
+  "rustaceanvim": { "branch": "main", "commit": "eb0c154504e9db6f7564cd2f06c5b7d6e01c71ff" },
   "snacks.nvim": { "branch": "main", "commit": "882c996cf28183f4d63640de0b4c02ec886d01f2" },
   "todo-comments.nvim": { "branch": "main", "commit": "31e3c38ce9b29781e4422fc0322eb0a21f4e8668" },
   "tokyonight.nvim": { "branch": "main", "commit": "cdc07ac78467a233fd62c493de29a17e0cf2b2b6" },

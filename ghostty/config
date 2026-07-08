@@ -19,6 +19,11 @@ cursor-style = block
 cursor-style-blink = true
 shell-integration-features = no-cursor
 
+# Bell / timer alerts
+# Pomoshroom sends a terminal bell when a focus or break timer ends.
+# Ghostty turns that bell into a local attention marker.
+bell-features = attention,title,no-audio
+
 # Keyboard bindings - General
 keybind = f11=toggle_fullscreen
 keybind = shift+insert=paste_from_clipboard
