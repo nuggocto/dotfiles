@@ -8,7 +8,7 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.2.0"
+  version: "1.3.1"
   inspired-by: Tiger Style
 ---
 
@@ -18,6 +18,10 @@ Use this skill when the user wants a strict, systems-oriented engineering style
 with strong opinions about safety, performance, simplicity, and disciplined
 implementation. The goal is to preserve the spirit of TigerStyle without tying
 the guidance to any specific stack.
+
+## Interaction With Language Skills
+
+TigerStyle is an engineering overlay, not a replacement for a language's semantics, standard library contracts, or official tooling guidance. Apply the active language-specific skill first; it governs assertion and panic behavior, error handling, memory ownership, concurrency, unsafe operations, and testing semantics. Then use TigerStyle to strengthen bounds, deliberate internal invariants, resource accounting, and verification without overriding those rules.
 
 ## The Essence Of Style
 
@@ -63,7 +67,8 @@ now.
    bad state transitions, hidden allocations, and unclear ownership.
 3. Choose the smallest design that solves the problem without borrowing from the
    future.
-4. Encode the model in assertions, invariants, limits, and tests.
+4. Encode the model in boundary validation, deliberate assertions, invariants,
+   limits, and tests.
 5. Explain why the design is correct, not only what it does.
 
 ## Safety
@@ -75,9 +80,13 @@ now.
 - Put a limit on everything: queues, retries, loops, buffers, batch sizes,
   concurrency, memory growth, and work per request.
 - Use explicitly sized types where practical at critical boundaries.
-- Handle all errors explicitly; do not ignore error values.
+- Explicitly propagate, handle, translate, or intentionally discard every error;
+  discard one only when failure is genuinely irrelevant and the decision is
+  evident from context.
 - Crash on programmer-error invariants; handle operational errors as normal
   control flow.
+- Validate untrusted data and expected failure at trust boundaries before values
+  enter the internal state model.
 - Keep variables in the smallest possible scope.
 - Keep functions small enough to understand in one screenful.
 - Prefer positive invariants over negated reasoning.
@@ -88,15 +97,31 @@ now.
 
 ## Assertions And Invariants
 
-- Assert preconditions, postconditions, and internal invariants aggressively.
-- Assert function arguments and return values where incorrect values would mean
-  programmer error.
-- Add paired assertions for critical properties when data crosses boundaries.
+- Assert important preconditions, postconditions, and internal invariants
+  aggressively, where "aggressively" means high-value coverage rather than a
+  mechanical assertion count.
+- Assert function arguments and return values only when an incorrect value would
+  prove a programmer error in an internal contract.
+- Validate malformed input, I/O failure, allocation failure, unavailable
+  resources, cancellation, timeouts, and other operational conditions with the
+  language's normal error or control-flow mechanisms.
+- Keep assertion expressions free of required side effects. Program correctness,
+  security checks, cleanup, and state transitions must not depend on an
+  assertion being evaluated.
+- Account for the language and build mode: assertions may panic, be disabled, or
+  become optimizer assumptions. Follow the language-specific skill rather than
+  assuming one universal assertion behavior.
+- Add paired assertions around critical internal state transitions when checking
+  both sides can catch corruption close to its source; do not replace
+  trust-boundary validation with assertions.
 - Prefer separate assertions over one large compound assertion.
 - Use assertions as executable documentation for surprising but essential
   truths.
-- Assert both the positive space that is expected and the negative space that
-  must not happen.
+- Assert positive and negative properties when they are materially distinct and
+  both improve the failure signal; avoid restating facts already guaranteed by
+  the type system or an adjacent check without adding diagnostic value.
+- Use the test framework's expectations for test outcomes rather than production
+  assertion primitives.
 - Test valid paths and invalid paths; bugs often live at the boundary between
   them.
 - Do not let fuzzing or broad testing replace human reasoning; use tests to
@@ -203,7 +228,10 @@ do not have to endure a lecture to get them.
 - Unbounded loops, queues, retries, recursion, or fan-out.
 - Hidden allocations or unnecessary copying in hot paths.
 - Weak ownership or unclear state transitions.
-- Missing assertions around critical invariants.
+- Missing validation at trust boundaries or assertions around critical internal
+  invariants.
+- Assertions used for recoverable failures, untrusted input, or required side
+  effects.
 - Compound control flow that obscures which cases are handled.
 - Names that hide units, intent, or domain meaning.
 - Comments that explain what but not why.
@@ -216,7 +244,8 @@ When using this skill:
 
 1. Explain the safety impact first.
 2. Call out performance consequences with simple resource reasoning.
-3. Name the invariants and bounds that should exist.
+3. Distinguish operational failures from programmer-error invariants, then name
+   the validation, assertions, and bounds that should exist.
 4. Prefer smaller, sharper design changes over broad refactors.
 5. Say why each strong recommendation matters.
 
@@ -228,5 +257,9 @@ When using this skill:
 - Do not accept hidden defaults at critical boundaries when explicit
   configuration is possible.
 - Do not suggest unbounded background work, memory growth, or retries.
+- Do not use assertion quantity as a quality metric or add assertions that merely
+  duplicate types and nearby checks without sharpening the invariant.
+- Do not use assertions to handle external input or expected operational failure.
+- Do not place required side effects inside assertions.
 - Do not hide uncertainty; if a bound or invariant is unknown, surface it
   clearly.

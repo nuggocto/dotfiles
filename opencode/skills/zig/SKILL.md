@@ -8,14 +8,16 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Zig
 
 Use this skill for production-grade Zig services, daemons, proxies, data-plane components, CLIs, and performance-sensitive backend tooling. Prefer the repository's existing stack over generic defaults; use the defaults below only when the codebase has no clear standard.
 
-When library behavior is uncertain, prefer current official Zig docs and source (or context7) over memorized APIs; Zig's standard library and APIs change quickly. For performance-sensitive, systems-level, or data-plane code, also apply `@tiger_style/`.
+When language or library behavior is uncertain, identify the repository's Zig version and consult the matching official language reference, standard library source, and build-system documentation. Do not use `master` documentation for a pinned release unless investigating future behavior; Zig APIs change quickly.
+
+For performance-sensitive, systems-level, or data-plane code, apply `@tiger_style/` as an engineering overlay. Zig semantics and the rules in this skill take precedence: TigerStyle may add bounds and deliberate internal-invariant checks, but it must not turn external input or operational failures into assertions.
 
 ## Workflow
 
@@ -29,9 +31,10 @@ When library behavior is uncertain, prefer current official Zig docs and source 
 
 - Prefer the standard library and small dependencies.
 - Prefer explicit allocator ownership, concrete types, and bounded resource lifetimes.
-- Prefer thin protocol layers, explicit error unions, and simple control flow.
+- Prefer thin protocol layers, error unions, and simple visible control flow.
 - Prefer measurable allocation and data-layout choices over abstraction-heavy designs.
-- Do not add broad `comptime`, hidden allocation, or wide FFI surfaces without a clear payoff.
+- Use `comptime` when values must be compile-time known, for type construction and generics, or for compile-time validation; avoid reflective machinery or performance specialization without a clear payoff.
+- Preserve Zig's guarantees of no hidden control flow and no hidden allocation at API boundaries.
 
 ## Defaults when the repo has no standard
 
@@ -41,18 +44,18 @@ When library behavior is uncertain, prefer current official Zig docs and source 
 | Build | `build.zig` + `build.zig.zon` | Keep the build graph explicit |
 | Formatting | `zig fmt` | Format touched files or the full package |
 | Testing | `zig test` + `zig build test` | Start narrow, then run the build graph |
-| Allocators | Explicit allocator threading | Use a debug allocator in debug/tests and choose production allocators deliberately |
+| Allocators | Caller-selected allocators | Reusable code accepts an allocator; applications choose one near the composition root |
 | Logging | `std.log` or repo choice | Keep levels and context consistent |
 | JSON | `std.json` | Keep parsing and serialization explicit |
-| Time | `std.time` | Use one time-source strategy per service |
-| IDs | UUIDv7 or repo standard | Prefer one ID strategy per service |
 | Integration tests | Black-box binary tests or repo harness | Use real processes when external behavior matters |
-| FFI | Narrow C ABI wrappers | Isolate unsafe boundaries and ownership |
-| Security checks | Debug + `ReleaseSafe` verification | Catch bounds and invariant failures early |
+| FFI | Narrow C ABI boundaries | Isolate ABI conversion, pointer validity, and ownership rules |
+| Runtime safety | `Debug` + `ReleaseSafe` verification | Also test the optimization mode that is actually shipped |
 
 If the repository already uses custom allocators, event loops, protocol layers, or C libraries, stay consistent unless the user explicitly asks for a migration.
 
-## Architecture defaults
+## Application structure
+
+Zig does not prescribe an `app/core/io/platform` directory layout. Start with a flat structure and split modules only when doing so clarifies ownership, dependencies, or independently testable behavior.
 
 - Keep protocol handlers focused on parsing input, validating it, calling core logic, and encoding output.
 - Keep business rules, orchestration, and ownership of long-lived resources in service or core modules.
@@ -60,46 +63,54 @@ If the repository already uses custom allocators, event loops, protocol layers, 
 - Keep startup, config, allocator wiring, and shutdown behavior near the entrypoint.
 - Keep caches, pools, arenas, and hot-path data structures explicit about lifetime and bounds.
 
-Suggested layout when starting from scratch:
-
-```text
-build.zig
-build.zig.zon
-src/
-  main.zig
-  lib.zig
-  config.zig
-  app/
-  core/
-  io/
-  platform/
-test/
-```
-
 ## Zig conventions
 
-- Use `snake_case` for files and package-style module names.
-- Use `camelCase` for functions.
-- Use `snake_case` for variables, parameters, and struct fields.
-- Use `PascalCase` for structs, enums, unions, error sets, and other named types.
-- Use `SCREAMING_SNAKE_CASE` only for foreign constants or when the repository already standardizes on it.
+- Name declarations according to the value they represent, not merely their syntactic form.
+- Use `TitleCase` for types, type aliases, and functions that return `type`.
+- Use `camelCase` for other functions and callable values.
+- Use `snake_case` for variables, parameters, fields, namespaces, and other non-callable values.
+- Name a file `TitleCase.zig` when its implicit struct is a type with top-level fields; use `snake_case` for other files and directories.
+- Apply ordinary casing to acronyms. Reserve forms such as `SCREAMING_SNAKE_CASE` for established external conventions such as `ENOENT` or an existing repository standard.
+- Choose names in their fully qualified context: prefer `json.Value` over `json.JsonValue`, and avoid vague segments such as `Manager`, `Context`, `utils`, or `misc` when a domain name is available.
+- Do not use underscore prefixes to imply privacy or special behavior.
 - Name allocator parameters `allocator` unless a narrower name materially improves clarity.
 - Prefer tagged unions, enums, and narrow structs over parallel flags and nullable state combinations.
 
+## Values and initialization
+
+- Prefer `const` over `var` whenever the binding does not need mutation.
+- Use `undefined` only for storage guaranteed to be overwritten before any read or otherwise never observed.
+- After `undefined` is coerced to a type, it is indistinguishable from an ordinary value and may contain a nonsensical bit pattern.
+- Treat Debug and `ReleaseSafe` initialization of undefined memory with `0xaa` as an implementation aid, never a language guarantee.
+
 ## Allocators, lifetimes, and ownership
 
-- Pass allocators explicitly to code that allocates; do not hide allocator choice in deep helper layers.
-- The code that allocates should make ownership and freeing rules obvious at the API boundary.
-- Pair fallible allocation and initialization with `errdefer`; pair cleanup with `defer`.
+- Reusable or library code that allocates should normally accept an allocator rather than choose one globally.
+- Applications should choose the main allocator near the composition root, usually the entrypoint, and pass it or purpose-specific sub-allocators to code that needs them.
+- For every API that returns or retains a pointer or slice, document who owns the backing memory, who frees it, and which operations or events invalidate it.
+- After successfully acquiring a resource that must be released if later work fails, place `errdefer` immediately after the acquisition. Use `defer` for cleanup required on every exit path.
 - Prefer stack allocation, fixed buffers, or caller-provided buffers when bounds are known and practical.
-- Use arenas only when lifetime boundaries are simple, coarse-grained, and easy to verify.
-- Prefer slices and views that preserve ownership clarity over copying for convenience.
+- Use arenas only when allocations share one clear bulk lifetime that is easy to verify.
+- Treat slices and container views as borrowed data whose lifetime may end on mutation, resize, reset, or deinitialization.
+- Treat `error.OutOfMemory` as a normal possible allocation failure unless the application has an explicit, documented abort policy at its outer boundary.
+
+## Assertions, validation, and illegal behavior
+
+- Assertions represent programmer errors and internal invariants. They are not a substitute for runtime validation.
+- Handle malformed or untrusted input, I/O failure, allocation failure, unavailable resources, cancellation, and other expected runtime conditions with errors or normal control flow.
+- Use `std.debug.assert` only when a false condition means the caller or implementation violated an internal contract. Keep assertion expressions free of required side effects.
+- In `Debug` and `ReleaseSafe`, a failed `std.debug.assert` reaches `unreachable` and panics. In `ReleaseFast` and `ReleaseSmall`, assertions are optimized away and may become optimizer assumptions.
+- Use `unreachable`, optional unwrapping, and `catch unreachable` only when impossibility is guaranteed by construction, the type or state model, or a preceding exhaustive check.
+- Use `std.testing.expect*` in tests so failures remain detectable in every optimization mode.
+- When TigerStyle calls for aggressive assertions, add non-redundant checks that sharpen important internal invariants at useful boundaries. Do not mechanically assert every argument or return value.
+- Do not disable runtime safety broadly. Any scoped exception needs a demonstrated benefit and a locally auditable proof that safety remains intact.
 
 ## Errors and observability
 
-- Never ignore errors or replace recoverable failures with `unreachable` in runtime paths.
+- Explicitly propagate, handle, translate, or intentionally discard each error. Discard an error only when failure is genuinely irrelevant and that decision is evident from context.
 - Model expected failures with error unions, explicit status mapping, and narrow conversion points.
-- Add context at I/O, parsing, and FFI boundaries before errors cross higher-level APIs.
+- Generally avoid `anyerror` in public APIs. Inferred error sets are appropriate for implementation-local functions; use explicit sets when API stability, recursion, function pointers, exhaustive handling, or cross-target consistency requires them.
+- Add operational context at I/O, parsing, and FFI handling boundaries, and avoid duplicating the same error log at every propagation layer.
 - Keep client-facing or protocol-facing error surfaces stable even when internal causes vary.
 - Use `std.log` or the repository logger with consistent context for request IDs, object IDs, and resource limits when available.
 - Avoid silent truncation, dropped return values, and implicit fallbacks at critical boundaries.
@@ -109,9 +120,9 @@ test/
 - Prefer simple synchronous-looking control flow unless the repository already standardizes on a more complex runtime model.
 - Every thread, worker, queue, and background task needs an owner, shutdown path, and explicit bound.
 - Be explicit about blocking I/O, batching, and backpressure; do not hide them behind convenience wrappers.
-- Avoid shared mutable state when message passing, ownership transfer, or sharding is clearer.
+- Minimize shared mutable state; where sharing is necessary, make synchronization, ownership, cancellation, and lifetime explicit.
 - Be clear when performance depends on layout, cache behavior, allocation rate, or copies.
-- Measure hot paths before introducing `comptime` specialization, SIMD, or branch-heavy micro-optimizations.
+- Use `comptime` freely for semantic requirements such as generics and compile-time validation. Measure representative hot paths before introducing `comptime` specialization, SIMD, layout changes, or branch-heavy work specifically for performance.
 
 ## Networking, storage, and security
 
@@ -120,7 +131,7 @@ test/
 - Keep protocol parsing, serialization, and storage mapping at the edges, not in core business logic.
 - Keep SQL, key-value, file, or FFI details behind small adapter APIs.
 - Parameterize queries, cap batch sizes, and make retry behavior bounded and visible.
-- Minimize raw pointer casts and unsafe C interop; wrap them in small auditable functions.
+- Minimize raw pointer casts and unchecked C pointer operations; wrap them in small auditable functions.
 - Avoid logging secrets, raw tokens, or sensitive buffers; zero or overwrite sensitive data when practical.
 
 ## Serialization and protocol contracts
@@ -135,17 +146,29 @@ test/
 
 - Keep `test` blocks close to the code when that improves locality and understanding.
 - Add integration tests around binaries, protocols, or external dependencies when unit tests would hide important behavior.
-- Use leak-detecting or fail-fast allocators in tests when memory ownership is part of the risk.
+- Use `std.testing.expect*` rather than `std.debug.assert` for test outcomes.
+- Use `std.testing.allocator` for ordinary test allocations so the default runner can report leaks.
+- Use `std.testing.FailingAllocator` to exercise allocation-failure and cleanup paths when OOM handling is part of the contract.
 - Run `zig fmt`, focused `zig test <file>`, `zig build test`, and `zig build` for substantial changes.
-- Run critical paths in both `Debug` and `ReleaseSafe` builds, usually with `zig build -Doptimize=ReleaseSafe`, when bounds, overflow, or invariants matter.
+- Exercise critical paths in `Debug` or `ReleaseSafe` to detect safety-checked illegal behavior, and also test the optimization mode actually shipped.
+- Use `zig build -Doptimize=ReleaseSafe` only when the build exposes the standard optimize option; otherwise use the repository's build interface.
 
 ## Guardrails
 
 - Do not blur ownership of allocated memory across unrelated layers.
-- Do not introduce `comptime` abstraction when concrete code or a small runtime branch is easier to audit.
+- Do not read a value or memory region before every byte that may be observed has been initialized.
+- Do not use `comptime` metaprogramming when concrete code or a small runtime branch communicates intent more clearly.
 - Do not widen FFI surfaces or pointer aliasing without a concrete need and clear boundary checks.
 - Do not hide unbounded work in queues, retries, background threads, or allocator growth.
+- Do not use assertions, `unreachable`, or disabled runtime safety to bypass recoverable failures.
 - Do not refactor broadly when a small explicit change solves the problem.
+
+## Source discipline
+
+- Treat the language reference and standard library source matching the repository's pinned Zig version as authoritative for semantics and APIs.
+- Use current `master` documentation only for projects tracking `master` or when explicitly evaluating a future migration.
+- Use Andrew Kelley's writing and talks for design rationale such as visible control flow, explicit allocation, readable code, and careful use of `unreachable`, not as a substitute for versioned API documentation.
+- Keep TigerStyle recommendations labeled as an independent engineering discipline rather than attributing them to Andrew Kelley or the Zig project.
 
 ## Response expectations
 

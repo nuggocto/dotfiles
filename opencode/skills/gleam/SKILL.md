@@ -1,67 +1,69 @@
 ---
 name: gleam
 description: >
-  Production-grade Gleam backend guidance focused on type-safe functional
-  services on the BEAM, using Wisp, Mist, Squirrel, and the Gleam ecosystem.
-  Use when working with Gleam code, .gleam files, gleam.toml projects,
-  Wisp/Mist handlers, or Squirrel SQL.
+  Production-grade Gleam guidance focused on type-safe functional programs for
+  Erlang and JavaScript targets. Use when working with Gleam code, .gleam
+  files, gleam.toml projects, BEAM services, Wisp/Mist handlers, or Gleam
+  libraries and tooling.
 license: MIT
 metadata:
   author: opencode
-  version: "1.0.0"
+  version: "2.0.0"
 ---
 
 # Gleam
 
-Use this skill for production-grade Gleam services, APIs, and backend tooling running on the Erlang VM. Prefer the repository's existing stack over generic defaults; use the defaults below only when the codebase has no clear standard.
+Use this skill for production-grade Gleam applications, libraries, services, APIs, and tooling targeting Erlang or JavaScript. Apply BEAM, Wisp, Mist, pog, Squirrel, and OTP guidance only when those technologies are present or are being deliberately selected. Prefer the repository's existing stack over generic defaults.
 
-When library behavior is uncertain, prefer the official Hex docs over memorized APIs.
+When behavior is uncertain, prefer current official Gleam documentation and the package's versioned HexDocs and upstream repository over memorized APIs.
 
 ## Workflow
 
-1. Identify the service shape and constraints: runtime, actor model, storage, external I/O, latency target, and deployment model.
-2. Read only the files that govern the change: `gleam.toml`, `manifest.toml`, entrypoints, router, handlers, domain modules, Squirrel SQL files, tests, and CI.
+1. Identify the program shape and constraints: Erlang or JavaScript target, application or library, actor model, storage, external I/O, latency target, and deployment model.
+2. Read the files that govern the change: `gleam.toml`, `manifest.toml`, relevant `src/`, `dev/`, and `test/` modules, foreign code, generated SQL inputs, deployment config, and CI.
 3. Preserve existing framework and package choices unless they are unsafe, broken, or clearly blocking the request.
 4. Make the smallest change that keeps types, function pipelines, actor ownership, and error flow obvious.
 5. Verify with the narrowest useful commands first; widen to full format/test/build checks for broader changes.
 
 ## Default posture
 
-- Prefer explicit types, immutable data, and exhaustive pattern matching.
-- Prefer small, pure functions and narrow, behavior-focused modules.
+- Annotate every module function's arguments and return type; prefer immutable data and exhaustive pattern matching.
+- Prefer pure functions and cohesive, domain-oriented modules. Do not fragment modules merely to keep files small or mirror design-pattern layers.
 - Prefer the Gleam standard library and small, well-maintained Hex packages.
-- Prefer clear actor supervision and bounded concurrency over clever abstractions.
-- Do not add unsafe Erlang FFI, metaprogramming, or global mutable state without a concrete payoff.
+- Prefer deliberate lifecycle management and bounded concurrency over clever abstractions.
+- Minimize all externals and keep foreign boundaries precisely typed, small, and well tested.
 
-## Defaults when the repo has no standard
+## Opinionated starter options
+
+Use these only for a new application when its target and requirements fit. They are ecosystem choices, not language-wide best practices.
 
 | Area | Default | Notes |
 | --- | --- | --- |
-| Toolchain | Gleam + Erlang/OTP pinned by `.tool-versions` or CI | Keep CI and local tooling aligned |
-| Build | `gleam build` | Type-checked, reproducible builds |
-| Formatting | `gleam format` | Format touched files or the full project |
-| Testing | `gleam test` (gleeunit) | Standard test runner on the BEAM |
-| HTTP server | Mist | Lightweight HTTP/1.1 and WebSocket server |
-| Web framework | Wisp | Built on Mist; handles routing, middleware, and requests |
-| Database | Squirrel + pog | Type-safe generated SQL over the `pog` Postgres driver |
-| Migrations | Plain SQL migrations (e.g. Flyway, sqitch, or a project script) | Keep schema changes versioned outside application code |
+| Toolchain | Compiler range in `gleam.toml`; exact runtime pin in CI or the repo's environment manager when needed | Commit `manifest.toml` and align CI and local tooling |
+| Checking/build | `gleam check` and `gleam build` | Use `gleam build --warnings-as-errors` when CI treats warnings as failures |
+| Formatting | `gleam format`; `gleam format --check` in CI | Format touched files or the full project |
+| Testing | `gleam test`; gleeunit for generated projects | The command runs the package's test entrypoint on either target |
+| BEAM HTTP server | Mist | Lightweight HTTP and WebSocket option for Erlang-target applications |
+| BEAM web framework | Wisp | Handlers, middleware, request parsing, response helpers, and a Mist adapter |
+| PostgreSQL | pog; optionally Squirrel for PostgreSQL 16+ | Squirrel requires a reachable schema-compatible database during generation |
+| Migrations | Versioned SQL with the deployment-owned tool or project runner | Keep migrations separate from Squirrel query inputs |
 | JSON | `gleam_json` | Explicit encode/decode functions |
-| Validation | Custom validators + Wisp middleware | Keep validation centralized at the boundary |
-| Logging | Erlang `logger` via Gleam bindings or project logger | Structured metadata and request-scoped keys |
-| IDs | `gleam_uuid` or `youid` | Prefer one ID strategy per service |
-| Date/time | `birl` | Keep time zones explicit and consistent |
-| Static analysis | Gleam's type checker + `gleam format` | The type checker is the first line of defense |
-| Integration tests | Real PostgreSQL instance | When external deps affect behavior |
+| Validation | Explicit boundary functions; Wisp middleware when applicable | Keep validation close to the boundary it protects |
+| Logging | Target-appropriate project logger | Verify that the chosen binding supports required structured metadata |
+| IDs | `youid` when UUIDs fit the domain | Choose the UUID version from storage and interoperability requirements |
+| Date/time | Core-team `gleam_time`, defaulting to `gleam/time/timestamp` for instants | Add another package only for missing functionality |
+| Static analysis | `gleam check` + `gleam format --check` | The compiler is the first line of defense |
+| Integration tests | Real isolated dependencies | Use when external behavior matters |
 
 If the repository already uses alternatives such as a different HTTP server, database layer, or migration strategy, stay consistent unless the user explicitly asks for a migration.
 
-## Architecture defaults
+## Module and architecture defaults
 
-- Keep handlers focused on transport: parse input, call domain logic, encode output.
-- Keep business rules, orchestration, and transaction ownership in domain/service modules.
-- Keep SQL and persistence details in Squirrel-generated modules and thin adapter functions.
-- Keep startup, supervision wiring, config, and shutdown behavior in the main `app.gleam` or bootstrap modules.
-- Keep shared middleware, error mapping, and request helpers small and explicit.
+- Organize modules around the business domain and the API they present, not around generic handler/service/repository categories.
+- Keep a small entrypoint or transport adapter when it clarifies the boundary, but do not create layers or directories before they earn their indirection.
+- Let the operation coordinating atomic work own its transaction boundary.
+- Keep generated persistence code behind a cohesive domain-facing API when exposing it directly would leak implementation details.
+- Keep BEAM startup, supervision wiring, config, and shutdown behavior near the application entrypoint.
 
 Suggested layout when starting from scratch:
 
@@ -71,14 +73,13 @@ manifest.toml
 src/
   my_app.gleam
   my_app/
-    router.gleam
-    handlers/
-    middleware/
-    domain/
-    persistence/
-sql/
-  queries/
-  migrations/
+    account.gleam
+    billing.gleam
+    router.gleam             # when the application serves HTTP
+    account/
+      sql/
+        find_account.sql     # when using Squirrel
+migrations/                  # not under a Squirrel sql directory
 test/
 ```
 
@@ -89,16 +90,17 @@ test/
 - Use `Option` and `Result` instead of null-like sentinels.
 - Prefer custom types and records over loosely typed maps for domain data.
 - Use the pipe operator (`|>`) for sequences of transformations.
-- Use `case` expressions with exhaustive pattern matching; let the compiler warn about missing branches.
-- Keep functions small enough to reason about in one screenful.
+- Use exhaustive `case` expressions; missing branches for finite types are compile errors.
+- Avoid catch-all patterns when naming every variant preserves compiler assistance during refactoring.
 
 ## Types, functions, and modules
 
 - Make invalid states unrepresentable with custom types.
-- Keep modules cohesive; split when a module mixes transport, domain, and persistence concerns.
-- Prefer explicit imports; avoid wildcard imports that hide dependencies.
+- Keep modules cohesive; split them when the resulting public API is clearer, not merely because a file is large.
+- Qualify functions and constants from imported modules. Import types and constructors unqualified only when that improves readability.
+- Use singular, package-prefixed module paths and annotate every module function's arguments and return type.
 - Define types at the boundaries where data enters or leaves the system.
-- Use phantom types or opaque types when a value needs to carry a provenance guarantee.
+- Use phantom or opaque types when they enforce a concrete invariant or staged API.
 
 ## Errors and observability
 
@@ -111,58 +113,60 @@ test/
 
 ## Concurrency, actors, and context
 
-- Every actor needs a supervisor, a shutdown path, and an explicit owner.
-- Use actors only when stateful, serialized access or isolation is required; prefer pure functions otherwise.
+- Put long-lived application services, pools, and restartable workers in a deliberate supervision tree. Short-lived work may use linked processes or a factory supervisor according to its failure semantics.
+- Use actors when stateful serialized access, concurrency, or fault isolation is required; prefer pure functions otherwise.
 - Propagate request context explicitly; do not hide it in process dictionaries or ambient state.
-- Avoid unbounded actor or process creation; use worker pools or backpressure for fan-out.
-- Be explicit about blocking calls and CPU-heavy work; move them off the critical path when possible.
+- Avoid orphaned unlinked processes, unbounded mailboxes, and unbounded fan-out; use pools or backpressure where appropriate.
+- Ordinary Gleam code is preemptively scheduled. Treat blocking FFI and NIF work as a separate scheduler-safety concern.
 
 ## HTTP, database, and security
 
-- Use Wisp helpers and explicit status values, not raw numeric literals.
-- Set body size limits, timeouts, and CORS rules in middleware near the router.
+- Wisp has no special router abstraction; use ordinary pattern matching unless the project has adopted another router.
+- Prefer named Wisp response helpers for common cases and explicit integer status codes where its API requires them.
+- Configure body limits and CORS in the appropriate Wisp middleware; configure server, upstream-call, proxy, and infrastructure timeouts at the layer that owns them.
 - Keep response and error envelopes stable within an API surface.
-- Domain/service layer owns transaction boundaries.
-- Keep SQL in `.sql` files consumed by Squirrel; do not hand-edit generated code.
-- Use parameterized queries only; watch for N+1 patterns on hot paths.
-- Prefer SQL migrations with reversible steps when possible.
-- Use Argon2id for passwords and avoid logging secrets or raw tokens.
+- The operation coordinating an atomic use case owns the transaction boundary.
+- When using Squirrel, keep query files under `src/**/sql/*.sql`, run `gleam run -m squirrel`, and do not hand-edit generated `sql.gleam` files.
+- Bind all untrusted SQL values; strictly allowlist any dynamic identifiers or syntax. Watch for N+1 patterns on hot paths.
+- Make forward migrations and recovery plans primary; provide tested reversals when they are safe and operationally useful.
+- For production pog connections, use verified TLS unless an equivalent trusted boundary provides and verifies transport security.
+- Use Argon2id only for human-chosen passwords. Generate bearer tokens with target-appropriate cryptographically secure randomness or a vetted token format, and avoid logging secrets or raw tokens.
 
 ## Serialization and API contracts
 
 - Use `gleam_json` for transport and config DTOs; keep encode/decode functions explicit.
 - Treat field names, defaults, optional fields, unknown-field behavior, and time formats as API contract decisions.
 - Prefer explicit request and response types at handler boundaries.
-- Reject unknown JSON fields intentionally, not by accident.
+- Decide and test the unknown-field policy. Standard field decoders ignore extra fields; add explicit key validation only when strict rejection is required.
 
 ## Testing and verification
 
-- Keep gleeunit tests close to the code when locality improves understanding.
+- Keep discoverable gleeunit tests under `test/`, mirroring source modules when useful.
 - Use table-driven tests with lists of input/expected pairs when a behavior has many cases.
 - Add integration tests with real dependencies when mocks would hide important behavior.
 - Test both happy paths and error paths; assert on `Error(_)` shapes, not just success.
-- Run `gleam format`, `gleam test`, and `gleam build` for substantial changes.
-- Regenerate Squirrel code after changing `.sql` files and verify the build still passes.
+- Run `gleam format --check`, `gleam check`, `gleam test`, and `gleam build --warnings-as-errors` for substantial changes when the repository supports those warning policies.
+- After changing Squirrel query files, run `gleam run -m squirrel`; use `gleam run -m squirrel check` in CI.
 
 ## Guardrails
 
-- Do not let handlers accumulate business logic.
-- Do not let services reach into transport concerns.
+- Do not fragment cohesive domain APIs into generic technical layers.
+- Do not let transport concerns dictate domain types or policy.
 - Do not introduce global mutable state when explicit arguments will do.
-- Do not start background actors without ownership and shutdown.
+- Do not start long-lived or critical actors without deliberate ownership and lifecycle behavior.
 - Do not add dependencies for tiny conveniences without a clear maintenance win.
 - Do not refactor broadly when a small targeted fix solves the problem.
 
 ## Native extensions
 
-For Erlang NIFs, ports, or shared libraries implemented in Rust or Zig, apply `@tiger_style/` and the corresponding language skill (`@rust/` or `@zig/`). Keep the Gleam boundary thin, well-supervised, and isolated from the BEAM scheduler when the native code can block or crash.
+For native code implemented in Rust or Zig, apply `@tiger_style/` and the corresponding language skill (`@rust/` or `@zig/`). Minimize and precisely type the boundary. Keep regular NIF calls short and use correctly classified dirty schedulers for unavoidable lengthy work. A crashing NIF can crash the entire BEAM VM and cannot be recovered by supervision; use an external OS process through a port when crash isolation is required.
 
 ## Response expectations
 
-When using this skill:
+For substantial changes using this skill:
 
 1. State the architecture and actor/supervision impact of the change in plain language.
 2. Call out trade-offs when choosing packages, concurrency patterns, or type boundaries.
 3. Prefer concrete file-level guidance over abstract Gleam advice.
-4. Point to relevant Hex docs when library specifics matter.
+4. Point to official Gleam docs or the package's versioned HexDocs and upstream repository when specifics matter.
 5. End with the most relevant verification commands or follow-up checks.

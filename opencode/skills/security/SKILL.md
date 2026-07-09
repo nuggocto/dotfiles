@@ -8,159 +8,254 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Security
 
 Use this skill to find real, exploitable weaknesses before an attacker does.
-Think like an attacker, report like an engineer: the goal is a prioritized,
-reproducible account of what can go wrong and how to fix it — not a checklist
-with green ticks. A clean scan is not proof of safety; it is the floor.
+Think like an attacker and report like an engineer: produce a prioritized,
+evidence-based account of what can go wrong and how to fix it, not a checklist
+with green ticks. A clean scan is not proof of safety.
 
-This skill is for auditing software you own or are explicitly authorized to
-test. Stay defensive: prove risk to get it fixed, never to exploit it.
+Stay defensive. Establish risk with the least-invasive evidence that is safe and
+authorized; never cause the harm being demonstrated.
 
 For resource-exhaustion and bounds issues, pair with `@tiger_style/`; to confirm
-a fix actually behaves, use `@qa/`; to lock it in with a regression test, use
+a fix behaves correctly, use `@qa/`; to add focused regression coverage, use
 `@test_quality/`.
+
+## Engagement mode and authorization
+
+- Determine the mode before starting: review-only, review-and-remediate, or
+  retest. In review-only mode, report findings without modifying code. In
+  remediation mode, preserve the evidence before applying the requested fix.
+- A request to review code in the shared workspace authorizes non-invasive
+  analysis of that material. It does not authorize sending traffic to deployed
+  systems, testing production, using discovered credentials, or probing vendors.
+- Before active testing, confirm written authorization or an applicable
+  disclosure policy covering the exact targets, environments, accounts, dates,
+  techniques, request-rate limits, data rules, third parties, contacts, and stop
+  conditions.
+- If active scope is unclear, continue only authorized non-invasive review and
+  ask before sending traffic or executing intrusive tooling.
 
 ## Workflow
 
-1. Confirm scope and authorization: what is in scope, what is off-limits, and
-   that you may test it at all. If unclear, ask before probing.
-2. Build a threat model: assets, trust boundaries, entry points, and the
-   attacker whose reach you are reasoning about.
-3. Map the attack surface from the model: every input, every privileged action,
-   every secret, every external call, and the deployment around them.
-4. Review against the high-impact vulnerability classes, following untrusted
-   data from entry point to sink.
-5. Verify suspected issues with the smallest safe proof of concept; do not
-   report on suspicion alone.
-6. Triage by impact and likelihood, then report each finding with location,
-   reproduction, severity, and a concrete fix. Do not silently fix what you find.
+1. Establish the engagement mode, authorized scope, exclusions, data-handling
+   rules, and stop conditions.
+2. Build a threat model covering the architecture, data flows, assets, trust
+   boundaries, attacker capabilities, assumptions, and security objectives.
+3. Derive a review plan from the architecture and select applicable versioned
+   standards or platform guidance rather than using a generic checklist alone.
+4. Trace untrusted data and privileged actions from entry points through policy
+   decisions to dangerous sinks and externally visible effects.
+5. Before running tools, confirm their targets, network egress, credentials,
+   request rate, package or plugin execution, and output destination.
+6. Verify suspected issues with the least-invasive authorized evidence. If active
+   verification would be unsafe or out of scope, report the evidence,
+   preconditions, limitations, and confidence instead of suppressing the issue.
+7. Record technical severity, remediation priority, and evidence confidence
+   separately, then report findings in risk order.
+8. In remediation mode, apply the smallest class-level fix, add a regression
+   test, rerun relevant checks, document residual risk, and retest the original
+   path.
 
 ## Threat modeling
 
-- Identify assets worth protecting: credentials, PII, money movement, tokens,
-  and the integrity of critical state.
-- Map trust boundaries: where data crosses from less-trusted to more-trusted —
-  network edges, process boundaries, and privilege changes.
-- Enumerate entry points: every input the system accepts, including headers,
-  query params, cookies, files, queues, webhooks, and inter-service calls.
-- Name the attacker: unauthenticated outsider, authenticated user, malicious
-  insider, or compromised dependency — each has different reach.
-- Treat all input as hostile until validated at the boundary; validate by
-  allowlist, not denylist.
-- Assume any single control will fail; layer defenses so one bypass is not game
-  over. Security has layers, like onions.
+- Model the system, dependencies, data flows and stores, trust boundaries, and
+  privilege changes before enumerating threats.
+- Identify confidentiality, integrity, availability, privacy, tenant-isolation,
+  financial, safety, and operational assets and objectives.
+- Name relevant attackers: unauthenticated outsiders, authenticated users,
+  malicious insiders, compromised services, dependencies, build systems, or
+  administrators.
+- Enumerate entry points including APIs, headers, cookies, files, queues,
+  webhooks, background jobs, inter-service calls, administrative paths, and
+  deployment interfaces.
+- For each meaningful threat, record mitigation, elimination, transfer, or
+  explicit acceptance, plus an owner, verification criterion, and residual risk.
+- Revisit the model after material architecture, dependency, trust-boundary, or
+  feature changes and after incidents.
+
+## Coverage baseline
+
+- Derive coverage from the threat model. For web applications, use the current
+  stable OWASP ASVS and WSTG as versioned baselines and mark areas reviewed, not
+  applicable, or out of scope.
+- For non-web software, supplement architecture-specific threats with the active
+  language, platform, cloud, database, and deployment guidance.
+- Prioritize by reachability and blast radius. A versioned baseline supports the
+  review; it does not replace system-specific reasoning.
 
 ## What to review
 
-Prioritize by blast radius. These classes cause most real breaches.
-
-- **Injection:** untrusted input reaching an interpreter — SQL, NoSQL, OS
-  commands, LDAP, XPath, template engines, or `eval`. Flag string-built queries
-  and shelled-out commands; require parameterization and allowlists.
-- **Cross-site scripting:** unescaped output in HTML, JS, attributes, or URLs.
-  Check stored and reflected paths and any `innerHTML`-style escape hatches.
-- **Authentication:** password storage (Argon2id, bcrypt, or scrypt — never fast
-  hashes), session lifecycle, token issuance and expiry, MFA, account recovery,
-  and credential-stuffing resistance.
-- **Authorization:** every privileged action must check the *current* user's
-  rights on the *specific* object. Hunt for IDOR (object IDs taken straight from
-  the request), missing function-level checks, and confused-deputy paths.
-- **Secrets:** hardcoded keys, tokens, and passwords in source, config, history,
-  or logs. Verify secrets come from a vault or environment, not the repo.
-- **Cryptography:** standard primitives only — no homemade crypto, no ECB, no
-  static IVs or nonces, a CSPRNG for anything security-bearing, and correct
-  TLS and certificate validation.
-- **SSRF and request forgery:** server-side fetches of user-supplied URLs, and
-  state-changing requests without CSRF defenses.
-- **Deserialization and parsing:** native deserialization of untrusted data,
-  XXE, zip and path traversal, and unbounded parsers.
-- **Sensitive data exposure:** PII and secrets in responses, errors, logs, and
-  analytics; over-broad API fields; missing encryption at rest.
-- **Dependencies and supply chain:** known CVEs, unpinned or unverified
-  packages, lockfile integrity, and risky install-time scripts.
-- **Configuration and deployment:** debug mode in production, default
-  credentials, permissive CORS, missing security headers, open buckets, and
-  container or IaC misconfiguration.
-- **Resource exhaustion:** unbounded loops, allocations, retries, or fan-out,
-  and missing rate limits or quotas — see `@tiger_style/`.
+- **Validation, injection, and output:** validate syntax and business semantics
+  at trust boundaries. Prefer positive validation for constrained values; for
+  free-form data enforce type, normalization, encoding, length, and resource
+  limits. Validation does not replace parameterized APIs, safe interpreters,
+  context-specific output encoding, or sanitization at dangerous sinks.
+- **Authentication and sessions:** credential storage using current approved
+  guidance, session lifecycle, token issuance and validation, MFA, recovery,
+  revocation, replay resistance, and credential-stuffing controls.
+- **Authorization:** deny by default and enforce policy at a trusted service
+  layer for functions, objects, fields, tenants, delegation, and administrative
+  actions. Test horizontal, vertical, cross-tenant, mass-assignment,
+  stale-entitlement, service-to-service, and confused-deputy paths. A
+  user-controlled identifier is not itself a vulnerability; missing policy is.
+- **Business logic and concurrency:** workflow bypass, duplicate or reordered
+  actions, replay, automation abuse, races, TOCTOU, idempotency, and integrity
+  failures around money or critical state.
+- **APIs and protocols:** OAuth/OIDC and self-contained tokens, GraphQL,
+  WebSockets, gRPC, HTTP framing and cache behavior, webhooks, redirects, and
+  architecture-specific trust transitions.
+- **Secrets:** source, history, artifacts, logs, CI output, process state, and
+  crash dumps. Prefer workload identity, short-lived credentials, and managed
+  secret storage. Environment variables and mounted files are delivery
+  mechanisms, not automatically secure storage.
+- **Cryptography and data protection:** approved implementations and
+  algorithm-specific rules for keys, IVs, nonces, randomness, TLS, and
+  certificates. Require encryption where data classification, regulation, or
+  the threat model requires it, and verify key separation and lifecycle.
+- **Server-side requests and browser request forgery:** SSRF, destination and DNS
+  validation, network egress, redirects, and CSRF where ambient credentials make
+  cross-origin requests dangerous.
+- **Files, deserialization, and parsing:** unsafe native deserialization, XXE,
+  archive and path traversal, file-type confusion, decompression bombs,
+  unbounded nesting, and parser memory-safety boundaries.
+- **Dependencies and software supply chain:** deployed-version applicability,
+  lock and integrity data, provenance, build isolation, install scripts,
+  artifact integrity, compromised maintainers, and reachable known
+  vulnerabilities.
+- **Configuration and deployment:** fail-open behavior, debug settings, default
+  credentials, CORS and security headers, public storage, IAM, containers, IaC,
+  network exposure, observability, backup, and recovery configuration.
+- **Resource exhaustion:** unbounded loops, recursion, parsing, allocation,
+  retries, queues, fan-out, concurrency, and missing limits, quotas, or rate
+  controls. Use `@benchmark/` only for authorized non-destructive capacity work.
 
 ## Tooling
 
-Tools find the known and the obvious so human review can focus on logic and
-context. Run what fits the stack; never read a clean scan as proof of safety.
+Tools find known and obvious issues so human review can focus on logic and
+context. Scanner output is a lead, not a confirmed vulnerability.
 
-| Purpose | Tool | Notes |
+| Purpose | Tools | Safety and interpretation |
 | --- | --- | --- |
-| Dependency CVEs | `osv-scanner`, `trivy`, native (`cargo audit`, `npm audit`, `pip-audit`, `govulncheck`) | Run in CI; fail on known-exploitable |
-| Secret scanning | `gitleaks`, `trufflehog` | Scan the working tree and full history |
-| Static analysis (SAST) | `semgrep`, CodeQL, language security linters | Tune rules; triage every finding |
-| Container and IaC | `trivy`, `checkov`, `tfsec`, `hadolint` | Images, Terraform, Dockerfiles |
-| Dynamic testing (DAST) | OWASP ZAP, Burp Suite | Against a non-production target only |
-| Fuzzing | language-native fuzzers, `AFL++` | For parsers and trust boundaries |
+| Dependency review | `osv-scanner`, `trivy`, native ecosystem tools | Confirm deployed version, applicability, reachability, advisory quality, exploit maturity, and compensating controls |
+| Secret scanning | `gitleaks`, `trufflehog` | Prefer local scanning; do not verify discovered credentials or send them to external services |
+| Static analysis | `semgrep`, CodeQL, language security linters | Tune rules and manually establish the reachable path and controls |
+| Container and IaC | `trivy`, `checkov`, `tfsec`, `hadolint` | Review effective deployment configuration, not templates alone |
+| Dynamic testing | OWASP ZAP, Burp Suite | Use only within active authorization; prefer isolated non-production targets and synthetic data |
+| Fuzzing | language-native fuzzers, `AFL++` | Sandbox targets, bound resources, and protect external dependencies |
 
-## Verifying findings
+Before running any tool, check whether it executes package hooks or plugins,
+sends code or metadata off-machine, verifies tokens online, creates traffic, or
+stores sensitive output. Use local targets, synthetic data, and approved output
+locations by default.
 
-- A vulnerability is a claim until you can show the path from input to impact.
-  Reproduce it before reporting.
-- Prove exploitability with the smallest safe proof of concept — read a value
-  you should not, do not drop a table.
-- Test against a local or staging copy you control, never production data or
-  third-party systems.
-- Distinguish exploitable from theoretical: note preconditions, required
-  privileges, and whether an existing control already blocks it.
-- Confirm the fix closes the path and does not just hide the symptom.
+## Safe verification
 
-## Triage and severity
+- Establish a complete path from attacker-controlled input or authority to the
+  security impact using source, configuration, logs, controlled test accounts,
+  synthetic records, non-sensitive canaries, or controlled callbacks.
+- Do not access another party's data. Demonstrate authorization failures with
+  tester-controlled accounts and synthetic objects or prove the missing policy
+  through source and configuration analysis.
+- Stop once the weakness is established. If sensitive data appears, stop,
+  preserve only the minimum approved evidence, and follow the incident contact
+  path.
+- Do not authenticate with discovered secrets. Record only the secret type and
+  location or an approved safe fingerprint, notify the owner, and have them
+  rotate or revoke it. Perform rotation directly only when the engagement
+  explicitly authorizes that operational action. Assess possible exposure
+  through the incident process.
+- Note prerequisites, privileges, user interaction, reachable controls, and
+  whether a mitigation blocks the path in the assessed environment.
+- Confirm that a fix closes the root-cause path and does not merely hide the
+  symptom.
 
-- Rank by impact times likelihood, not by how clever the bug is.
-- Impact is what the attacker gains: account takeover and remote code execution
-  outrank a verbose error message.
-- Likelihood is how reachable and how hard: unauthenticated and one request
-  beats insider-only with physical access.
-- Do not inflate severity to be heard, and do not bury a critical under a pile
-  of informational lint.
+## Evidence confidence
+
+- **Confirmed:** safely demonstrated within authorization using controlled data.
+- **High:** a complete reachable source-to-sink or policy-bypass path is proven,
+  but active exploitation is unnecessary or unsafe.
+- **Medium:** the path is plausible but an important runtime control or
+  precondition remains unverified.
+- **Low:** based on incomplete context or scanner evidence; report it as a lead
+  requiring validation, not as a confirmed vulnerability.
+
+## Severity and remediation priority
+
+- Record technical severity, remediation priority, and evidence confidence as
+  separate fields.
+- Technical severity describes the security consequence and exploit conditions.
+  If CVSS is requested, use the current CVSS version and publish the score,
+  vector, and nomenclature; do not label an informal judgment as CVSS.
+- Remediation priority also considers environment and exposure, asset
+  criticality, exploitation or KEV status, safety, privacy, regulation, business
+  impact, available mitigations, and the cost of delay.
+- Map the best-supported Base or Variant CWE to the root cause when useful. Do
+  not guess, map to a broad CWE category, or treat CWE as a severity score.
+- Do not inflate severity to be heard or bury a critical issue under
+  informational scanner noise.
+
+## Remediation and closure
+
+- In review-only mode, do not change code without a request.
+- In review-and-remediate mode, preserve the original finding, fix the
+  vulnerability class rather than one payload, add focused regression coverage,
+  and run both security checks and behavioral verification.
+- Track accepted findings through owner assignment, priority, target date,
+  remediation or documented risk acceptance, regression testing, retest, and
+  closure.
+- Escalate to incident response when evidence suggests prior exploitation,
+  credential exposure, or unintended disclosure.
+- Avoid unrelated hardening during a focused fix unless the user expands scope.
 
 ## Reporting findings
 
-- For each finding: location (`file:line`), vulnerability class with a CWE or
-  OWASP reference, impact, reproduction, severity, and a concrete fix.
-- Redact real secrets and PII; reference where they live, do not paste them.
-- Give remediation the developer can apply, and prefer fixing the class, not the
-  one instance.
-- Recommend a regression test for each fix so the hole stays closed — see
-  `@test_quality/`.
-- State plainly what was reviewed, what was found, and what was out of scope. An
-  honest "not reviewed" beats a false "secure".
+- For each finding include location, affected surface, root-cause class,
+  preconditions, impact, safe evidence or reproduction, technical severity,
+  remediation priority, confidence, concrete fix, and validation plan.
+- Include a precise CWE or OWASP reference only when it fits; do not force a
+  taxonomy label onto uncertain evidence.
+- Store evidence only in an approved access-controlled location and collect the
+  minimum necessary material. Redact secrets and PII and avoid placing payloads
+  or sensitive architecture in chat, public issues, commits, or unapproved
+  external services.
+- State what was reviewed, not applicable, and out of scope. An honest "not
+  reviewed" beats a false claim that the system is secure.
+- For third-party or vendor issues, use the approved responsible-disclosure
+  channel and rules.
 
 ## Guardrails
 
-- Only assess software you own or are explicitly authorized to test; confirm
-  scope before probing.
-- No destructive, denial-of-service, or data-exfiltrating tests; prove the risk,
-  do not cause the harm.
-- Do not run exploits against production or third-party systems.
-- Report findings; do not quietly weaponize them or leave a backdoor "for
-  testing".
-- Do not paste discovered secrets, tokens, or PII into reports, commits, or
-  external services.
-- Do not claim the system is "secure"; state what was reviewed, what was found,
-  and what was out of scope.
-- Do not drown real risks in low-value noise; verify before reporting and
-  prioritize ruthlessly.
-- For third-party or vendor issues, follow responsible disclosure.
+- Do not actively probe a target without authorization for that exact target and
+  method.
+- Do not run destructive, denial-of-service, data-exfiltrating, persistence, or
+  lateral-movement tests. Prove the risk without causing the harm.
+- Do not actively exploit production unless the written rules of engagement
+  explicitly authorize the exact method, data, rate, monitoring, and stop
+  conditions.
+- Do not use discovered credentials, access another party's records, create a
+  backdoor, or leave test access behind.
+- Do not transmit source, dependencies, findings, secrets, tokens, PII, or tool
+  output to an external service unless explicitly approved.
+- Do not suppress a credible issue merely because active exploitation is unsafe;
+  label its evidence, limitations, and confidence.
+- Do not claim the system is secure. State the assessed scope, evidence, and
+  residual uncertainty.
 
 ## Response expectations
 
 When using this skill:
 
-1. Lead with the risk verdict and the highest-severity findings first.
-2. Give each finding a location, impact, reproduction, severity, and fix.
-3. Be honest about coverage: what was reviewed, what was not, and what you
-   assumed.
-4. Prefer concrete, class-level remediation over generic security advice.
-5. Order findings by exploitability and impact, not by category.
+1. Lead with the risk verdict and highest-priority confirmed or high-confidence
+   findings.
+2. Give each finding a location, impact, safe evidence, technical severity,
+   remediation priority, confidence, and concrete fix.
+3. Separate confirmed vulnerabilities from unverified scanner leads.
+4. Be explicit about authorization, coverage, assumptions, exclusions, and
+   residual risk.
+5. In remediation mode, report the fix, regression coverage, verification, and
+   remaining risk after the findings.
