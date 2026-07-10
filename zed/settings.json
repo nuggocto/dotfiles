@@ -39,8 +39,8 @@
   "vim_mode": true,
   "agent": {
     "inline_assistant_model": {
-      "provider": "openai-subscribed",
-      "model": "gpt-5.5",
+      "provider": "zed.dev",
+      "model": "gpt-5.6-terra",
       "enable_thinking": false,
     },
     "dock": "right",
