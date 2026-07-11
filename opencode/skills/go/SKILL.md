@@ -7,22 +7,25 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Go
 
 Use this skill for production-grade Go applications, libraries, services, APIs, workers, and tooling. Apply the backend stack options only when creating or extending a backend service. Prefer the repository's existing patterns over generic defaults.
 
-When behavior is uncertain, prefer current official Go documentation and the package's versioned documentation and upstream repository over memorized APIs. pkg.go.dev also hosts third-party packages; hosting there does not make a recommendation official Go-project policy.
+Resolve the mandatory minimum in the `go` directive, the separate suggested `toolchain` directive, dependency versions, build tags, and CI matrix from `go.mod`, `go.work`, lock-like checksums, and deployment configuration before consulting APIs. Use documentation matching those versions; pkg.go.dev hosting does not make a recommendation official Go-project policy.
+
+Apply `@tiger_style/` as an engineering overlay, especially for bounded concurrency, resource accounting, and systems code. Go semantics and this skill take precedence for error handling, panic policy, goroutine lifetimes, contexts, and testing; TigerStyle must not replace operational error handling with assertions.
 
 ## Workflow
 
 1. Identify the program shape and constraints: application or library, entrypoint, transport, storage, concurrency model, latency target, and deployment model.
-2. Read only the files that control the behavior you are changing: `go.mod`, `cmd/`, `internal/`, `sql/`, config, tests, migrations, and CI.
+2. Start with manifests, entrypoints, configuration, implementation, tests, migrations, and CI. Follow imports, callers, interface implementations, generated-code inputs, build tags, and deployment configuration until the behavior and compatibility contracts are understood.
 3. Preserve established framework and package choices unless they are unsafe, broken, or clearly fighting the request.
 4. Make the smallest change that keeps package boundaries, error flow, and ownership easy to follow.
-5. Verify with the narrowest useful commands first; expand to broader fmt/lint/test/build checks for larger work.
+5. Before editing generated code, identify its source and pinned generator, modify the input or template, and review regenerated output for unrelated churn.
+6. Verify with the narrowest useful commands first; expand to affected toolchains, build tags, platforms, race tests, fmt/lint/test/build checks, and CI-equivalent analyzers.
 
 ## Default posture
 
@@ -38,7 +41,7 @@ Use these only for a new backend application when its requirements fit. Third-pa
 
 | Area | Default | Notes |
 | --- | --- | --- |
-| Toolchain | `go` minimum and any `toolchain` directive in `go.mod` or `go.work` | Align CI with the repository's toolchain policy |
+| Toolchain | Mandatory minimum `go` directive plus separate suggested `toolchain` directive | Use repository-selected tooling; do not rewrite either incidentally |
 | Formatting | `gofmt`; optionally `goimports` | `goimports` also applies Go formatting while organizing imports |
 | HTTP | `net/http` with `ServeMux`; optionally Chi | Add Chi when route grouping or middleware composition justifies it |
 | PostgreSQL | `pgxpool`; optionally `sqlc` | Use pgx for PostgreSQL-specific access and sqlc when SQL code generation fits the workflow |
@@ -79,11 +82,12 @@ Keep tests beside the code as `*_test.go` by default.
 ## Go conventions
 
 - Use short, concrete, lowercase package names.
-- Use `PascalCase` for exported identifiers and `camelCase` for local variables.
+- Use Go's `MixedCaps` or `mixedCaps`; exported identifiers begin with an uppercase letter.
 - Keep initialisms consistent: `ID`, `HTTP`, `URL`, `JSON`.
 - Avoid `Get` for simple field accessors; use it when the method implies lookup or I/O.
 - Use `ErrX` for sentinel errors and `NewX` names for constructors.
 - Use an unexported custom type for context keys.
+- Give exported declarations useful doc comments beginning with the declared name. Error strings normally start lowercase and omit terminal punctuation because callers compose them.
 
 ## Interfaces, packages, and dependency flow
 
@@ -107,8 +111,8 @@ Keep tests beside the code as `*_test.go` by default.
 - `context.Context` is the first parameter and should be named `ctx`.
 - Do not store contexts in structs in new APIs; pass a per-call context as the first parameter. A documented exception may be justified when preserving API compatibility, as with request-like values.
 - Propagate context through DB, cache, queue, and HTTP client calls.
-- Every goroutine needs an owner, cancellation path, and shutdown behavior.
-- Use `errgroup.WithContext` when tasks belong to one operation, ensure workers observe the derived context, call `Wait`, and set a limit or use fixed workers when fan-out is not already bounded.
+- For every goroutine, make its owner and termination condition clear. Add cancellation when work can outlive its caller or become unnecessary, propagate errors when they matter, and wait during shutdown when correctness requires completion.
+- Use `errgroup.WithContext` when tasks belong to one operation, ensure workers observe the derived context, call `Wait`, and bound fan-out. The derived context is cancelled on the first error and when `Wait` returns; do not return or use it after the group completes.
 - Avoid unbounded goroutine creation; use worker pools or backpressure for fan-out.
 - Run `go test -race ./...` for non-trivial concurrent code.
 
@@ -117,13 +121,16 @@ Keep tests beside the code as `*_test.go` by default.
 - Use `http.Status...` constants, not numeric literals.
 - Configure `http.Server.ReadHeaderTimeout` and `IdleTimeout`, then choose `ReadTimeout` and `WriteTimeout` only after accounting for request bodies and streaming behavior.
 - Reuse `http.Client` and its `Transport`; choose an end-to-end client timeout, per-request context deadlines, or both according to the operation.
+- After a successful `Client.Do`, close `resp.Body` on every path. Consume it as required by the protocol and connection-reuse policy, and bound reads from untrusted peers.
+- Shut servers down with `http.Server.Shutdown` and a bounded context, treat `http.ErrServerClosed` as expected, stop accepting work, and wait for owned work that must complete.
 - Bound request bodies before decoding with `http.MaxBytesReader` or `http.MaxBytesHandler`, using endpoint-specific limits for JSON and uploads.
 - Keep response and error envelopes consistent within an API surface.
 - The code coordinating an atomic use case owns the transaction boundary.
 - Keep SQL in queries or repository code, not in handlers.
 - Treat `sqlc` output as generated code: regenerate it, do not hand-edit it.
-- Prefer transactional forward migrations where the database permits them. Make the repair or roll-forward path primary; include `Down` only when reversal is demonstrably safe and tested.
+- Before schema or performance-sensitive query changes, load the matching database skill. Account for table size, lock behavior, deployment order, and overlapping application versions; prefer expand-and-contract changes and separate bounded backfills from deploy-time migrations.
 - Use Argon2id only for human-chosen passwords. Generate opaque bearer tokens with `crypto/rand` or use a vetted token format, and avoid logging secrets or raw tokens.
+- Load `@security/` for authentication, authorization, cryptography, user-controlled URLs or paths, uploads, commands, or deserialization. Treat outbound URLs as SSRF boundaries and filesystem paths as traversal boundaries; bound request, response, decompression, and collection sizes.
 
 ## JSON and API contracts
 
@@ -139,8 +146,8 @@ Keep tests beside the code as `*_test.go` by default.
 - Use `t.Run`, `t.Helper()`, `t.Cleanup()`, and `t.Parallel()` where they improve clarity and speed.
 - Add integration tests with real dependencies when mocks would hide important behavior.
 - Use fuzz tests, benchmarks, or golden tests when the problem shape justifies them.
-- Run `gofmt` or configured `goimports` on touched files, `go test ./...`, and `go vet ./...` for substantial changes. Run `staticcheck ./...` when Staticcheck is configured or available.
-- Run `go mod tidy` when dependencies are added, removed, or changed.
+- Run `gofmt` or configured `goimports` on touched files, `go test ./...`, and `go vet ./...` for substantial changes. Run Staticcheck only through the repository's pinned or CI-equivalent invocation.
+- Run `go mod tidy` with the repository-selected toolchain when the import graph changes, then inspect `go.mod` and `go.sum` for incidental directive or dependency changes.
 - Run `govulncheck ./...` in the repository's regular CI or release security workflow and after dependency or toolchain changes.
 
 ## Guardrails

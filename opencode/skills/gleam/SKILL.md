@@ -8,14 +8,16 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Gleam
 
 Use this skill for production-grade Gleam applications, libraries, services, APIs, and tooling targeting Erlang or JavaScript. Apply BEAM, Wisp, Mist, pog, Squirrel, and OTP guidance only when those technologies are present or are being deliberately selected. Prefer the repository's existing stack over generic defaults.
 
-When behavior is uncertain, prefer current official Gleam documentation and the package's versioned HexDocs and upstream repository over memorized APIs.
+Resolve the compiler range, Erlang/OTP or JavaScript runtime, target, and package versions from `gleam.toml`, `manifest.toml`, runtime pins, and CI before consulting APIs. Use documentation matching those versions; use current docs to evaluate upgrades rather than assuming local availability.
+
+Apply `@tiger_style/` as an engineering overlay for bounds, actor ownership, resource accounting, and invariants. Gleam and target-runtime semantics take precedence for `Result`, process failures, supervision, foreign code, and tests.
 
 ## Workflow
 
@@ -23,7 +25,8 @@ When behavior is uncertain, prefer current official Gleam documentation and the 
 2. Read the files that govern the change: `gleam.toml`, `manifest.toml`, relevant `src/`, `dev/`, and `test/` modules, foreign code, generated SQL inputs, deployment config, and CI.
 3. Preserve existing framework and package choices unless they are unsafe, broken, or clearly blocking the request.
 4. Make the smallest change that keeps types, function pipelines, actor ownership, and error flow obvious.
-5. Verify with the narrowest useful commands first; widen to full format/test/build checks for broader changes.
+5. Before editing generated code, identify its source and pinned generator, then regenerate instead of hand-editing output.
+6. Verify with the narrowest useful commands first; widen to every supported target/runtime and full format/test/build checks.
 
 ## Default posture
 
@@ -63,7 +66,7 @@ If the repository already uses alternatives such as a different HTTP server, dat
 - Keep a small entrypoint or transport adapter when it clarifies the boundary, but do not create layers or directories before they earn their indirection.
 - Let the operation coordinating atomic work own its transaction boundary.
 - Keep generated persistence code behind a cohesive domain-facing API when exposing it directly would leak implementation details.
-- Keep BEAM startup, supervision wiring, config, and shutdown behavior near the application entrypoint.
+- On the Erlang target, keep BEAM startup, supervision wiring, config, and shutdown behavior near the application entrypoint. Do not apply these concepts mechanically to JavaScript targets.
 
 Suggested layout when starting from scratch:
 
@@ -113,24 +116,26 @@ test/
 
 ## Concurrency, actors, and context
 
-- Put long-lived application services, pools, and restartable workers in a deliberate supervision tree. Short-lived work may use linked processes or a factory supervisor according to its failure semantics.
-- Use actors when stateful serialized access, concurrency, or fault isolation is required; prefer pure functions otherwise.
+- On the Erlang target, put long-lived services, pools, and restartable workers in a deliberate supervision tree. Actors process messages serially, so keep handlers bounded, use explicit call timeouts, and move independent slow work to supervised processes.
+- Use actors when stateful serialized access, concurrency, or fault isolation is required; prefer pure functions otherwise. BEAM mailboxes are not automatically bounded, so enforce admission control or request/reply backpressure and monitor growth.
 - Propagate request context explicitly; do not hide it in process dictionaries or ambient state.
-- Avoid orphaned unlinked processes, unbounded mailboxes, and unbounded fan-out; use pools or backpressure where appropriate.
-- Ordinary Gleam code is preemptively scheduled. Treat blocking FFI and NIF work as a separate scheduler-safety concern.
+- On the Erlang target, never derive atoms or process names from external or unbounded input. Create the finite set of `process.Name` values during startup; atoms are not garbage-collected.
+- On the Erlang target, BEAM processes are preemptively scheduled, but blocking NIF or foreign work can block scheduler threads. On JavaScript targets, execution follows the selected runtime's event loop and blocking foreign JavaScript blocks that loop.
+- For multi-target packages, provide compatible implementations or externals for every supported target and compile and test each target; do not silently make a multi-target module target-specific.
 
 ## HTTP, database, and security
 
 - Wisp has no special router abstraction; use ordinary pattern matching unless the project has adopted another router.
 - Prefer named Wisp response helpers for common cases and explicit integer status codes where its API requires them.
-- Configure body limits and CORS in the appropriate Wisp middleware; configure server, upstream-call, proxy, and infrastructure timeouts at the layer that owns them.
+- Configure body limits and timeouts at the layer that owns them. Do not enable CORS unless a cross-origin browser client requires it; then allowlist exact trusted origins, methods, and headers.
 - Keep response and error envelopes stable within an API surface.
 - The operation coordinating an atomic use case owns the transaction boundary.
 - When using Squirrel, keep query files under `src/**/sql/*.sql`, run `gleam run -m squirrel`, and do not hand-edit generated `sql.gleam` files.
 - Bind all untrusted SQL values; strictly allowlist any dynamic identifiers or syntax. Watch for N+1 patterns on hot paths.
-- Make forward migrations and recovery plans primary; provide tested reversals when they are safe and operationally useful.
+- Before schema or performance-sensitive query changes, load the matching database skill. Account for table size, locks, deployment order, and overlapping releases; prefer expand-and-contract changes and separate bounded backfills from deploy-time migrations.
 - For production pog connections, use verified TLS unless an equivalent trusted boundary provides and verifies transport security.
 - Use Argon2id only for human-chosen passwords. Generate bearer tokens with target-appropriate cryptographically secure randomness or a vetted token format, and avoid logging secrets or raw tokens.
+- Load `@security/` for authentication, authorization, user-controlled URLs or paths, uploads, command execution, deserialization, or cryptography. Enforce authorization from server-owned identity and scope and bound request, response, decompression, and collection sizes.
 
 ## Serialization and API contracts
 
@@ -141,11 +146,11 @@ test/
 
 ## Testing and verification
 
-- Keep discoverable gleeunit tests under `test/`, mirroring source modules when useful.
+- In gleeunit projects, keep tests under `test/`; test functions must be public and conventionally end in `_test`, and the package test entrypoint must invoke `gleeunit.main()`.
 - Use table-driven tests with lists of input/expected pairs when a behavior has many cases.
 - Add integration tests with real dependencies when mocks would hide important behavior.
 - Test both happy paths and error paths; assert on `Error(_)` shapes, not just success.
-- Run `gleam format --check`, `gleam check`, `gleam test`, and `gleam build --warnings-as-errors` for substantial changes when the repository supports those warning policies.
+- Run `gleam format --check`, `gleam check`, `gleam test`, and `gleam build --warnings-as-errors` for substantial changes when repository policy supports them. For multi-target packages, run the configured build and test commands for both Erlang and JavaScript targets and selected JS runtimes.
 - After changing Squirrel query files, run `gleam run -m squirrel`; use `gleam run -m squirrel check` in CI.
 
 ## Guardrails
@@ -159,7 +164,7 @@ test/
 
 ## Native extensions
 
-For native code implemented in Rust or Zig, apply `@tiger_style/` and the corresponding language skill (`@rust/` or `@zig/`). Minimize and precisely type the boundary. Keep regular NIF calls short and use correctly classified dirty schedulers for unavoidable lengthy work. A crashing NIF can crash the entire BEAM VM and cannot be recovered by supervision; use an external OS process through a port when crash isolation is required.
+For native code implemented in Rust, apply `@rust/` in addition to this skill. For other native languages, inspect their toolchain and repository contracts directly. Minimize and precisely type the boundary. Keep regular NIF calls short and use correctly classified dirty schedulers for unavoidable lengthy work. A crashing NIF can crash the entire BEAM VM and cannot be recovered by supervision; use an external OS process through a port when crash isolation is required.
 
 ## Response expectations
 

@@ -8,24 +8,25 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Rust
 
 Use this skill for production-grade Rust applications, libraries, services, APIs, workers, and tooling. Apply the backend stack options only when creating or extending a backend service. Prefer the repository's existing stack over generic defaults.
 
-When behavior is uncertain, prefer current official Rust documentation and the crate's versioned API documentation and upstream repository over memorized APIs. docs.rs hosts third-party crate documentation; hosting there does not make guidance official Rust-project policy.
+Resolve the selected edition, `rust-version`/MSRV, toolchain, features, and dependency versions from `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, and CI before consulting APIs. Use documentation for those versions; use latest docs to evaluate an upgrade, not as evidence that an API exists in the checked-out project. docs.rs hosts third-party crate documentation but does not make guidance official Rust-project policy.
 
 For performance-sensitive, systems-level, or storage/infra code, apply `@tiger_style/` as an engineering overlay. Rust semantics and the rules in this skill take precedence: TigerStyle may strengthen bounds and deliberate internal-invariant checks, but it must not replace `Result` or `Option`, runtime validation, panic policy, ownership, or `unsafe` contracts with assertions.
 
 ## Workflow
 
 1. Identify the program shape and constraints: application or library, runtime, entrypoint, storage, external I/O, latency target, and deployment model.
-2. Read only the files that govern the change: `Cargo.toml`, entrypoints, config, router, domain/service/repository modules, tests, migrations, and CI.
+2. Start with manifests, entrypoints, configuration, implementation, tests, migrations, and CI. Follow imports, callers, trait implementations, generated-code inputs, and deployment configuration until the affected behavior and compatibility contracts are understood.
 3. Preserve existing framework and crate choices unless they are unsafe, broken, or clearly blocking the request.
 4. Make the smallest change that keeps ownership, module boundaries, and error flow obvious.
-5. Verify with the narrowest useful commands first; widen to full fmt/lint/test/build checks for broader changes.
+5. Before editing a generated file, identify its source and pinned generator; change the input or template and regenerate instead of hand-editing output.
+6. Verify with the narrowest useful commands first; widen to the repository's feature, target, MSRV, fmt, lint, test, doctest, and build matrix for broader changes.
 
 ## Default posture
 
@@ -88,7 +89,7 @@ migrations/
 - Use `snake_case` for modules, files, functions, and variables.
 - Use `PascalCase` for structs, enums, traits, and type aliases.
 - Use `SCREAMING_SNAKE_CASE` for constants.
-- Use `Error` suffix for error types, `Builder` suffix for builders, and `try_` for fallible constructors.
+- Use `Error` suffix for error types and `Builder` suffix for builders. Use `new` or `with_*` for constructors even when they return `Result`; use `try_*` when it meaningfully distinguishes a fallible variant from a related infallible operation.
 - Use `Id`, not `ID`; use `Uuid`, not `UUID`; do not suffix async functions with `_async`.
 - Prefer domain newtypes at boundaries instead of passing raw `String`, `i64`, or `Uuid` values everywhere.
 
@@ -99,6 +100,12 @@ migrations/
 - Prefer `crate::...` imports in production modules.
 - Reserve `use super::*;` mostly for tests where locality is obvious.
 - Split modules when it improves ownership and readability, not just to create more files.
+
+## Library contracts
+
+- For reusable crates, treat public items, trait implementations, error chains, feature names/defaults, auto-trait behavior, and MSRV as compatibility contracts.
+- Check Cargo's SemVer guidance before changing public structs, enums, traits, generic bounds, or exposed dependency errors. Keep features additive and test supported combinations rather than assuming `--all-features` is valid.
+- Preserve the declared `rust-version`. Document public APIs, error and panic conditions, and safety contracts; run doctests for changed public behavior.
 
 ## Errors and observability
 
@@ -118,13 +125,14 @@ migrations/
 - `unreachable!()` is a panic for impossible control flow; use it only when the state is logically impossible. Never substitute `std::hint::unreachable_unchecked()` unless an `unsafe` proof establishes that reaching it cannot occur.
 - A safe API must make invalid states unrepresentable or check safety preconditions in every build before entering `unsafe` code. A `debug_assert!` cannot uphold a memory-safety contract.
 - Document public unsafe APIs with a `# Safety` contract, justify each unsafe block with a local `// SAFETY:` explanation, and keep the block as small as practical.
-- Enable `unsafe_op_in_unsafe_fn`; use `forbid(unsafe_code)` where unsafe is not expected, and use Miri or sanitizers for unsafe-heavy changes when applicable.
+- Require explicit unsafe blocks inside `unsafe fn`. Edition 2024 warns for `unsafe_op_in_unsafe_fn` by default; for earlier editions enable the lint when working with unsafe code. Use `forbid(unsafe_code)` where unsafe is not expected and Miri or sanitizers for unsafe-heavy changes when applicable.
 - In tests, Rust's standard `assert!`, `assert_eq!`, `assert_ne!`, and pattern assertions are the normal test expectations; TigerStyle's generic test guidance does not prohibit them.
 - When TigerStyle calls for aggressive assertions, add non-redundant checks at important internal boundaries. Do not mechanically assert every argument or return value.
 
 ## Async and concurrency
 
 - Give long-lived or critical spawned tasks an explicit owner and lifecycle policy: track handles, propagate cancellation or shutdown, and await completion when correctness requires it. Dropping a Tokio `JoinHandle` detaches the task rather than cancelling it.
+- Treat cancellation as possible at every `.await`. Before racing or timing out a future, verify that dropping it is safe or isolate non-cancellation-safe work in an owned task with an explicit completion policy. In `tokio::select!` loops, preserve partial state and account for branch fairness and shutdown priority.
 - Prefer bounded concurrency (`Semaphore`, worker pools, backpressure) over unbounded fan-out.
 - Use `spawn_blocking` for bounded blocking work. Bound CPU-heavy parallelism or use a dedicated executor; started blocking tasks generally cannot be aborted, so account for shutdown behavior.
 - Do not hold a blocking `std::sync::Mutex` guard across `.await`. Keep all lock critical sections short; use `tokio::sync::Mutex` only when a guard genuinely must span `.await`.
@@ -133,14 +141,15 @@ migrations/
 ## HTTP, database, and security
 
 - Use `http::StatusCode` constants, not numeric literals.
-- Set body size limits, handler timeouts, outbound timeouts, and explicit CORS rules.
+- Set body size limits, handler timeouts, outbound timeouts, and bounded response reads. Do not enable CORS unless a cross-origin browser client requires it; then allowlist exact trusted origins, methods, and headers.
 - Keep response and error envelopes stable within a service.
 - The operation coordinating an atomic use case owns the transaction boundary.
 - Keep SQL and persistence mapping in cohesive adapter modules where that boundary is useful; avoid policy logic in query plumbing.
 - Use parameterized queries only; watch for N+1 patterns on hot paths.
-- Keep explicit migrations in the repository's established migration directory; SQLx defaults to `migrations/`. Use one naming convention per repository.
+- Before changing schema or performance-sensitive SQL, load the matching database skill. Account for table size, lock behavior, deployment order, and overlap between old and new application versions; prefer expand-and-contract changes and separate bounded backfills from deploy-time migrations.
 - Use Argon2id for password hashing. Use cryptographically random opaque tokens or a vetted token format, keep credentials short-lived where appropriate, and explicitly validate required token claims.
 - Use secret wrappers where practical and avoid logging sensitive values.
+- Load `@security/` for authentication, authorization, cryptography, user-controlled URLs or paths, uploads, commands, deserialization, or templates. Bound request, response, decompression, and collection sizes and enforce authorization from server-owned identity and resource scope.
 
 ## Serialization and API contracts
 
@@ -154,7 +163,7 @@ migrations/
 - Keep unit tests close to the code when that improves locality.
 - Add integration tests with real dependencies when external systems affect behavior.
 - Use property tests, fuzzing, or benchmarks when invariants or performance justify them.
-- Run `cargo fmt --all -- --check`, repository/CI-equivalent Clippy, and tests. Use `--all-features` only when all features are designed to coexist; otherwise exercise supported feature combinations explicitly. Use `-D warnings` when the repository intentionally treats warnings as failures.
+- Run `cargo fmt --all -- --check`, repository/CI-equivalent Clippy, tests, and doctests. Derive the matrix from CI: verify default features, no-default-features where supported, documented combinations, affected targets, and MSRV. Use `--all-features` only when all features are designed to coexist and `-D warnings` only when repository policy requires it.
 - Run `cargo deny check` or `cargo audit` when dependency or security-sensitive work is involved.
 
 ## Guardrails

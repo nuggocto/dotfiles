@@ -8,22 +8,25 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Elixir
 
 Use this skill for production-grade Elixir applications, libraries, services, APIs, real-time apps, background jobs, and tooling on the BEAM. Apply Phoenix and Ecto guidance only when those technologies are present or are being deliberately selected. Prefer the repository's existing stack over generic defaults.
 
-When behavior is uncertain, prefer current official Elixir, Erlang/OTP, Phoenix, and Ecto documentation plus the package's versioned HexDocs and upstream repository over memorized APIs.
+Resolve Elixir, Erlang/OTP, Phoenix, Ecto, and dependency versions from `mix.exs`, `mix.lock`, toolchain files, and CI before consulting APIs. Use version-matched official documentation and HexDocs; use latest docs to evaluate an upgrade, not as evidence that an API exists locally.
+
+Apply `@tiger_style/` as an engineering overlay for bounds, process ownership, resource accounting, and critical invariants. Elixir/OTP semantics and this skill take precedence for supervision, expected errors, crash policy, process isolation, and tests.
 
 ## Workflow
 
 1. Identify the service shape and constraints: runtime, supervision model, storage, external I/O, latency target, and deployment model.
-2. Read only the files that govern the change: `mix.exs`, `config/`, entrypoints (`application.ex`), routers, contexts/schemas, migrations, tests, telemetry/observer code, and CI.
+2. Start with manifests, config, entrypoints, implementation, tests, migrations, telemetry, and CI. Follow callers, behaviours, supervision children, generated-code inputs, and deployment configuration until process and compatibility contracts are understood.
 3. Preserve existing framework and library choices unless they are unsafe, broken, or clearly blocking the request.
 4. Make the smallest change that keeps function pipelines, process ownership, and error flow obvious.
-5. Verify with the narrowest useful commands first; widen to full format/lint/test/build checks for broader changes.
+5. Before editing generated code, identify its source and pinned generator, then regenerate rather than hand-editing output.
+6. Verify with the narrowest useful commands first; widen to the supported OTP/Elixir environment matrix and full format/lint/test/build checks.
 
 ## Default posture
 
@@ -48,14 +51,14 @@ Use these only for a new application when its requirements fit. They are ecosyst
 | PubSub | `Phoenix.PubSub.PG2`; optionally `Phoenix.PubSub.Redis` | PG2 is bundled; Redis requires `:phoenix_pubsub_redis` |
 | Database | Ecto + postgrex | SQL-first, schema-driven access |
 | Migrations | Ecto migrations in `priv/repo/migrations/` | Use `change/0` only for reversible operations; otherwise define `up/0` and `down/0` |
-| Background jobs | Oban | SQL-backed, observable, and retry-aware; supports PostgreSQL, MySQL, and SQLite engines |
+| Background jobs | Oban when its installed version and selected engine fit | Engine requirements, maturity, and behavior differ; verify versioned docs |
 | JSON | Repository-configured JSON library | Phoenix commonly uses Jason; Elixir 1.18+ also provides `JSON` |
-| Validation | Ecto.Changeset | Centralize domain rules in changesets or contexts |
+| Validation | Ecto.Changeset at persistence/untrusted-map boundaries | Keep Ecto-independent domain rules in pure modules |
 | Logging | `Logger` | Configure structured output and selected metadata keys |
 | Metrics/events | `:telemetry` | Keep synchronous handlers fast and non-blocking |
 | Tracing | OpenTelemetry instrumentation + exporter | Add only when distributed tracing is required |
 | Password hashing | `argon2_elixir` (Argon2id) | If the service stores passwords |
-| IDs | `Ecto.UUID` | Use v4 by default or version 7 when time ordering is required |
+| IDs | `Ecto.UUID` | v4 by default; use native UUIDv7 only when the installed Ecto supports it and ordering is required |
 | Date/time | `DateTime` for instants; `NaiveDateTime` for timezone-less wall time | Store instants in UTC and convert at boundaries |
 | Static analysis | Credo + Dialyzer when configured | Match the repository's quality gates |
 | Integration tests | Ephemeral DB or `testcontainers-elixir` | When external systems affect behavior |
@@ -113,9 +116,10 @@ test/
 
 - Treat contexts as intentionally named public APIs where they improve cohesion; do not create them mechanically for every schema or operation.
 - Keep schemas focused on data shape, changesets, and query helpers.
-- Cast and validate untrusted input with changesets at boundaries; do not leak raw params deep into the system.
+- Use changesets to cast untrusted attribute maps, validate persistence-facing data, and translate database constraints. Keep Ecto-independent domain rules in pure functions and do not require changesets for already typed internal data.
 - Enforce uniqueness, referential integrity, and race-sensitive invariants with database constraints, then translate expected violations through changeset constraint functions.
 - Keep SQL and transaction scope explicit in the application operation that owns the atomicity requirement.
+- Use the transaction API documented by the installed Ecto version; current Ecto uses `Repo.transact/2`, while older repositories may require `Repo.transaction/2`.
 - In applications using Phoenix scopes, accept the scope in context functions and constrain data access through it.
 - Avoid putting business rules in controllers, live views, or templates.
 
@@ -132,28 +136,38 @@ test/
 
 - Every long-running process needs a supervisor, a shutdown path, and an explicit reason to exist.
 - Use processes to model runtime properties such as state, concurrency, shared-resource ownership, and failure isolation. Never use a GenServer merely to organize code.
-- Avoid `Task.async` without a corresponding await or yield. For bounded fan-out, use `Task.async_stream/3` or supervised `async_stream` with explicit `:max_concurrency`; use `Task.yield_many/2` only to collect already-started tasks.
+- Use `Task.async` only when task failure should fail the linked caller, and always await it or use `yield` followed by `shutdown`. For `Task.async_stream`, choose `max_concurrency`, `timeout`, `on_timeout`, and `ordered` deliberately; defaults include a five-second timeout, caller exit on timeout, and ordered output.
+- GenServer and LiveView callbacks execute serially. Keep them bounded, never synchronously call the same GenServer from its callback, and move independent slow work to supervised tasks. Use `Task.Supervisor.async_nolink` when task failure must not crash the owner.
 - Prefer `GenServer.call` over `cast` when the caller needs backpressure or confirmation.
 - Keep process-owned lifecycle state in the process. Pass caller-specific and request-specific data explicitly unless retaining it is part of the process contract.
 - Use process dictionaries and `:persistent_term` sparingly and document why they are needed.
 
+## LiveView
+
+- `mount/3` can run for disconnected and connected renders and again after reconnects. Keep initialization idempotent and gate connected-only subscriptions with `connected?/1`.
+- Treat route params, connect params, and every `handle_event/3` payload as untrusted; authorize every state-changing operation on the server.
+- Keep callbacks responsive. Use the version-supported `assign_async`, `start_async`, or `stream_async` APIs for slow work and capture only required values, never the whole socket.
+- Use streams for large changing collections when they reduce retained socket state and diff cost. In tests, wait with version-supported LiveView helpers rather than racing async completion.
+
 ## HTTP, database, and security
 
 - Use `Plug.Conn.Status` / `Phoenix.Controller` helpers, not raw numeric status codes.
-- Set body size limits, timeouts, and explicit CORS rules at the endpoint/plug level.
+- Set body size limits and timeouts at the owning layer. Do not enable CORS unless a cross-origin browser client requires it; then allowlist exact trusted origins, methods, and headers.
 - Keep response and error envelopes stable within an API surface.
 - The operation coordinating an atomic use case owns the transaction boundary.
 - Keep SQL in Ecto queries or repository functions, not in controllers or live views.
 - Use parameterized queries only; watch for N+1 patterns on hot paths and preload deliberately.
+- Before schema or performance-sensitive query changes, load the matching database skill. Account for table size, lock behavior, deployment order, and overlapping releases; prefer expand-and-contract migrations, online indexes where supported, and separate bounded backfills.
 - Use Argon2id for human-chosen passwords. Generate opaque tokens with `:crypto.strong_rand_bytes/1`, use a vetted signed or encrypted format for self-contained tokens, store bearer-token digests rather than plaintext, and validate expiry and claims explicitly.
 - Avoid logging secrets, raw tokens, or sensitive params; filter them at the endpoint.
+- Load `@security/` for authentication, authorization, user-controlled URLs or paths, uploads, command execution, deserialization, or cryptography. Enforce authorization from server-owned identity and scope and bound request, response, decompression, and collection sizes.
 
 ## Serialization and API contracts
 
 - Use the repository's configured JSON library for transport DTOs; avoid forcing domain types to match wire shapes.
 - Treat JSON keys, defaults, omitted fields, unknown-field behavior, and time formats as API contract decisions.
 - Prefer explicit request and response structs or Phoenix view patterns at service boundaries.
-- Use Ecto.Changeset validation to reject invalid input before it reaches domain logic.
+- Validate untrusted input at the appropriate boundary. Use `Ecto.Changeset` for persistence-facing or untrusted-map validation; use pure domain validation for Ecto-independent rules and typed internal data.
 
 ## Testing and verification
 
@@ -174,7 +188,7 @@ test/
 
 ## Native extensions
 
-For native code implemented in Rust or Zig, apply `@tiger_style/` and the corresponding language skill (`@rust/` or `@zig/`). Minimize and precisely type the boundary. Keep regular NIF calls short and use correctly classified dirty schedulers for unavoidable lengthy work. A crashing NIF can crash the entire BEAM VM and cannot be recovered by supervision; use an external OS process through a port when crash isolation is required.
+For native code implemented in Rust, apply `@rust/` in addition to this skill. For other native languages, inspect their toolchain and repository contracts directly. Minimize and precisely type the boundary. Keep regular NIF calls short and use correctly classified dirty schedulers for unavoidable lengthy work. A crashing NIF can crash the entire BEAM VM and cannot be recovered by supervision; use an external OS process through a port when crash isolation is required.
 
 ## Response expectations
 
