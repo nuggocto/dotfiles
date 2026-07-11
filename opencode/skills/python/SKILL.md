@@ -131,6 +131,16 @@ Apply `@tiger_style/` as an engineering overlay for bounded work, resource accou
 - Validate metadata and artifact contents before publishing. Prefer trusted CI publishing over long-lived upload credentials.
 - Preserve the repository's environment and lock tool. Do not migrate package managers simply because another tool is fashionable.
 
+## Toolchain And Quality
+
+- Prefer the repository's existing toolchain. When starting fresh or the repository has no established choice, use `uv` for Python installation, virtual-environment creation, dependency resolution, lockfile generation, and running commands. Use `ruff` for linting and formatting, configured in `pyproject.toml`. Use `mypy` or `pyright` for static type checking according to project convention.
+- Pin `uv`, `ruff`, `mypy`, `pyright`, and other quality-tool versions in development dependency groups or in the tool's own lockfile. Reproduce the same versions locally and in CI.
+- Let `ruff format` replace `black` and `isort` when the project adopts it; let `ruff check` replace `flake8`, `pydocstyle`, and many plugins. Keep rule selection explicit and version-locked; do not enable every rule blindly.
+- Keep type-checker configuration in `pyproject.toml` and aligned with the minimum supported Python. Enable strict or incremental checks deliberately and fix newly surfaced errors rather than suppressing them broadly.
+- Run formatter, linter, and type checker from the same pinned versions in local development and CI. Provide one canonical command such as `uv run ruff check . && uv run ruff format --check . && uv run mypy .` or the repository's equivalent.
+- Use `pre-commit` only when the team enforces it consistently; ensure hooks match CI versions and do not replace CI checks.
+- Do not add tools merely because they are popular. Each tool in the pipeline must justify its maintenance and review cost.
+
 ## Logging And Observability
 
 - Create module loggers with `logging.getLogger(__name__)`. Applications configure handlers and root levels once at startup; libraries do not call `basicConfig()` or attach operational handlers.

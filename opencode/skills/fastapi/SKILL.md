@@ -168,6 +168,7 @@ FastAPI remains pre-1.0. Resolve exact FastAPI, Starlette, Pydantic, AnyIO, HTTP
 - Set transport exception behavior appropriately when testing the actual 500 response rather than expecting the application exception to escape.
 - Use disposable real databases for SQL, pool, transaction, migration, and isolation behavior; mocks do not validate those contracts.
 - Snapshot or semantically diff OpenAPI and preserve regression tests for production failures.
+- Run the repository's pinned quality toolchain (e.g. `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy .` / `pyright`) before finishing. Match versions locally and in CI.
 
 ## Deployment And Observability
 
