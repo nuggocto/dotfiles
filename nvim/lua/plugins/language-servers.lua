@@ -93,6 +93,7 @@ return {
       opts.formatters_by_ft.c = { "clang_format" }
       opts.formatters_by_ft.cpp = { "clang_format" }
       opts.formatters_by_ft.elixir = { "mix" }
+      opts.formatters_by_ft.odin = { "odinfmt" }
       opts.formatters_by_ft.python = { "ruff_organize_imports", "ruff_format" }
       opts.formatters_by_ft.sql = { "sqlfluff_postgres" }
       opts.formatters_by_ft.pgsql = { "sqlfluff_postgres" }
