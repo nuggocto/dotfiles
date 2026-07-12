@@ -19,7 +19,7 @@
   "flexoki-neovim": { "branch": "main", "commit": "c3e2251e813d29d885a7cbbe9808a7af234d845d" },
   "friendly-snippets": { "branch": "main", "commit": "6cd7280adead7f586db6fccbd15d2cac7e2188b9" },
   "gitsigns.nvim": { "branch": "main", "commit": "eb60cc7b94c46005237fd34170d76f3a089a90aa" },
-  "grug-far.nvim": { "branch": "main", "commit": "beb2ce490b72048c587e8a3d919cba1b4608bb04" },
+  "grug-far.nvim": { "branch": "main", "commit": "1cc080f55706b38aabfa97d40acb6adf59ac4a5a" },
   "gruvbox-material": { "branch": "master", "commit": "11d779b26a9ab2b3db8c22c6ac9fb6e8ed4fea79" },
   "gruvbox.nvim": { "branch": "main", "commit": "154eb5ff5b96d0641307113fa385eaf0d36d9796" },
   "hackerman.nvim": { "branch": "main", "commit": "d7699ce7639686b8f3a5ae108b496a32ee5c076d" },
