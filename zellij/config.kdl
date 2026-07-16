@@ -264,6 +264,244 @@ keybinds clear-defaults=true {
         bind "z" { ToggleFocusFullscreen; SwitchToMode "normal"; }
     }
 }
+themes {
+    omarchy-gruvbox {
+        text_unselected {
+            base 212 190 152
+            background 60 56 54
+            emphasis_0 214 93 14
+            emphasis_1 137 180 130
+            emphasis_2 169 182 101
+            emphasis_3 211 134 155
+        }
+        text_selected {
+            base 212 190 152
+            background 40 40 40
+            emphasis_0 214 93 14
+            emphasis_1 137 180 130
+            emphasis_2 169 182 101
+            emphasis_3 211 134 155
+        }
+        ribbon_selected {
+            base 60 56 54
+            background 169 182 101
+            emphasis_0 234 105 98
+            emphasis_1 214 93 14
+            emphasis_2 211 134 155
+            emphasis_3 125 174 163
+        }
+        ribbon_unselected {
+            base 60 56 54
+            background 212 190 152
+            emphasis_0 234 105 98
+            emphasis_1 212 190 152
+            emphasis_2 125 174 163
+            emphasis_3 211 134 155
+        }
+        table_title {
+            base 169 182 101
+            background 0
+            emphasis_0 214 93 14
+            emphasis_1 137 180 130
+            emphasis_2 169 182 101
+            emphasis_3 211 134 155
+        }
+        table_cell_selected {
+            base 212 190 152
+            background 40 40 40
+            emphasis_0 214 93 14
+            emphasis_1 137 180 130
+            emphasis_2 169 182 101
+            emphasis_3 211 134 155
+        }
+        table_cell_unselected {
+            base 212 190 152
+            background 60 56 54
+            emphasis_0 214 93 14
+            emphasis_1 137 180 130
+            emphasis_2 169 182 101
+            emphasis_3 211 134 155
+        }
+        list_selected {
+            base 212 190 152
+            background 40 40 40
+            emphasis_0 214 93 14
+            emphasis_1 137 180 130
+            emphasis_2 169 182 101
+            emphasis_3 211 134 155
+        }
+        list_unselected {
+            base 212 190 152
+            background 60 56 54
+            emphasis_0 214 93 14
+            emphasis_1 137 180 130
+            emphasis_2 169 182 101
+            emphasis_3 211 134 155
+        }
+        frame_selected {
+            base 169 182 101
+            background 0
+            emphasis_0 214 93 14
+            emphasis_1 137 180 130
+            emphasis_2 211 134 155
+            emphasis_3 0
+        }
+        frame_highlight {
+            base 214 93 14
+            background 0
+            emphasis_0 211 134 155
+            emphasis_1 0
+            emphasis_2 214 93 14
+            emphasis_3 214 93 14
+        }
+        exit_code_success {
+            base 169 182 101
+            background 0
+            emphasis_0 137 180 130
+            emphasis_1 60 56 54
+            emphasis_2 211 134 155
+            emphasis_3 125 174 163
+        }
+        exit_code_error {
+            base 234 105 98
+            background 0
+            emphasis_0 216 166 87
+            emphasis_1 0
+            emphasis_2 0
+            emphasis_3 0
+        }
+        multiplayer_user_colors {
+            player_1 211 134 155
+            player_2 125 174 163
+            player_3 0
+            player_4 216 166 87
+            player_5 137 180 130
+            player_6 0
+            player_7 234 105 98
+            player_8 0
+            player_9 0
+            player_10 0
+        }
+    }
+    omarchy-rose-pine {
+        text_unselected {
+            base 87 82 121
+            background 242 233 225
+            emphasis_0 234 157 52
+            emphasis_1 215 130 126
+            emphasis_2 40 105 131
+            emphasis_3 94 74 135
+        }
+        text_selected {
+            base 87 82 121
+            background 250 244 237
+            emphasis_0 234 157 52
+            emphasis_1 215 130 126
+            emphasis_2 40 105 131
+            emphasis_3 94 74 135
+        }
+        ribbon_selected {
+            base 242 233 225
+            background 40 105 131
+            emphasis_0 180 99 122
+            emphasis_1 234 157 52
+            emphasis_2 94 74 135
+            emphasis_3 86 148 159
+        }
+        ribbon_unselected {
+            base 242 233 225
+            background 87 82 121
+            emphasis_0 180 99 122
+            emphasis_1 87 82 121
+            emphasis_2 86 148 159
+            emphasis_3 94 74 135
+        }
+        table_title {
+            base 40 105 131
+            background 0
+            emphasis_0 234 157 52
+            emphasis_1 215 130 126
+            emphasis_2 40 105 131
+            emphasis_3 94 74 135
+        }
+        table_cell_selected {
+            base 87 82 121
+            background 250 244 237
+            emphasis_0 234 157 52
+            emphasis_1 215 130 126
+            emphasis_2 40 105 131
+            emphasis_3 94 74 135
+        }
+        table_cell_unselected {
+            base 87 82 121
+            background 242 233 225
+            emphasis_0 234 157 52
+            emphasis_1 215 130 126
+            emphasis_2 40 105 131
+            emphasis_3 94 74 135
+        }
+        list_selected {
+            base 87 82 121
+            background 250 244 237
+            emphasis_0 234 157 52
+            emphasis_1 215 130 126
+            emphasis_2 40 105 131
+            emphasis_3 94 74 135
+        }
+        list_unselected {
+            base 87 82 121
+            background 242 233 225
+            emphasis_0 234 157 52
+            emphasis_1 215 130 126
+            emphasis_2 40 105 131
+            emphasis_3 94 74 135
+        }
+        frame_selected {
+            base 40 105 131
+            background 0
+            emphasis_0 234 157 52
+            emphasis_1 215 130 126
+            emphasis_2 94 74 135
+            emphasis_3 0
+        }
+        frame_highlight {
+            base 234 157 52
+            background 0
+            emphasis_0 94 74 135
+            emphasis_1 0
+            emphasis_2 234 157 52
+            emphasis_3 234 157 52
+        }
+        exit_code_success {
+            base 40 105 131
+            background 0
+            emphasis_0 215 130 126
+            emphasis_1 242 233 225
+            emphasis_2 94 74 135
+            emphasis_3 86 148 159
+        }
+        exit_code_error {
+            base 180 99 122
+            background 0
+            emphasis_0 234 157 52
+            emphasis_1 0
+            emphasis_2 0
+            emphasis_3 0
+        }
+        multiplayer_user_colors {
+            player_1 94 74 135
+            player_2 86 148 159
+            player_3 0
+            player_4 234 157 52
+            player_5 215 130 126
+            player_6 0
+            player_7 180 99 122
+            player_8 0
+            player_9 0
+            player_10 0
+        }
+    }
+}
 
 // Plugin aliases - can be used to change the implementation of Zellij
 // changing these requires a restart to take effect
@@ -290,36 +528,6 @@ plugins {
 load_plugins {
     zellij:link
 }
-
-themes {
-    omarchy-gruvbox {
-        fg 212 190 152
-        bg 40 40 40
-        black 60 56 54
-        red 234 105 98
-        green 169 182 101
-        yellow 216 166 87
-        blue 125 174 163
-        magenta 211 134 155
-        cyan 137 180 130
-        white 212 190 152
-        orange 214 93 14
-    }
-    omarchy-rose-pine {
-        fg 87 82 121
-        bg 250 244 237
-        black 242 233 225
-        red 180 99 122
-        green 40 105 131
-        yellow 234 157 52
-        blue 86 148 159
-        magenta 94 74 135
-        cyan 215 130 126
-        white 87 82 121
-        orange 234 157 52
-    }
-}
-
 web_client {
     font "monospace"
 }
@@ -342,23 +550,16 @@ web_client {
 // Default: default
 // 
 theme "omarchy-gruvbox"
-
-// Auto-switch with the terminal's light/dark palette:
-//   Rose Pine (light) <-> gruvbox (dark). When both theme_dark and
-//   theme_light are set, zellij selects based on the host terminal's
-//   reported background color, so it follows the active Omarchy theme.
-theme_dark  "omarchy-gruvbox"
-theme_light "omarchy-rose-pine"
  
 // Theme to use when the host terminal reports a dark color palette.
 // Requires `theme_light` to also be set; otherwise `theme` is used.
 // 
-// theme_dark "dracula"
+theme_dark "omarchy-gruvbox"
  
 // Theme to use when the host terminal reports a light color palette.
 // Requires `theme_dark` to also be set; otherwise `theme` is used.
 // 
-// theme_light "solarized-light"
+theme_light "omarchy-rose-pine"
  
 // Choose the base input mode of zellij.
 // Default: normal
@@ -579,7 +780,7 @@ default_mode "normal"
 // Whether to show tips on startup
 // Default: true
 // 
-// show_startup_tips false
+show_startup_tips false
  
 // Whether to show release notes on first version run
 // Default: true
