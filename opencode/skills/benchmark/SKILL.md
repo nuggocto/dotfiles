@@ -9,7 +9,7 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Benchmark
@@ -20,8 +20,8 @@ artifact, control the environment, collect enough samples, and report the result
 with the uncertainty and caveats attached.
 
 Pair this skill with the relevant language skill when the repository makes the
-runtime obvious: `@rust/`, `@c/`, `@odin/`, `@go/`, `@elixir/`, `@gleam/`, or
-`@python/`. For
+runtime obvious: `@rust/`, `@c/`, `@zig/`, `@odin/`, `@go/`, `@elixir/`,
+`@gleam/`, or `@python/`. For
 systems, storage, infrastructure, hot paths, or resource-exhaustion concerns,
 also apply `@tiger_style/`. For real end-user verification use `@qa/`; for
 regression tests around benchmarked behavior use `@test_quality/`; for

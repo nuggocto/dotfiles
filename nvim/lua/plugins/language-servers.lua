@@ -62,6 +62,7 @@ return {
           },
         },
         gopls = { mason = false },
+        expert = { enabled = false },
         htmx = {
           filetypes = { "html", "templ", "astro", "svelte", "typescriptreact", "javascriptreact" },
         },
