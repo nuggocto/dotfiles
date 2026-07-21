@@ -2,12 +2,13 @@
 name: test_quality
 description: >
   Write and review high-quality tests: deterministic, behavior-focused, and
-  worth their maintenance cost. Use when writing new tests, reviewing test
-  code, fixing flaky tests, or when the user asks if the tests are any good.
+  worth their maintenance cost. Use when writing unit, integration, or
+  end-to-end tests, reviewing test code, fixing flaky tests, or when the user
+  asks if the tests are any good.
 license: MIT
 metadata:
   author: opencode
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Test Quality
@@ -58,6 +59,30 @@ A test that cannot fail, or fails for unrelated reasons, is worse than no test.
 - Never assert on incidental call counts or call order unless that ordering is
   the contract.
 
+## End-to-end testing
+
+- Reserve end-to-end tests for critical user journeys that cross real system
+  boundaries. Keep the suite small rather than repeating every unit-test case.
+- Exercise the shipped entrypoint, binary, API, or UI instead of private
+  application state. An internal component without a public journey has
+  integration coverage, not end-to-end coverage.
+- Use controlled real collaborators where practical. Never target unrelated
+  user data, processes, services, or production systems without explicit
+  authorization.
+- Make the test own every process, socket, file, account, and record it creates.
+  Guarantee cleanup on success, assertion failure, timeout, and cancellation.
+- Use readiness signals, observable conditions, or deterministic IPC instead of
+  sleeps. Give every helper and external operation a bounded timeout.
+- Assert the complete public contract that matters: status or exit code, stdout,
+  stderr, structured-output shape, durable effects, and important negative
+  behavior such as forbidden writes or side effects.
+- Run platform-dependent journeys on each supported native platform. A
+  cross-compile check does not establish native end-to-end behavior.
+- Treat intermittent end-to-end failures as defects. Preserve the first failure,
+  identify the source of nondeterminism, and never retry the suite into green.
+- End-to-end tests complement focused unit and integration tests; they do not
+  replace either layer or exploratory QA.
+
 ## What not to test
 
 - Trivial getters, framework behavior, and generated code.
@@ -79,3 +104,5 @@ When using this skill:
 2. Call out flakiness risks (time, ordering, shared state) explicitly.
 3. Point out missing edge cases rather than praising the happy path.
 4. Recommend deleting bad tests as readily as adding good ones.
+5. State whether coverage is unit, integration, end-to-end, or exploratory QA;
+   do not label an internal-component test as end-to-end.
