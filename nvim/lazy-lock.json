@@ -1,7 +1,7 @@
 {
   "99": { "branch": "master", "commit": "c17422457027c913c76c75a921fca1e623d2678e" },
   "LazyVim": { "branch": "main", "commit": "c10948c50b18fae7f256433afdef09e432410480" },
-  "SchemaStore.nvim": { "branch": "main", "commit": "37dc30ebebd899905f98deccd8c29fcb62531cbf" },
+  "SchemaStore.nvim": { "branch": "main", "commit": "77fb1b0aa0c7528680bed48687f3dd2c2a6ed111" },
   "aether.nvim": { "branch": "v3", "commit": "02af9ba1ef9d6f136a6b20404d39f2a4e3857e16" },
   "bamboo.nvim": { "branch": "master", "commit": "1309bc88bffcf1bedc3e84e7fa9004de93da774a" },
   "blink.cmp": { "branch": "main", "commit": "78336bc89ee5365633bcf754d93df01678b5c08f" },

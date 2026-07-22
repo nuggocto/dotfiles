@@ -51,8 +51,11 @@ return {
       servers = {
         clangd = { mason = false },
         denols = {
-          root_dir = function(fname)
-            return vim.fs.root(fname, { "deno.json", "deno.jsonc" })
+          root_dir = function(bufnr, on_dir)
+            local root = vim.fs.root(bufnr, { "deno.json", "deno.jsonc" })
+            if root then
+              on_dir(root)
+            end
           end,
           settings = {
             deno = {
@@ -73,14 +76,7 @@ return {
           workspace_required = false,
         },
         sqls = {},
-        tsgo = {
-          root_dir = function(fname)
-            if vim.fs.root(fname, { "deno.json", "deno.jsonc" }) then
-              return nil
-            end
-            return vim.fs.root(fname, { "tsconfig.json", "package.json", "jsconfig.json", ".git" })
-          end,
-        },
+        tsgo = {},
         vtsls = { enabled = false },
         yamlls = { filetypes = { "yaml" } },
         zls = { mason = false },
