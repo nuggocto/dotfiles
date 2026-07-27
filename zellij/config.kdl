@@ -549,12 +549,12 @@ web_client {
 // Choose the theme that is specified in the themes section.
 // Default: default
 // 
-theme "omarchy-gruvbox"
+theme "omarchy-active"
  
 // Theme to use when the host terminal reports a dark color palette.
 // Requires `theme_light` to also be set; otherwise `theme` is used.
 // 
-theme_dark "omarchy-gruvbox"
+theme_dark "omarchy-active"
  
 // Theme to use when the host terminal reports a light color palette.
 // Requires `theme_dark` to also be set; otherwise `theme` is used.

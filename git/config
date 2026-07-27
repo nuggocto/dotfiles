@@ -1,0 +1,47 @@
+# See https://git-scm.com/docs/git-config
+
+[alias]
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
+[init]
+	defaultBranch = master
+[pull]
+	rebase = true
+[push]
+	autoSetupRemote = true
+[diff]
+	algorithm = histogram
+	colorMoved = plain
+	mnemonicPrefix = true
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	func = cyan bold
+	old = red
+	new = green
+	commit = yellow bold
+	whitespace = red reverse
+	oldMoved = red
+	newMoved = green
+	oldMovedAlternative = red dim
+	newMovedAlternative = green dim
+[commit]
+	verbose = true
+	gpgsign = true
+[column]
+	ui = auto
+[branch]
+	sort = -committerdate
+[tag]
+	sort = -version:refname
+[rerere]
+	enabled = true
+	autoupdate = true
+[user]
+	name = nugget
+	email = vincent.tantei@proton.me
+	signingkey = /home/nuggocto/.ssh/id_ed25519.pub
+[gpg]
+	format = ssh

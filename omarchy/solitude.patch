@@ -1,0 +1,789 @@
+diff --git a/btop.theme b/btop.theme
+index 775dd98..ac18d4b 100644
+--- a/btop.theme
++++ b/btop.theme
+@@ -2,92 +2,92 @@
+ theme[main_bg]="#101315"
+ 
+ # Main text color
+-theme[main_fg]="#cacccc"
++theme[main_fg]="#d3d6d7"
+ 
+ # Title color for boxes
+-theme[title]="#cacccc"
++theme[title]="#86a9c7"
+ 
+ # Highlight color for keyboard shortcuts
+-theme[hi_fg]="#565d60"
++theme[hi_fg]="#d1b879"
+ 
+ # Background color of selected item in processes box
+-theme[selected_bg]="#a3a6a7"
++theme[selected_bg]="#46545b"
+ 
+ # Foreground color of selected item in processes box
+ theme[selected_fg]="#101315"
+ 
+ # Color of inactive/disabled text
+-theme[inactive_fg]="#565d60"
++theme[inactive_fg]="#707a80"
+ 
+ # Color of text appearing on top of graphs, i.e uptime and current network graph scaling
+-theme[graph_text]="#cbc2be"
++theme[graph_text]="#b9bec0"
+ 
+ # Background color of the percentage meters
+-theme[meter_bg]="#343d41"
++theme[meter_bg]="#282d30"
+ 
+ # Misc colors for processes box including mini cpu graphs, details memory graph and details status text
+-theme[proc_misc]="#a3a6a7"
++theme[proc_misc]="#b39ac8"
+ 
+ # CPU, Memory, Network, Proc box outline colors
+-theme[cpu_box]="#343d41"
+-theme[mem_box]="#343d41"
+-theme[net_box]="#343d41"
+-theme[proc_box]="#343d41"
++theme[cpu_box]="#86a9c7"
++theme[mem_box]="#b39ac8"
++theme[net_box]="#82b8b3"
++theme[proc_box]="#9fbd8a"
+ 
+ # Box divider line and small boxes line color
+-theme[div_line]="#343d41"
++theme[div_line]="#33393d"
+ 
+ # Temperature graph color (Normal -> Warm -> Hot)
+-theme[temp_start]="#d9dbdc"
+-theme[temp_mid]="#9fa5a9"
+-theme[temp_end]="#de6145"
++theme[temp_start]="#82b8b3"
++theme[temp_mid]="#d1b879"
++theme[temp_end]="#d9847c"
+ 
+ # CPU graph colors
+-theme[cpu_start]="#d9dbdc"
+-theme[cpu_mid]="#9fa5a9"
+-theme[cpu_end]="#de6145"
++theme[cpu_start]="#86a9c7"
++theme[cpu_mid]="#b39ac8"
++theme[cpu_end]="#d9847c"
+ 
+ # Mem/Disk free meter
+-theme[free_start]="#d9dbdc"
+-theme[free_mid]="#9fa5a9"
+-theme[free_end]="#de6145"
++theme[free_start]="#82b8b3"
++theme[free_mid]="#9fbd8a"
++theme[free_end]="#b3cf9f"
+ 
+ # Mem/Disk cached meter
+-theme[cached_start]="#d9dbdc"
+-theme[cached_mid]="#a5aeb4"
+-theme[cached_end]="#798186"
++theme[cached_start]="#b39ac8"
++theme[cached_mid]="#c5acd7"
++theme[cached_end]="#86a9c7"
+ 
+ # Mem/Disk available meter
+-theme[available_start]="#d9dbdc"
+-theme[available_mid]="#a5aeb4"
+-theme[available_end]="#798186"
++theme[available_start]="#82b8b3"
++theme[available_mid]="#99cac5"
++theme[available_end]="#86a9c7"
+ 
+ # Mem/Disk used meter
+-theme[used_start]="#d9dbdc"
+-theme[used_mid]="#9fa5a9"
+-theme[used_end]="#de6145"
++theme[used_start]="#d1b879"
++theme[used_mid]="#d49a70"
++theme[used_end]="#d9847c"
+ 
+ # Download graph colors
+-theme[download_start]="#d9dbdc"
+-theme[download_mid]="#9fa5a9"
+-theme[download_end]="#de6145"
++theme[download_start]="#82b8b3"
++theme[download_mid]="#86a9c7"
++theme[download_end]="#9bbbd5"
+ 
+ # Upload graph colors
+-theme[upload_start]="#d9dbdc"
+-theme[upload_mid]="#9fa5a9"
+-theme[upload_end]="#de6145"
++theme[upload_start]="#b39ac8"
++theme[upload_mid]="#c996aa"
++theme[upload_end]="#d9847c"
+ 
+ # Process box color gradient for threads, mem and cpu usage
+-theme[process_start]="#d9dbdc"
+-theme[process_mid]="#9fa5a9"
+-theme[process_end]="#de6145"
++theme[process_start]="#9fbd8a"
++theme[process_mid]="#d1b879"
++theme[process_end]="#d9847c"
+ 
+ # Graph gradient colors
+ theme[gradient_color_0]="#101315"
+-theme[gradient_color_1]="#343d41"
+-theme[gradient_color_2]="#4b4e55"
+-theme[gradient_color_3]="#798186"
+-theme[gradient_color_4]="#9fa5a9"
+-theme[gradient_color_5]="#a5aeb4"
+-theme[gradient_color_6]="#d9dbdc"
+-theme[gradient_color_7]="#de6145"
+\ No newline at end of file
++theme[gradient_color_1]="#282d30"
++theme[gradient_color_2]="#46545b"
++theme[gradient_color_3]="#86a9c7"
++theme[gradient_color_4]="#82b8b3"
++theme[gradient_color_5]="#9fbd8a"
++theme[gradient_color_6]="#d1b879"
++theme[gradient_color_7]="#d9847c"
+diff --git a/colors.toml b/colors.toml
+index c7e26a1..6141263 100644
+--- a/colors.toml
++++ b/colors.toml
+@@ -1,35 +1,35 @@
+ # Accent and UI colors
+-accent = "#798186"
+-active_border_color = "#a8adb0"
+-active_tab_background = "#798186"
++accent = "#86a9c7"
++active_border_color = "#9bbbd5"
++active_tab_background = "#33393d"
+ 
+ # Cursor colors
+-cursor = "#cacccc"
++cursor = "#d1b879"
+ 
+ # Primary colors
+-foreground = "#cacccc"
++foreground = "#d3d6d7"
+ background = "#101315"
+ 
+ # Selection colors
+ selection_foreground = "#101315"
+-selection_background = "#798186"
++selection_background = "#46545b"
+ 
+ # Normal colors (ANSI 0-7)
+ color0 = "#101315"
+-color1 = "#565d60"
+-color2 = "#9fa5a9"
+-color3 = "#d9dbdc"
+-color4 = "#798186"
+-color5 = "#aeaeae"
+-color6 = "#707070"
+-color7 = "#cbc2be"
++color1 = "#d9847c"
++color2 = "#9fbd8a"
++color3 = "#d1b879"
++color4 = "#86a9c7"
++color5 = "#b39ac8"
++color6 = "#82b8b3"
++color7 = "#d3d6d7"
+ 
+ # Bright colors (ANSI 8-15)
+-color8 = "#4b4e55"
+-color9 = "#de6145"
+-color10 = "#343d41"
+-color11 = "#c9c2b4"
+-color12 = "#5d6367"
+-color13 = "#9a9a9a"
+-color14 = "#707070"
+-color15 = "#a5aeb4"
++color8 = "#707a80"
++color9 = "#e39a92"
++color10 = "#b3cf9f"
++color11 = "#dfca91"
++color12 = "#9bbbd5"
++color13 = "#c5acd7"
++color14 = "#99cac5"
++color15 = "#eef0f0"
+diff --git a/neovim.lua b/neovim.lua
+index 7caccb4..d399494 100644
+--- a/neovim.lua
++++ b/neovim.lua
+@@ -1,9 +1,43 @@
+ return {
+-  { "ficcdaf/ashen.nvim" },
++  {
++    "ficcdaf/ashen.nvim",
++    opts = {
++      style_presets = {
++        bold_functions = true,
++        italic_comments = true,
++      },
++      hl = {
++        merge_override = {
++          Comment = { "#707a80" },
++          DiagnosticError = { "#d9847c" },
++          DiagnosticHint = { "#82b8b3" },
++          DiagnosticInfo = { "#86a9c7" },
++          DiagnosticWarn = { "#d1b879" },
++          String = { "#9fbd8a" },
++          ["@attribute"] = { "#d49a70" },
++          ["@boolean"] = { "#d49a70" },
++          ["@constant"] = { "#c996aa" },
++          ["@constructor"] = { "#82b8b3" },
++          ["@function"] = { "#86a9c7" },
++          ["@function.builtin"] = { "#82b8b3" },
++          ["@keyword"] = { "#b39ac8", nil, { italic = true } },
++          ["@number"] = { "#d49a70" },
++          ["@operator"] = { "#d1b879" },
++          ["@property"] = { "#c996aa" },
++          ["@string"] = { "#9fbd8a" },
++          ["@tag"] = { "#d9847c" },
++          ["@tag.attribute"] = { "#d49a70" },
++          ["@type"] = { "#82b8b3" },
++          ["@variable.builtin"] = { "#d9847c" },
++          ["@variable.parameter"] = { "#d3d6d7" },
++        },
++      },
++    },
++  },
+   {
+     "LazyVim/LazyVim",
+     opts = {
+       colorscheme = "ashen",
+     },
+-  }
+-}
+\ No newline at end of file
++  },
++}
+diff --git a/steam.css b/steam.css
+index 8bc1d13..94b4e63 100644
+--- a/steam.css
++++ b/steam.css
+@@ -1,40 +1,40 @@
+ :root {
+     /* The main accent color and the matching text value */
+-    --adw-accent-bg-rgb: 121, 129, 134 !important;
++    --adw-accent-bg-rgb: 134, 169, 199 !important;
+     --adw-accent-fg-rgb: 16, 19, 21 !important;
+-    --adw-accent-rgb: 121, 129, 134 !important;
++    --adw-accent-rgb: 134, 169, 199 !important;
+ 
+ 	/* destructive-action buttons */
+-    --adw-destructive-bg-rgb: 86, 93, 96 !important;
+-    --adw-destructive-fg-rgb: 202, 204, 204 !important;
+-    --adw-destructive-rgb: 86, 93, 96 !important;
++    --adw-destructive-bg-rgb: 217, 132, 124 !important;
++    --adw-destructive-fg-rgb: 16, 19, 21 !important;
++    --adw-destructive-rgb: 217, 132, 124 !important;
+ 
+ 	/* Levelbars, entries, labels and infobars. These don't need text colors */
+-    --adw-success-bg-rgb: 159, 165, 169 !important;
++    --adw-success-bg-rgb: 159, 189, 138 !important;
+     --adw-success-fg-rgb: 16, 19, 21 !important;
+-    --adw-success-rgb: 159, 165, 169 !important;
++    --adw-success-rgb: 159, 189, 138 !important;
+ 
+-    --adw-warning-bg-rgb: 201, 194, 180 !important;
++    --adw-warning-bg-rgb: 209, 184, 121 !important;
+     --adw-warning-fg-rgb: 16, 19, 21 !important;
+     --adw-warning-fg-a: 0.8 !important;
+-    --adw-warning-rgb: 201, 194, 180 !important;
++    --adw-warning-rgb: 209, 184, 121 !important;
+ 
+-    --adw-error-bg-rgb: 86, 93, 96 !important;
++    --adw-error-bg-rgb: 217, 132, 124 !important;
+     --adw-error-fg-rgb: 16, 19, 21 !important;
+-    --adw-error-rgb: 86, 93, 96 !important;
++    --adw-error-rgb: 217, 132, 124 !important;
+ 
+ 	/* Window */
+     --adw-window-bg-rgb: 16, 19, 21 !important;
+-    --adw-window-fg-rgb: 202, 204, 204 !important;
++    --adw-window-fg-rgb: 211, 214, 215 !important;
+ 
+ 	/* Views - e.g. text view or tree view */
+     --adw-view-bg-rgb: 16, 19, 21 !important;
+-    --adw-view-fg-rgb: 202, 204, 204 !important;
++    --adw-view-fg-rgb: 211, 214, 215 !important;
+ 
+ 	/* Header bar, search bar, tab bar */
+     --adw-headerbar-bg-rgb: 16, 19, 21 !important;
+-    --adw-headerbar-fg-rgb: 202, 204, 204 !important;
+-    --adw-headerbar-border-rgb: 75, 78, 85 !important;
++    --adw-headerbar-fg-rgb: 211, 214, 215 !important;
++    --adw-headerbar-border-rgb: 70, 84, 91 !important;
+     --adw-headerbar-backdrop-rgb: 16, 19, 21 !important;
+     --adw-headerbar-shade-rgb: 0, 0, 0 !important;
+     --adw-headerbar-shade-a: 0.36 !important;
+@@ -43,13 +43,13 @@
+ 
+ 	/* Split pane views */
+     --adw-sidebar-bg-rgb: 16, 19, 21 !important;
+-    --adw-sidebar-fg-rgb: 202, 204, 204 !important;
+-    --adw-sidebar-backdrop-rgb: 75, 78, 85 !important;
++    --adw-sidebar-fg-rgb: 211, 214, 215 !important;
++    --adw-sidebar-backdrop-rgb: 51, 57, 61 !important;
+     --adw-sidebar-shade-rgb: 0, 0, 0 !important;
+     --adw-sidebar-shade-a: 0.36 !important;
+     --adw-secondary-sidebar-bg-rgb: 16, 19, 21 !important;
+-    --adw-secondary-sidebar-fg-rgb: 202, 204, 204 !important;
+-    --adw-secondary-sidebar-backdrop-rgb: 75, 78, 85 !important;
++    --adw-secondary-sidebar-fg-rgb: 211, 214, 215 !important;
++    --adw-secondary-sidebar-backdrop-rgb: 51, 57, 61 !important;
+     --adw-secondary-sidebar-shade-rgb: 0, 0, 0 !important;
+     --adw-secondary-sidebar-shade-a: 0.36 !important;
+ 
+@@ -62,11 +62,11 @@
+ 
+ 	/* Dialogs */
+     --adw-dialog-bg-rgb: 16, 19, 21 !important;
+-    --adw-dialog-fg-rgb: 202, 204, 204 !important;
++    --adw-dialog-fg-rgb: 211, 214, 215 !important;
+ 
+     /* Popovers */
+     --adw-popover-bg-rgb: 16, 19, 21 !important;
+-    --adw-popover-fg-rgb: 202, 204, 204 !important;
++    --adw-popover-fg-rgb: 211, 214, 215 !important;
+     --adw-popover-shade-rgb: 0, 0, 0 !important;
+     --adw-popover-shade-a: 0.36 !important;
+ 
+diff --git a/vencord.theme.css b/vencord.theme.css
+index 50dbcc1..f4d1377 100644
+--- a/vencord.theme.css
++++ b/vencord.theme.css
+@@ -9,20 +9,20 @@
+     :root {
+         --color00: #101315;
+         --color01: #101315;
+-        --color02: #333539;
+-        --color03: #62676a;
+-        --color04: #cacccc;
+-        --color05: #cacccc;
+-        --color06: #cbc2be;
+-        --color07: #cacccc;
+-        --color08: #565d60;
+-        --color09: #d9dbdc;
+-        --color10: #cacccc;
+-        --color11: #62676a;
+-        --color12: #b2b7ba;
+-        --color13: #798186;
+-        --color14: #9fa5a9;
+-        --color15: #d9dbdc;
++        --color02: #282d30;
++        --color03: #707a80;
++        --color04: #b9bec0;
++        --color05: #d3d6d7;
++        --color06: #eef0f0;
++        --color07: #eef0f0;
++        --color08: #d9847c;
++        --color09: #d49a70;
++        --color10: #d1b879;
++        --color11: #9fbd8a;
++        --color12: #82b8b3;
++        --color13: #86a9c7;
++        --color14: #b39ac8;
++        --color15: #c996aa;
+       --base00: var(--color00);
+     --base01: var(--color01);
+     --base02: var(--color02);
+@@ -51,7 +51,8 @@
+     --background-floating: var(--base02) !important;
+     --background-mentioned-hover: color-mix(in srgb, var(--base0B) 35%, var(--base01)) !important;
+     --background-mentioned: color-mix(in srgb, var(--base0B) 25%, var(--base01)) !important;
+-    --background-message-highlight: var(--base02) !important;
++    --background-message-highlight: color-mix(in srgb, var(--base0A) 6%, var(--base02)) !important;
++    --background-message-highlight-hover: color-mix(in srgb, var(--base0A) 9%, var(--base02)) !important;
+     --background-message-hover: var(--base02) !important;
+     --background-mod-strong: var(--base02) !important;
+     --background-modifier-accent: var(--base02) !important;
+@@ -251,6 +252,22 @@ span[class*="textBadge"] {
+     color: var(--base00) !important;
+ }
+ 
++/*--- Unread Channel Contrast ---*/
++[class*="modeUnreadImportant"] [class*="name"],
++[class*="modeUnreadImportant"] [class*="channelName"],
++[class*="modeUnreadImportant"] [class*="link"] {
++    color: var(--base07) !important;
++    font-weight: 650 !important;
++    opacity: 1 !important;
++}
++[class*="modeUnreadImportant"] [class*="icon"] {
++    color: var(--base07) !important;
++    opacity: 1 !important;
++}
++[class*="modeUnreadImportant"] [class*="unread"] {
++    background-color: var(--base0D) !important;
++}
++
+ /*--- Selected Text Recolor ---*/
+ ::selection {
+     color: var(--base00);
+@@ -314,7 +331,7 @@ div[class*="mentioned"],
+ li[class*="mentioned"] {
+     background: linear-gradient(
+         90deg,
+-        color-mix(in srgb, var(--base0A) 35%, var(--base01)) 0%,
++        color-mix(in srgb, var(--base0A) 7%, var(--base02)) 0%,
+         var(--base01) 75%
+     ) !important;
+ }
+@@ -322,13 +339,13 @@ div[class*="mentioned"]:hover,
+ li[class*="mentioned"]:hover {
+     background: linear-gradient(
+         90deg,
+-        color-mix(in srgb, var(--base0A) 45%, var(--base01)) 0%,
++        color-mix(in srgb, var(--base0A) 10%, var(--base02)) 0%,
+         var(--base01) 75%
+     ) !important;
+ }
+ div[class*="mentioned"]::before,
+ li[class*="mentioned"]::before {
+-    background: var(--base0B) !important;
++    background: var(--base0D) !important;
+ }
+ 
+ /*--- Default Folder Color Recolor ---*/
+diff --git a/obsidian.css b/obsidian.css
+new file mode 100644
+index 0000000..0274b8a
+--- /dev/null
++++ b/obsidian.css
+@@ -0,0 +1,95 @@
++/* Solitude for Obsidian */
++
++.theme-dark,
++.theme-light {
++  --background-primary: #101315;
++  --background-primary-alt: #171b1d;
++  --background-secondary: #171b1d;
++  --background-secondary-alt: #282d30;
++  --background-modifier-border: #33393d;
++  --background-modifier-hover: #282d30;
++  --background-modifier-active-hover: #33393d;
++  --text-normal: #d3d6d7;
++  --text-muted: #8b9397;
++  --text-faint: #707a80;
++  --text-selection: #46545b;
++  --text-on-accent: #101315;
++  --text-error: #d9847c;
++  --text-error-hover: #e39a92;
++  --text-success: #9fbd8a;
++  --text-warning: #d1b879;
++  --text-accent: #86a9c7;
++  --text-accent-hover: #9bbbd5;
++  --text-link: #86a9c7;
++  --text-link-decoration: #46545b;
++  --interactive-accent: #86a9c7;
++  --interactive-accent-hover: #9bbbd5;
++  --interactive-normal: #282d30;
++  --interactive-hover: #33393d;
++  --code-background: #171b1d;
++  --code-normal: #d3d6d7;
++  --text-title-h1: #86a9c7;
++  --text-title-h2: #82b8b3;
++  --text-title-h3: #9fbd8a;
++  --text-title-h4: #d1b879;
++  --text-title-h5: #d49a70;
++  --text-title-h6: #b39ac8;
++  --tag-color: #82b8b3;
++  --tag-background: #282d30;
++  --tag-background-hover: #33393d;
++  --graph-line: #46545b;
++  --graph-node: #86a9c7;
++  --graph-node-focused: #d1b879;
++  --graph-node-tag: #82b8b3;
++  --graph-node-attachment: #b39ac8;
++}
++
++.cm-header-1,
++.markdown-rendered h1 { color: var(--text-title-h1); }
++.cm-header-2,
++.markdown-rendered h2 { color: var(--text-title-h2); }
++.cm-header-3,
++.markdown-rendered h3 { color: var(--text-title-h3); }
++.cm-header-4,
++.markdown-rendered h4 { color: var(--text-title-h4); }
++.cm-header-5,
++.markdown-rendered h5 { color: var(--text-title-h5); }
++.cm-header-6,
++.markdown-rendered h6 { color: var(--text-title-h6); }
++
++.cm-s-obsidian span.cm-keyword,
++.HyperMD-codeblock .cm-keyword { color: #b39ac8; }
++.cm-s-obsidian span.cm-string,
++.HyperMD-codeblock .cm-string { color: #9fbd8a; }
++.cm-s-obsidian span.cm-number,
++.cm-s-obsidian span.cm-atom,
++.HyperMD-codeblock .cm-number,
++.HyperMD-codeblock .cm-atom { color: #d49a70; }
++.cm-s-obsidian span.cm-comment,
++.HyperMD-codeblock .cm-comment { color: #707a80; font-style: italic; }
++.cm-s-obsidian span.cm-operator,
++.HyperMD-codeblock .cm-operator { color: #d1b879; }
++.cm-s-obsidian span.cm-def,
++.cm-s-obsidian span.cm-variable-2,
++.HyperMD-codeblock .cm-def { color: #86a9c7; }
++.cm-s-obsidian span.cm-variable-3,
++.cm-s-obsidian span.cm-type,
++.HyperMD-codeblock .cm-type { color: #82b8b3; }
++.cm-s-obsidian span.cm-property,
++.cm-s-obsidian span.cm-attribute,
++.HyperMD-codeblock .cm-property { color: #c996aa; }
++.cm-s-obsidian span.cm-tag,
++.HyperMD-codeblock .cm-tag { color: #d9847c; }
++.cm-s-obsidian span.cm-builtin,
++.HyperMD-codeblock .cm-builtin { color: #82b8b3; }
++
++.markdown-rendered blockquote {
++  border-left-color: #86a9c7;
++  color: #b9bec0;
++}
++
++.workspace-leaf.mod-active .workspace-leaf-header-title,
++.nav-file-title.is-active,
++.search-result-file-title {
++  color: var(--text-accent);
++}
+diff --git a/typora.css b/typora.css
+new file mode 100644
+index 0000000..b43fb7e
+--- /dev/null
++++ b/typora.css
+@@ -0,0 +1,94 @@
++@import "night/mermaid.dark.css";
++@import "night/codeblock.dark.css";
++@import "night/sourcemode.dark.css";
++
++:root {
++  --bg-color: #101315;
++  --side-bar-bg-color: #171b1d;
++  --text-color: #d3d6d7;
++  --select-text-bg-color: #46545b;
++  --item-hover-bg-color: #282d30;
++  --control-text-color: #707a80;
++  --control-text-hover-color: #d3d6d7;
++  --window-border: 1px solid #282d30;
++  --active-file-bg-color: #282d30;
++  --active-file-border-color: #86a9c7;
++  --active-file-text-color: #d3d6d7;
++  --item-hover-text-color: #d3d6d7;
++  --primary-color: #86a9c7;
++  --rawblock-edit-panel-bd: #171b1d;
++  --search-select-bg-color: #46545b;
++}
++
++html {
++  font-size: 16px;
++  -webkit-font-smoothing: antialiased;
++}
++
++html,
++body {
++  background: var(--bg-color);
++  color: var(--text-color);
++  fill: currentColor;
++  line-height: 1.625rem;
++}
++
++#write { max-width: 914px; }
++@media only screen and (min-width: 1400px) { #write { max-width: 1024px; } }
++@media only screen and (min-width: 1800px) { #write { max-width: 1200px; } }
++
++html,
++body,
++button,
++input,
++select,
++textarea {
++  font-family: "Inter", "SF Pro", -apple-system, BlinkMacSystemFont, sans-serif;
++}
++
++h1 { color: #86a9c7; }
++h2 { color: #82b8b3; }
++h3 { color: #9fbd8a; }
++h4 { color: #d1b879; }
++h5 { color: #d49a70; }
++h6 { color: #b39ac8; }
++
++a { color: #86a9c7; }
++
++code,
++pre,
++.md-fences {
++  background: #171b1d;
++  font-family: "JetBrainsMono Nerd Font", "Fira Code", monospace;
++}
++
++code {
++  color: #9fbd8a;
++  padding: 2px 4px;
++  border-radius: 4px;
++}
++
++.cm-s-inner .cm-keyword { color: #b39ac8; }
++.cm-s-inner .cm-string { color: #9fbd8a; }
++.cm-s-inner .cm-number,
++.cm-s-inner .cm-atom { color: #d49a70; }
++.cm-s-inner .cm-comment { color: #707a80; font-style: italic; }
++.cm-s-inner .cm-operator { color: #d1b879; }
++.cm-s-inner .cm-def,
++.cm-s-inner .cm-variable-2 { color: #86a9c7; }
++.cm-s-inner .cm-variable-3,
++.cm-s-inner .cm-type { color: #82b8b3; }
++.cm-s-inner .cm-property,
++.cm-s-inner .cm-attribute { color: #c996aa; }
++.cm-s-inner .cm-tag { color: #d9847c; }
++.cm-s-inner .cm-builtin { color: #82b8b3; }
++
++blockquote {
++  border-left: 4px solid #86a9c7;
++  color: #b9bec0;
++}
++
++table tr:nth-child(2n) { background: #171b1d; }
++table th { background: #282d30; color: #d1b879; }
++::-webkit-scrollbar-thumb { background: #282d30; }
++::-webkit-scrollbar-thumb:hover { background: #46545b; }
+diff --git a/zed.json b/zed.json
+new file mode 100644
+index 0000000..6277f65
+--- /dev/null
++++ b/zed.json
+@@ -0,0 +1,135 @@
++{
++  "$schema": "https://zed.dev/schema/themes/v0.2.0.json",
++  "name": "Solitude",
++  "author": "HANCORE-linux, customized for readability",
++  "themes": [
++    {
++      "name": "Omarchy",
++      "appearance": "dark",
++      "style": {
++        "background": "#10131590",
++        "background.appearance": "blurred",
++        "editor.background": "#10131590",
++        "editor.foreground": "#d3d6d7",
++        "text": "#d3d6d7",
++        "text.accent": "#86a9c7",
++        "text.muted": "#8b9397",
++        "text.disabled": "#626a6e",
++        "text.placeholder": "#707a80",
++        "icon": "#b9bec0",
++        "icon.accent": "#86a9c7",
++        "icon.muted": "#707a80",
++        "ignored": "#707a80",
++        "hidden": "#626a6e",
++        "predictive": "#707a80",
++        "border": "#33393d",
++        "border.focused": "#86a9c7",
++        "border.selected": "#86a9c7",
++        "border.variant": "#282d30",
++        "element.hover": "#33393d80",
++        "element.selected": "#3b454b90",
++        "ghost_element.hover": "#33393d70",
++        "ghost_element.selected": "#3b454b90",
++        "ghost_element.active": "#46545b90",
++        "editor.highlighted_line.background": "#33393d45",
++        "editor.active_line.background": "#33393d35",
++        "editor.line_number": "#626a6e",
++        "editor.active_line_number": "#d1b879",
++        "editor.indent_guide": "#33393d",
++        "editor.indent_guide_active": "#626a6e",
++        "editor.wrap_guide": "#282d30",
++        "editor.active_wrap_guide": "#46545b",
++        "editor.document_highlight.read_background": "#86a9c730",
++        "editor.document_highlight.write_background": "#d1b87930",
++        "search.match_background": "#d1b87945",
++        "panel.background": "#10131590",
++        "panel.indent_guide": "#33393d",
++        "panel.indent_guide_active": "#626a6e",
++        "pane.focused_border": "#46545b",
++        "title_bar.background": "#10131590",
++        "title_bar.inactive_background": "#10131590",
++        "status_bar.background": "#10131590",
++        "drop_target.background": "#86a9c735",
++        "elevated_surface.background": "#171b1d",
++        "toolbar.background": "#10131590",
++        "tab_bar.background": "#10131590",
++        "tab.inactive_background": "#10131590",
++        "tab.active_background": "#33393d80",
++        "scrollbar.track.background": "transparent",
++        "scrollbar.track.border": "#101315",
++        "scrollbar.thumb.background": "#626a6e80",
++        "editor.gutter.background": "#10131590",
++        "error": "#d9847c",
++        "warning": "#d1b879",
++        "success": "#9fbd8a",
++        "info": "#86a9c7",
++        "hint": "#82b8b3",
++        "created": "#9fbd8a",
++        "modified": "#d1b879",
++        "deleted": "#d9847c",
++        "renamed": "#86a9c7",
++        "conflict": "#d49a70",
++        "terminal.background": "#10131510",
++        "terminal.foreground": "#d3d6d7",
++        "terminal.dim_foreground": "#8b9397",
++        "terminal.bright_foreground": "#eef0f0",
++        "terminal.ansi.black": "#101315",
++        "terminal.ansi.red": "#d9847c",
++        "terminal.ansi.green": "#9fbd8a",
++        "terminal.ansi.yellow": "#d1b879",
++        "terminal.ansi.blue": "#86a9c7",
++        "terminal.ansi.magenta": "#b39ac8",
++        "terminal.ansi.cyan": "#82b8b3",
++        "terminal.ansi.white": "#d3d6d7",
++        "terminal.ansi.bright_black": "#707a80",
++        "terminal.ansi.bright_red": "#e39a92",
++        "terminal.ansi.bright_green": "#b3cf9f",
++        "terminal.ansi.bright_yellow": "#dfca91",
++        "terminal.ansi.bright_blue": "#9bbbd5",
++        "terminal.ansi.bright_magenta": "#c5acd7",
++        "terminal.ansi.bright_cyan": "#99cac5",
++        "terminal.ansi.bright_white": "#eef0f0",
++        "syntax": {
++          "attribute": { "color": "#d49a70" },
++          "boolean": { "color": "#d49a70" },
++          "comment": { "color": "#707a80", "font_style": "italic" },
++          "comment.doc": { "color": "#7f898e", "font_style": "italic" },
++          "constant": { "color": "#c996aa" },
++          "constructor": { "color": "#82b8b3" },
++          "embedded": { "color": "#d3d6d7" },
++          "emphasis": { "color": "#d1b879", "font_style": "italic" },
++          "emphasis.strong": { "color": "#d1b879", "font_weight": 700 },
++          "enum": { "color": "#82b8b3" },
++          "function": { "color": "#86a9c7", "font_weight": 600 },
++          "function.builtin": { "color": "#82b8b3" },
++          "keyword": { "color": "#b39ac8", "font_style": "italic" },
++          "label": { "color": "#d1b879" },
++          "link_text": { "color": "#86a9c7" },
++          "namespace": { "color": "#82b8b3" },
++          "number": { "color": "#d49a70" },
++          "operator": { "color": "#d1b879" },
++          "property": { "color": "#c996aa" },
++          "punctuation.bracket": { "color": "#b9bec0" },
++          "punctuation.delimiter": { "color": "#8b9397" },
++          "string": { "color": "#9fbd8a" },
++          "string.escape": { "color": "#d1b879" },
++          "string.regex": { "color": "#82b8b3" },
++          "tag": { "color": "#d9847c" },
++          "text.literal": { "color": "#9fbd8a" },
++          "title": { "color": "#86a9c7", "font_weight": 700 },
++          "type": { "color": "#82b8b3" },
++          "variable": { "color": "#d3d6d7" },
++          "variable.builtin": { "color": "#d9847c" },
++          "variable.parameter": { "color": "#d3d6d7", "font_style": "italic" }
++        },
++        "players": [
++          {
++            "cursor": "#d1b879",
++            "background": "#101315",
++            "selection": "#86a9c740"
++          }
++        ]
++      }
++    }
++  ]
++}

@@ -20,9 +20,22 @@ BACKUP_DIR="$CONFIG_DIR/dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 # Repo entries that map 1:1 to ~/.config/<name>.
 CONFIGS=(
   # Editors / terminals / tools
-  ghostty nvim zed opencode zellij btop fastfetch
+  ghostty nvim zed opencode zellij btop fastfetch git lazygit
   # Omarchy desktop layer (your overrides on top of Omarchy defaults)
   hypr waybar fish
+)
+
+# Standalone files that live directly under ~/.config.
+CONFIG_FILES=(
+  starship.toml
+)
+
+# Selective Omarchy files. Never link the whole directory because current/
+# contains generated runtime state.
+OMARCHY_FILES=(
+  omarchy/hooks/theme-set.d/00-fish.sh
+  omarchy/hooks/theme-set.d/25-terminal-app-themes.sh
+  omarchy/themed/ghostty.conf.tpl
 )
 
 link() {
@@ -52,11 +65,77 @@ link() {
   printf '  link  %-12s -> %s\n' "$name" "$src"
 }
 
+link_file() {
+  local relative_path="$1"
+  local src="$REPO_DIR/$relative_path"
+  local dest="$CONFIG_DIR/$relative_path"
+  local backup="$BACKUP_DIR/$relative_path"
+
+  if [ ! -f "$src" ]; then
+    printf '  skip  %-44s (not in repo)\n' "$relative_path"
+    return
+  fi
+
+  if [ -L "$dest" ] && [ "$(readlink -f "$dest")" = "$(readlink -f "$src")" ]; then
+    printf '  ok    %-44s (already linked)\n' "$relative_path"
+    return
+  fi
+
+  if [ -e "$dest" ] || [ -L "$dest" ]; then
+    mkdir -p "$(dirname "$backup")"
+    mv "$dest" "$backup"
+    printf '  back  %-44s -> %s\n' "$relative_path" "$backup"
+  fi
+
+  mkdir -p "$(dirname "$dest")"
+  ln -s "$src" "$dest"
+  printf '  link  %-44s -> %s\n' "$relative_path" "$src"
+}
+
+install_solitude_theme() {
+  local theme_url="https://github.com/HANCORE-linux/omarchy-solitude-theme.git"
+  local theme_revision="7c3e45eec3e1c5eba24e6d08844e6bc1231b839d"
+  local theme_dir="$CONFIG_DIR/omarchy/themes/solitude"
+  local patch_file="$REPO_DIR/omarchy/solitude.patch"
+
+  if [ ! -f "$patch_file" ]; then
+    printf '  skip  %-44s (patch not in repo)\n' "omarchy/themes/solitude"
+    return
+  fi
+
+  if [ ! -d "$theme_dir/.git" ]; then
+    if [ -e "$theme_dir" ] || [ -L "$theme_dir" ]; then
+      local backup="$BACKUP_DIR/omarchy/themes/solitude"
+      mkdir -p "$(dirname "$backup")"
+      mv "$theme_dir" "$backup"
+      printf '  back  %-44s -> %s\n' "omarchy/themes/solitude" "$backup"
+    fi
+
+    mkdir -p "$(dirname "$theme_dir")"
+    git clone --quiet "$theme_url" "$theme_dir"
+    git -C "$theme_dir" checkout --quiet "$theme_revision"
+    printf '  clone %-44s -> %s\n' "omarchy/themes/solitude" "$theme_dir"
+  fi
+
+  if git -C "$theme_dir" apply --reverse --check "$patch_file" >/dev/null 2>&1; then
+    printf '  ok    %-44s (custom patch already applied)\n' "omarchy/themes/solitude"
+  elif git -C "$theme_dir" apply --check "$patch_file" >/dev/null 2>&1; then
+    git -C "$theme_dir" apply "$patch_file"
+    printf '  patch %-44s -> readability overrides\n' "omarchy/themes/solitude"
+  else
+    printf '  error %-44s (custom patch conflicts with installed theme)\n' "omarchy/themes/solitude" >&2
+    return 1
+  fi
+}
+
 echo "Dotfiles : $REPO_DIR"
 echo "Target   : $CONFIG_DIR"
 echo
 mkdir -p "$CONFIG_DIR"
 for c in "${CONFIGS[@]}"; do link "$c"; done
+for f in "${CONFIG_FILES[@]}"; do link_file "$f"; done
+for f in "${OMARCHY_FILES[@]}"; do link_file "$f"; done
+install_solitude_theme
 echo
 
 if [ -d "$BACKUP_DIR" ]; then
@@ -71,5 +150,7 @@ Done. A couple of per-machine things to check by hand:
   - Fonts               : install your Nerd Fonts (VictorMono / JetBrainsMono)
                           if they're missing.
   - Reload              : log out/in (or `hyprctl reload`) to apply Hyprland,
-                          and restart waybar/terminals to pick up changes.
+                           and restart waybar/terminals to pick up changes.
+  - Solitude theme      : run `omarchy theme set solitude` to regenerate all
+                          app themes after first install.
 NOTE

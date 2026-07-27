@@ -23,6 +23,7 @@ into place. It's safe to re-run — it only touches what isn't already linked.
 Afterwards:
 - Edit `hypr/monitors.conf` for this machine's displays (`hyprctl monitors`).
 - Install the Nerd Fonts (VictorMono / JetBrainsMono) if missing.
+- Run `omarchy theme set solitude` to generate and distribute app themes.
 - Log out/in or `hyprctl reload`, and restart waybar/terminals.
 
 ## What's tracked
@@ -33,13 +34,19 @@ Afterwards:
 | `waybar` | Bar config, style, and the japanese-clock scripts |
 | `fastfetch` | fastfetch config + custom logo |
 | `fish` | Shell config (`fish_variables` is gitignored) |
-| `zellij` | Zellij keybinds / theme |
+| `starship.toml` | Prompt layout and semantic ANSI colors |
+| `git`, `lazygit` | Git behavior, diff colors, and Lazygit theme |
+| `zellij` | Zellij keybinds and generated Omarchy theme integration |
 | `btop` | btop config (theme symlink is per-machine, gitignored) |
 | `ghostty` | Primary terminal config |
 | `nvim` | Neovim (LazyVim) config, plugin specs, lockfile |
 | `zed` | Zed settings + keymap |
 | `opencode` | Opencode config, TUI settings, skills |
+| `omarchy` | Solitude patch plus selective theme hooks/templates |
 
 ## Notes
 
 - This is config only; system packages are installed separately by Omarchy.
+- Omarchy's generated `current/` directory is intentionally not tracked. The
+  installer links only custom hooks/templates and applies `solitude.patch` to
+  a clone of the upstream Solitude theme.

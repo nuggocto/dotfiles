@@ -5,6 +5,10 @@ if status is-interactive
         mise activate fish | source
     end
 
+    if command -q starship
+        starship init fish | source
+    end
+
     if test -t 1; and not set -q OMARCHY_FISH_WELCOME_SHOWN
         set -gx OMARCHY_FISH_WELCOME_SHOWN 1
         printf '

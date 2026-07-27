@@ -50,3 +50,6 @@ opencode/bun.lock
 **/id_rsa*
 **/id_ed25519*
 fish/completions/grok.fish
+
+# Generated from the active Omarchy palette by the theme hook
+zellij/themes/omarchy-active.kdl
