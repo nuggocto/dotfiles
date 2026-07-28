@@ -40,7 +40,7 @@
   "agent": {
     "inline_assistant_model": {
       "provider": "zed.dev",
-      "model": "gpt-5.6-sol",
+      "model": "gpt-5.6-terra",
       "enable_thinking": false,
     },
     "dock": "right",
