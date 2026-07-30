@@ -8,14 +8,14 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Python
 
 Use this skill for production-grade Python applications, libraries, services, CLIs, workers, data pipelines, and tooling. Apply framework-specific guidance only when that framework is present; use `@fastapi/` for FastAPI applications. Prefer the repository's existing interpreter, package manager, toolchain, and architecture.
 
-Resolve the supported Python range and actual execution interpreter from `[project].requires-python`, lockfiles, CI, containers, deployment configuration, and version-manager files before using syntax or APIs. `requires-python` is a compatibility contract, not an exact runtime pin. Use version-matched Python and dependency documentation; do not assume the newest local interpreter represents the project.
+Resolve the supported Python range and actual execution interpreter from `[project].requires-python`, lockfiles, CI, containers, deployment configuration, and version-manager files before using syntax or APIs. `requires-python` is a compatibility contract, not an exact runtime pin. Run supported Python lines on current maintenance or security patch releases, and pin the full interpreter version in deployment artifacts; Python 3.14 deployments should use 3.14.6 or newer. Use version-matched Python and dependency documentation; do not assume the newest local interpreter represents the project.
 
 Apply `@tiger_style/` as an engineering overlay for bounded work, resource accounting, explicit invariants, and performance-sensitive code. Python semantics and this skill take precedence for exceptions, assertions, cleanup, cancellation, typing, concurrency, and tests.
 
@@ -60,7 +60,17 @@ Apply `@tiger_style/` as an engineering overlay for bounded work, resource accou
 - Keep every `cast`, `# type: ignore`, and checker suppression narrow and justified. Include diagnostic codes where supported and detect unused suppressions.
 - Use typing syntax supported by the minimum declared Python. Use `typing_extensions` for maintained backports instead of silently raising the runtime floor.
 - Published annotations are library API. Test complex typing contracts and preserve their compatibility deliberately.
-- On Python versions with deferred annotation behavior, use the version-supported annotation inspection API rather than reading or evaluating `__annotations__` directly. Do not add `from __future__ import annotations` mechanically without checking runtime consumers.
+- Python 3.14 defaults to deferred annotations. Audit annotation side effects,
+  direct access or mutation of `__annotations__`, assumptions that forward
+  references are strings, and `from __future__ import annotations`, which
+  retains stringified semantics. Treat runtime annotation introspection as code
+  execution. On Python 3.14+, use
+  `annotationlib.get_annotations()` with an explicit format; on older supported
+  versions use the documented compatible API or a maintained backport. Do not
+  read `__annotations__` directly when deferred evaluation matters or introspect
+  annotations from untrusted input. String and forward-reference formats may
+  still execute annotation code or raise evaluation errors. Do not add
+  `from __future__ import annotations` mechanically without checking consumers.
 
 ## Exceptions And Assertions
 
@@ -71,7 +81,7 @@ Apply `@tiger_style/` as an engineering overlay for bounded work, resource accou
 - Translate lower-level exceptions only when the abstraction benefits. Preserve causality with `raise DomainError(...) from exc`; suppress context only when it is deliberately irrelevant.
 - Do not log and re-raise the same exception at every layer. Report it once where enough context exists to handle or terminate the operation.
 - Use `assert` only for programmer-error invariants. Optimized execution can remove assertions, so never use them for validation, authorization, required side effects, or recoverable failure.
-- Account for `ExceptionGroup` and `except*` when concurrent operations can fail together. Do not return, break, or continue from `finally` in ways that suppress active exceptions.
+- Account for `ExceptionGroup` and `except*` when concurrent operations can fail together. Do not return, break, or continue from `finally`: these statements can suppress an exception or override an earlier return, and Python 3.14 emits a compile-time `SyntaxWarning` for them. Treat that warning as a failure and rewrite the control flow.
 
 ## Resources And Mutability
 
@@ -103,9 +113,18 @@ Apply `@tiger_style/` as an engineering overlay for bounded work, resource accou
 - Use threads primarily for overlapping blocking I/O or native code that releases the GIL. Use processes for isolation, killability, or CPU parallelism when their serialization and startup costs fit.
 - Guard multiprocessing entrypoints with `if __name__ == "__main__":`; keep worker callables and arguments importable and picklable for `spawn` and `forkserver`.
 - Do not assume `fork` is the default or safe. Follow the selected Python version and platform, let library callers supply a multiprocessing context, and document required start methods.
+- Python 3.14 defaults to `forkserver` on supported POSIX platforms and `spawn` on Windows and macOS. Audit picklability, import-time effects, `__main__` guards, frozen executables, synchronization objects, and dependencies on inherited process state.
 - Never deserialize untrusted process, queue, pipe, cache, or interpreter messages that use pickle.
-- Free-threaded CPython is optional, not the universal runtime. Do not depend on built-in container locking as a language guarantee; test the complete dependency set under conventional and free-threaded builds before claiming support.
-- Treat subinterpreters and interpreter pools as isolated, serialized execution environments whose extension compatibility, memory cost, and performance must be measured.
+- Free-threaded CPython is optional, not the universal runtime. Python 3.14's free-threaded build has different context inheritance and context-aware warning defaults and generally higher memory use. Do not depend on built-in container locking as a language guarantee; test the actual runtime and complete native dependency set under conventional and free-threaded builds before claiming support.
+- On a free-threaded build, verify after loading production dependencies that
+  `sys._is_gil_enabled()` is false when GIL-free execution is required;
+  unsupported extension modules may automatically re-enable the GIL.
+- Treat subinterpreters as isolated in-process runtime contexts, not security
+  boundaries. They provide no concurrency by themselves;
+  `InterpreterPoolExecutor` combines threads with one interpreter per worker for
+  multicore parallelism and pickles callables, arguments, initializers, and
+  results. Verify extension compatibility, memory cost, failure containment, and
+  shutdown behavior.
 
 ## Security Boundaries
 
@@ -117,18 +136,31 @@ Apply `@tiger_style/` as an engineering overlay for bounded work, resource accou
 - Parameterize database queries. Treat outbound URLs and redirects as SSRF boundaries, paths and archives as traversal boundaries, and uploads as hostile content.
 - Use `secrets`, not `random`, for tokens. Use maintained password-hashing and cryptographic libraries rather than designing algorithms.
 - Use secure `tempfile` creation APIs; never use `tempfile.mktemp()`.
+- Treat Python's remote-debugging interface as code execution. Hardened deployments should control access and, when the threat model requires it, disable the interface through the selected runtime's command-line, environment, or build option.
 - Do not log secrets, credentials, authorization headers, session identifiers, tokens, or unnecessary personal data.
 - Pin deployment dependencies through a reviewed lock, use immutable artifacts or hashes where supported, scan advisories, and apply least privilege. Scanners do not replace threat modeling.
 
 ## Packaging And Dependencies
 
-- Use `pyproject.toml` for modern projects. Define `[build-system]` and standard `[project]` metadata for distributable packages.
-- Keep runtime dependencies, optional user features, and development tool groups in their appropriate metadata sections or the established tool's equivalent.
+- Use `pyproject.toml` for modern projects. For distributable projects, declare
+  `[build-system]`; use standard `[project]` metadata when supported by the
+  selected backend.
+- Put published runtime requirements in `[project.dependencies]`, published
+  feature extras in `[project.optional-dependencies]`, and non-published
+  development requirements in `[dependency-groups]` when supported by the
+  established tool. Dependency groups are not distribution metadata.
 - Do not invoke `setup.py` directly for install, develop, test, build, or upload operations.
-- Libraries should declare compatible dependency ranges for consumers and lock their own CI environment. Applications should commit a complete reviewed lock covering target Python versions, platforms, extras, and groups.
+- Libraries should declare constraints they actually support, keep a reproducible
+  CI baseline, and also test a fresh resolution of the allowed range. Add upper
+  bounds only for known incompatibilities. Applications should commit reviewed
+  lock data for each deployment environment, including selected extras and
+  dependency groups.
 - Do not add an upper `requires-python` bound merely because a future release is untested. Pin the actual application/deployment interpreter separately.
 - Build sdist and wheel artifacts through a PEP 517 frontend and test installation from those artifacts in clean environments.
 - Validate metadata and artifact contents before publishing. Prefer trusted CI publishing over long-lived upload credentials.
+- For new distributions, use an SPDX expression in `[project].license` and
+  declare `[project].license-files`; do not introduce the deprecated license
+  table or license classifiers.
 - Preserve the repository's environment and lock tool. Do not migrate package managers simply because another tool is fashionable.
 
 ## Toolchain And Quality
@@ -181,6 +213,12 @@ Apply `@tiger_style/` as an engineering overlay for bounded work, resource accou
 - Do not leave tasks, threads, processes, executors, or clients without owners and shutdown behavior.
 - Do not add dependencies or tool migrations for tiny convenience without a maintenance win.
 - Do not broaden a refactor when a targeted change preserves behavior more safely.
+
+## Primary References
+
+- Python releases: `https://www.python.org/downloads/`
+- Python standard library: `https://docs.python.org/3/library/`
+- Python packaging specifications: `https://packaging.python.org/specifications/`
 
 ## Response Expectations
 

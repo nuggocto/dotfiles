@@ -7,14 +7,14 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Go
 
 Use this skill for production-grade Go applications, libraries, services, APIs, workers, and tooling. Apply the backend stack options only when creating or extending a backend service. Prefer the repository's existing patterns over generic defaults.
 
-Resolve the mandatory minimum in the `go` directive, the separate suggested `toolchain` directive, dependency versions, build tags, and CI matrix from `go.mod`, `go.work`, lock-like checksums, and deployment configuration before consulting APIs. Use documentation matching those versions; pkg.go.dev hosting does not make a recommendation official Go-project policy.
+Resolve the mandatory minimum and language semantics from the `go` directive. When present in the main module or workspace, also resolve the optional `toolchain` preference, `GOTOOLCHAIN` policy, dependency versions, build tags, CI matrix, module checksums, and deployment configuration from `go.mod`, `go.work`, `go.sum`, and automation before consulting APIs. Confirm that CI, release builds, and production use the latest patch release of a supported Go line; Go 1.26 deployments should use 1.26.5 or newer. Patch releases carry security and correctness fixes, and the `go` directive alone does not keep the building toolchain current. Use documentation matching those versions; pkg.go.dev hosting does not make a recommendation official Go-project policy.
 
 Apply `@tiger_style/` as an engineering overlay, especially for bounded concurrency, resource accounting, and systems code. Go semantics and this skill take precedence for error handling, panic policy, goroutine lifetimes, contexts, and testing; TigerStyle must not replace operational error handling with assertions.
 
@@ -25,7 +25,7 @@ Apply `@tiger_style/` as an engineering overlay, especially for bounded concurre
 3. Preserve established framework and package choices unless they are unsafe, broken, or clearly fighting the request.
 4. Make the smallest change that keeps package boundaries, error flow, and ownership easy to follow.
 5. Before editing generated code, identify its source and pinned generator, modify the input or template, and review regenerated output for unrelated churn.
-6. Verify with the narrowest useful commands first; expand to affected toolchains, build tags, platforms, race tests, fmt/lint/test/build checks, and CI-equivalent analyzers.
+6. Verify with the narrowest useful commands first; expand to affected toolchains, build tags, platforms, race tests, fmt/lint/test/build checks, and CI-equivalent analyzers. For latency-, allocation-, GC-, memory-, or cgo-sensitive code, rerun representative benchmarks and profiles after changing the Go toolchain.
 
 ## Default posture
 
@@ -41,7 +41,7 @@ Use these only for a new backend application when its requirements fit. Third-pa
 
 | Area | Default | Notes |
 | --- | --- | --- |
-| Toolchain | Mandatory minimum `go` directive plus separate suggested `toolchain` directive | Use repository-selected tooling; do not rewrite either incidentally |
+| Toolchain | Mandatory minimum `go` directive; optional preferred `toolchain` directive | Account for `GOTOOLCHAIN` and automatic switching; do not rewrite directives incidentally |
 | Formatting | `gofmt`; optionally `goimports` | `goimports` also applies Go formatting while organizing imports |
 | HTTP | `net/http` with `ServeMux`; optionally Chi | Add Chi when route grouping or middleware composition justifies it |
 | PostgreSQL | `pgxpool`; optionally `sqlc` | Use pgx for PostgreSQL-specific access and sqlc when SQL code generation fits the workflow |
@@ -88,6 +88,7 @@ Keep tests beside the code as `*_test.go` by default.
 - Use `ErrX` for sentinel errors and `NewX` names for constructors.
 - Use an unexported custom type for context keys.
 - Give exported declarations useful doc comments beginning with the declared name. Error strings normally start lowercase and omit terminal punctuation because callers compose them.
+- Use `new(expression)` and self-referential generic constraints only when the module's `go` directive and supported toolchains permit them.
 
 ## Interfaces, packages, and dependency flow
 
@@ -121,15 +122,21 @@ Keep tests beside the code as `*_test.go` by default.
 - Use `http.Status...` constants, not numeric literals.
 - Configure `http.Server.ReadHeaderTimeout` and `IdleTimeout`, then choose `ReadTimeout` and `WriteTimeout` only after accounting for request bodies and streaming behavior.
 - Reuse `http.Client` and its `Transport`; choose an end-to-end client timeout, per-request context deadlines, or both according to the operation.
+- Regression-test TLS interoperability after toolchain upgrades. Go 1.26 enables additional hybrid post-quantum key exchanges by default; prefer fixing incompatible peers and use `CurvePreferences` or temporary compatibility settings only when necessary.
 - After a successful `Client.Do`, close `resp.Body` on every path. Consume it as required by the protocol and connection-reuse policy, and bound reads from untrusted peers.
 - Shut servers down with `http.Server.Shutdown` and a bounded context, treat `http.ErrServerClosed` as expected, stop accepting work, and wait for owned work that must complete.
 - Bound request bodies before decoding with `http.MaxBytesReader` or `http.MaxBytesHandler`, using endpoint-specific limits for JSON and uploads.
+- Configure `httputil.ReverseProxy` with `Rewrite`, not the deprecated and insecure `Director`; explicitly decide whether and how to add trusted forwarding headers.
+- Preserve standard-library limits on cookies and query parameters, handle parser failures explicitly, and do not relax compatibility controls for those limits or strict URL host parsing without a reviewed requirement.
+- Regression-test `ServeMux` redirects, request methods and bodies, virtual hosts, cookies, proxies, and URL rejection after a toolchain upgrade when those behaviors are public contracts.
 - Keep response and error envelopes consistent within an API surface.
 - The code coordinating an atomic use case owns the transaction boundary.
 - Keep SQL in queries or repository code, not in handlers.
 - Treat `sqlc` output as generated code: regenerate it, do not hand-edit it.
 - Before schema or performance-sensitive query changes, load the matching database skill. Account for table size, lock behavior, deployment order, and overlapping application versions; prefer expand-and-contract changes and separate bounded backfills from deploy-time migrations.
 - Use Argon2id only for human-chosen passwords. Generate opaque bearer tokens with `crypto/rand` or use a vetted token format, and avoid logging secrets or raw tokens.
+- In Go 1.26, many `crypto/...` APIs ignore caller-supplied randomness readers and use a secure global source. Use `testing/cryptotest.SetGlobalRandom` only for non-parallel deterministic tests; do not rely on custom readers to control production cryptographic randomness.
+- Do not introduce RSA PKCS #1 v1.5 encryption. Use OAEP for RSA encryption, and retain v1.5 decryption only for reviewed legacy protocol compatibility.
 - Load `@security/` for authentication, authorization, cryptography, user-controlled URLs or paths, uploads, commands, or deserialization. Treat outbound URLs as SSRF boundaries and filesystem paths as traversal boundaries; bound request, response, decompression, and collection sizes.
 
 ## JSON and API contracts
@@ -144,9 +151,13 @@ Keep tests beside the code as `*_test.go` by default.
 
 - Prefer table-driven tests when a behavior has multiple cases.
 - Use `t.Run`, `t.Helper()`, `t.Cleanup()`, and `t.Parallel()` where they improve clarity and speed.
+- On Go 1.26+, write diagnostic output to `T.ArtifactDir`, `B.ArtifactDir`, or `F.ArtifactDir`; use `go test -artifacts` when CI should preserve it.
 - Add integration tests with real dependencies when mocks would hide important behavior.
 - Use fuzz tests, benchmarks, or golden tests when the problem shape justifies them.
+- When the minimum Go version permits, write new benchmarks with `for b.Loop()`. Collect repeated before and after samples with allocation reporting and compare them with `benchstat` rather than relying on a single run.
 - Run `gofmt` or configured `goimports` on touched files, `go test ./...`, and `go vet ./...` for substantial changes. Run Staticcheck only through the repository's pinned or CI-equivalent invocation.
+- After a Go 1.26+ toolchain upgrade, run `go fix -diff ./...`, review proposed modernizations, and apply accepted fixes with `go fix ./...`; inspect the resulting diff and rerun tests. Modernization is optional and must not be mixed into an unrelated change without reason.
+- Treat a `go` directive generated by `go mod init` as a tool default, not an intentionally selected support floor. Decide compatibility explicitly and change it with the repository-selected toolchain when needed.
 - Run `go mod tidy` with the repository-selected toolchain when the import graph changes, then inspect `go.mod` and `go.sum` for incidental directive or dependency changes.
 - Run `govulncheck ./...` in the repository's regular CI or release security workflow and after dependency or toolchain changes.
 
@@ -157,6 +168,14 @@ Keep tests beside the code as `*_test.go` by default.
 - Do not introduce interface-heavy architecture without evidence it helps.
 - Do not start background goroutines without ownership and shutdown.
 - Do not widen package scope when a smaller focused change will solve the problem.
+
+## Primary references
+
+- Go release history and support policy: `https://go.dev/doc/devel/release`
+- Go 1.26 release notes: `https://go.dev/doc/go1.26`
+- Go toolchain selection: `https://go.dev/doc/toolchain`
+- Go modules reference: `https://go.dev/ref/mod`
+- Go standard library: `https://pkg.go.dev/std`
 
 ## Response expectations
 

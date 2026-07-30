@@ -8,14 +8,14 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "2.3.0"
+  version: "2.4.0"
 ---
 
 # Rust
 
 Use this skill for production-grade Rust applications, libraries, services, APIs, workers, and tooling. Apply the backend stack options only when creating or extending a backend service. Prefer the repository's existing stack over generic defaults.
 
-Resolve the selected edition, `rust-version`/MSRV, toolchain, features, and dependency versions from `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, and CI before consulting APIs. Use documentation for those versions; use latest docs to evaluate an upgrade, not as evidence that an API exists in the checked-out project. docs.rs hosts third-party crate documentation but does not make guidance official Rust-project policy.
+Resolve the selected edition, workspace resolver, `rust-version`/MSRV, toolchain, Cargo configuration, features, and dependency versions from workspace and package manifests, `.cargo/config.toml`, `Cargo.lock`, `rust-toolchain.toml`, and CI before consulting APIs. Virtual workspaces have no package edition from which to infer a resolver, so verify that `[workspace].resolver` is explicit. Use a current patch release of the selected Rust line; in particular, do not ship artifacts built with Rust 1.97.0 because 1.97.1 fixes a known LLVM miscompilation. Use documentation for those versions; use latest docs to evaluate an upgrade, not as evidence that an API exists in the checked-out project. docs.rs hosts third-party crate documentation but does not make guidance official Rust-project policy.
 
 For performance-sensitive, systems-level, or storage/infra code, apply `@tiger_style/` as an engineering overlay. Rust semantics and the rules in this skill take precedence: TigerStyle may strengthen bounds and deliberate internal-invariant checks, but it must not replace `Result` or `Option`, runtime validation, panic policy, ownership, or `unsafe` contracts with assertions.
 
@@ -43,14 +43,14 @@ Use these only for a new backend application when its requirements fit. They are
 | Area | Default | Notes |
 | --- | --- | --- |
 | Toolchain | Rust stable | Keep CI and local tooling aligned |
-| Edition | 2024 for new unconstrained crates | Follow the repository's edition and MSRV policy |
+| Edition | 2024 for new unconstrained crates | Requires Rust 1.85+ and defaults to resolver 3; follow repository MSRV policy |
 | HTTP | Axum + Tower | Good default for composable services |
 | Async runtime | Tokio | Use one runtime consistently |
 | Database | SQLx | Prefer SQL-first access and explicit queries |
 | Serialization | `serde` + `serde_json` | Use for API/config DTOs; keep wire contracts explicit |
 | Errors | `thiserror` + `anyhow` | Typed errors for reusable boundaries; `anyhow` for executable and application orchestration |
 | Logging | `tracing` + `tracing-subscriber` | Structured logs and spans |
-| Linting | `rustfmt` + `clippy` | Mirror CI; use `-D warnings` for substantial changes when supported |
+| Linting | `rustfmt` + `clippy` | Mirror CI and keep warning policy explicit |
 | Validation | `garde` or existing repo choice | Keep validation centralized |
 | Secrets | `secrecy` | Reduce accidental secret exposure |
 | Password hashing | `argon2` (Argon2id) | If the service stores passwords |
@@ -105,7 +105,9 @@ migrations/
 
 - For reusable crates, treat public items, trait implementations, error chains, feature names/defaults, auto-trait behavior, and MSRV as compatibility contracts.
 - Check Cargo's SemVer guidance before changing public structs, enums, traits, generic bounds, or exposed dependency errors. Keep features additive and test supported combinations rather than assuming `--all-features` is valid.
-- Preserve the declared `rust-version`. Document public APIs, error and panic conditions, and safety contracts; run doctests for changed public behavior.
+- Preserve the declared `rust-version` unless the requested change intentionally raises the project's MSRV under its documented policy. When raising it, update the declaration explicitly, treat it as a compatibility decision, and verify the declared version in CI. Document public APIs, error and panic conditions, and safety contracts; run doctests for changed public behavior.
+- Keep `Cargo.lock` under version control unless the repository has a deliberate alternative. Use `--locked` for deterministic CI and release builds; use `--frozen` only when dependencies are already available and network access must also be prohibited.
+- For an edition upgrade, run `cargo fix --edition` on the old edition for supported feature and target configurations, then change the manifest edition and rerun formatting, checks, tests, doctests, and release builds. Manually audit macros, generated code, unsafe changes, and doctests; automated fixes establish compatibility, not soundness.
 
 ## Errors and observability
 
@@ -126,6 +128,8 @@ migrations/
 - A safe API must make invalid states unrepresentable or check safety preconditions in every build before entering `unsafe` code. A `debug_assert!` cannot uphold a memory-safety contract.
 - Document public unsafe APIs with a `# Safety` contract, justify each unsafe block with a local `// SAFETY:` explanation, and keep the block as small as practical.
 - Require explicit unsafe blocks inside `unsafe fn`. Edition 2024 warns for `unsafe_op_in_unsafe_fn` by default; for earlier editions enable the lint when working with unsafe code. Use `forbid(unsafe_code)` where unsafe is not expected and Miri or sanitizers for unsafe-heavy changes when applicable.
+- For FFI and exported symbols, verify every foreign signature, safe or unsafe item classification, symbol name, and linker-section invariant. Edition 2024 requires unsafe extern blocks and unsafe forms of `no_mangle`, `export_name`, and `link_section`; automated migration syntax does not prove the contract sound.
+- Avoid references to `static mut`; prefer scoped ownership, atomics, locks, `OnceLock`, or `LazyLock`. Mutate the process environment only before other threads can exist; Edition 2024 makes `std::env::set_var` and `remove_var` unsafe to expose that requirement.
 - In tests, Rust's standard `assert!`, `assert_eq!`, `assert_ne!`, and pattern assertions are the normal test expectations; TigerStyle's generic test guidance does not prohibit them.
 - When TigerStyle calls for aggressive assertions, add non-redundant checks at important internal boundaries. Do not mechanically assert every argument or return value.
 
@@ -163,7 +167,8 @@ migrations/
 - Keep unit tests close to the code when that improves locality.
 - Add integration tests with real dependencies when external systems affect behavior.
 - Use property tests, fuzzing, or benchmarks when invariants or performance justify them.
-- Run `cargo fmt --all -- --check`, repository/CI-equivalent Clippy, tests, and doctests. Derive the matrix from CI: verify default features, no-default-features where supported, documented combinations, affected targets, and MSRV. Use `--all-features` only when all features are designed to coexist and `-D warnings` only when repository policy requires it.
+- Run `cargo fmt --all -- --check`, repository/CI-equivalent Clippy, tests, and doctests. Derive the matrix from CI: verify default features, no-default-features where supported, documented combinations, affected targets, and the declared MSRV. A current-stable build does not prove MSRV support. Use `--all-features` only when all features are designed to coexist. With Cargo 1.97+, prefer `build.warnings = "deny"` or `CARGO_BUILD_WARNINGS=deny` over injecting `-D warnings`; follow existing repository policy for older Cargo versions.
+- For shipped binaries or native libraries, build and smoke-test the actual release profile and deployment target with `--locked`. Review panic strategy, overflow checks, debug information, LTO, target features, stripping, symbol mangling, and debugger/profiler/crash-symbolization compatibility rather than assuming development-profile behavior carries over. Inspect linker diagnostics, including `linker_messages` on Rust 1.97+, before suppressing them.
 - Run `cargo deny check` or `cargo audit` when dependency or security-sensitive work is involved.
 
 ## Guardrails
@@ -173,6 +178,13 @@ migrations/
 - Do not fire-and-forget critical work.
 - Do not add dependencies for tiny conveniences without a clear maintenance win.
 - Do not refactor broadly when a small targeted fix solves the problem.
+
+## Primary references
+
+- Rust release notes: `https://doc.rust-lang.org/stable/releases.html`
+- Rust 2024 Edition Guide: `https://doc.rust-lang.org/edition-guide/rust-2024/`
+- Cargo reference: `https://doc.rust-lang.org/stable/cargo/reference/`
+- Rust standard library: `https://doc.rust-lang.org/stable/std/`
 
 ## Response expectations
 

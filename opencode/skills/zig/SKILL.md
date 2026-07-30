@@ -9,7 +9,7 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Zig
@@ -56,7 +56,9 @@ specific TigerBeetle policies into universal Zig rules.
 When sources disagree, separate toolchain facts from project policy:
 
 1. The exact compiler's behavior together with its matching language reference,
-   standard-library and build-system source, compiler help, and release notes.
+   standard-library and build-system source, compiler help, release notes, and
+   relevant known issues. Stable releases can still contain compiler bugs or
+   miscompilations, so review the issue tracker for critical code paths.
 2. The repository's toolchain pin, build files, manifest, tests, and CI for the
    intended behavior and supported matrix; these do not override Zig semantics.
 3. Current official design guidance when evaluating an upgrade.
@@ -137,6 +139,10 @@ Preserve the principle, not an uncompiled code sample.
   repeated shapes, and general-purpose allocators only where lifetimes vary.
 - Pair the selected version's allocation and release operations correctly, such
   as `alloc` with `free` and `create` with `destroy`.
+- In Zig 0.16, initialize allocator-external `std.ArrayList(T)` with `.empty` or
+  `initCapacity`, and pass the same allocator to allocation, ownership-transfer,
+  and `deinit` operations. Do not copy older managed-container examples;
+  `ArrayListUnmanaged` is now a deprecated alias.
 - Put `defer` immediately after successful acquisition when lexical cleanup fits.
   Put `errdefer` immediately after each successful step that partial
   initialization must roll back.
@@ -193,6 +199,14 @@ Preserve the principle, not an uncompiled code sample.
 - Use `extern struct` or `extern union` only for an ABI contract and `packed`
   types only for deliberate bit layout. Verify size, alignment, offsets, backing
   types, endianness, and target assumptions at compile time and in tests.
+- Current Zig forbids pointers in packed structs and unions, requires packed
+  union fields to fill the backing integer, and requires explicit tag or backing
+  types for enum or packed types in extern contexts. Treat explicitly aligned
+  and naturally aligned pointer types as distinct even where coercion exists.
+- Runtime-known vector indexes are invalid; iterate or convert to an array. Do
+  not rely on vector/array pointer coercions merely because layouts appear equal,
+  and do not mistake diagnostics for obvious local-address escapes for complete
+  lifetime checking.
 - Do not compare, hash, persist, or transmit arbitrary structs as raw bytes until
   padding, pointers, endianness, and unique bit representation are proved.
 - Parse untrusted formats field by field. Native struct layout is not a wire or
@@ -207,21 +221,26 @@ Preserve the principle, not an uncompiled code sample.
 - Keep reflection focused and readable. Exhaustive tagged-union transformations
   and generated bindings can justify it; replacing straightforward code usually
   does not.
+- On Zig 0.16, use the individual type-creating builtins such as `@Int`,
+  `@Pointer`, `@Fn`, `@Struct`, `@Union`, `@Enum`, and `@Tuple`; `@Type` was
+  removed and error sets must be declared with `error{...}` rather than reified.
 - Use `inline` only when semantics require inline iteration or measurement proves
   the trade. Do not raise the evaluation branch quota before examining the
   algorithm and generated work.
-- Audit compile time with the pinned compiler's supported timing facilities
-  (`zig build --time-report` for applicable Zig 0.16 build graphs), generated
-  code, binary size, and cache behavior for large comptime changes. Do not assume
-  `comptime` or `inline` is free.
-- Zig lazily analyzes declarations and, since 0.16, container fields. Importing a
-  module, using a type as a namespace, or forming a non-dereferenced `*T` does
-  not prove that `T` resolves. CI must instantiate supported generic APIs,
-  reference optional branches, and force representative use or resolution of
-  public types for every supported target and feature combination.
-  `std.testing.refAllDecls` can provide a declaration smoke check where the
-  pinned release supports it, but it does not replace generic instantiation,
-  field resolution, or behavior tests.
+- Audit compile time with the pinned compiler's supported timing facilities. In
+  Zig 0.16, `zig build --time-report` forces a full rebuild, reports detailed Zig
+  source compilation timing, and implies `--webui`; inspect build-runner work,
+  linking, generated code, binary size, and cache behavior separately. Do not
+  assume `comptime` or `inline` is free.
+- Zig lazily analyzes declarations and, since 0.16, lazily resolves container
+  types. A struct or file struct, union, enum, or opaque type resolves only when
+  its size or a field type is required. Importing a module, using a type as a
+  namespace, or forming a non-dereferenced `*T` does not prove that `T` resolves.
+  CI must instantiate supported generic APIs, reference optional branches, and
+  force representative field-dependent use for every supported target and
+  feature combination. In 0.16, `std.testing.refAllDecls` references
+  declarations in tests, but it does not force field resolution, instantiate
+  generic call sites, cover target-dependent branches, or replace behavior tests.
 
 ## Concurrency And I/O
 
@@ -238,17 +257,28 @@ Preserve the principle, not an uncompiled code sample.
 - Zig's I/O and concurrency APIs are especially version-sensitive. Derive exact
   types and lifecycle behavior from the pinned standard library rather than old
   examples.
-- Zig 0.16 introduced the `std.Io` capability interface and supports
-  `pub fn main(init: std.process.Init)`. Process arguments and environment access
-  are no longer implicit global facilities; pass the required values or
-  capabilities into reusable code. Do not port 0.15 filesystem, process,
-  Reader, or Writer examples mechanically.
-- In Zig 0.16, every `std.Io.Future` must be awaited or canceled on every exit
-  path, including early error returns; a deferred `cancel` commonly provides
-  cleanup. `io.async` expresses independence but may execute synchronously. Use
-  `io.concurrent` only when simultaneous progress is required for correctness,
-  and handle `error.ConcurrencyUnavailable`. Derive exact APIs from the pinned
-  release because master continues to change them.
+- Zig 0.16 introduced `std.Io`; standard-library operations that may block or
+  introduce nondeterminism generally require an explicit `std.Io`. `main` may
+  take no parameter, `std.process.Init.Minimal`, or `std.process.Init`. A
+  parameterless `main` has no standard-library access to arguments or the
+  environment; `Init.Minimal` supplies raw forms, while `Init` also supplies
+  allocators, a default `Io`, a parsed environment map, and preopens. Pass only
+  required values and capabilities into reusable code. Do not mechanically port
+  0.15 filesystem, process, synchronization, Reader, or Writer APIs: files and
+  directories moved under `std.Io`, Io-task synchronization moved from
+  `std.Thread`, and APIs including `std.Thread.Pool`, `GenericReader`,
+  `AnyReader`, and `FixedBufferStream` were removed. `std.Io.Evented` remains
+  experimental.
+- Treat every Zig 0.16 `std.Io.Future(T)` as a single-owner lifecycle obligation:
+  call `await` or `cancel` on every exit path, and do not copy or concurrently
+  operate on a live Future. Both operations release the task resource and return
+  the callee's full result. Deferred cancellation must therefore handle errors
+  and release any resource returned by a task that completed despite the
+  cancellation request. `io.async` is infallible and may call the function to
+  completion before returning. Use `io.concurrent` only when concurrent caller
+  progress is required for correctness; handle `error.ConcurrencyUnavailable`,
+  which can mean temporary resource exhaustion or unsupported concurrency.
+  Derive exact APIs from the pinned release because master continues to change.
 
 ## Build, Packages, And Toolchain
 
@@ -264,17 +294,26 @@ Preserve the principle, not an uncompiled code sample.
   targets, run through a configured emulator or system integration when
   execution is required; otherwise label the check as compile-only and never
   report that the tests ran.
-- For Zig 0.16 packages, preserve `.fingerprint` while retaining the same package
-  lineage. When creating a distinct fork of a maintained upstream project,
-  delete the field and let `zig build` generate a new fingerprint. Declare an
-  accurate `.minimum_zig_version`, and audit `.paths` so package hashes include
-  every required source and license file. Treat each dependency `.hash` as the
-  source of truth rather than its URL.
-- In Zig 0.16, use `zig build --fork=PATH` for an ephemeral local project
-  override matched by package name and fingerprint. Use a manifest `.path`
-  dependency only when the local dependency is intentionally persistent. Inspect
-  all manifest, fingerprint, path, and hash changes after package commands, and
-  use the pinned release's rules for other versions.
+- Zig 0.16 package identity is the pair of enum-literal `.name` and
+  `.fingerprint`. Preserve the fingerprint for new versions of the same project,
+  continuations of abandoned projects, and temporary `--fork` overrides. For a
+  permanent fork of a maintained upstream, delete the root package's fingerprint
+  and run `zig build` to generate a new identity. Dependencies with no
+  fingerprint or a string rather than enum-literal name are rejected. Declare an
+  accurate `.minimum_zig_version`. Audit `.paths` because only selected files are
+  hashed and retained after fetching; include all build inputs and licenses. For
+  URL dependencies, `.hash` identifies the contents and the URL is only a
+  retrieval location. `.path` dependencies have no package hash. Package fetches
+  use the project-local `zig-pkg` directory, while the global cache retains
+  canonical compressed package data; keep ignore files and `.paths` aligned with
+  every required generated input, source file, and license.
+- In Zig 0.16, `zig build --fork=PATH` provides an ephemeral project override.
+  `PATH` must contain `build.zig.zon`; matching packages anywhere in the
+  dependency tree resolve by `.name` and `.fingerprint`, ignoring `.version` and
+  before fetching. An override that matches nothing is an error. Preserve the
+  upstream fingerprint for this workflow. Use a manifest `.path` dependency only
+  when the local dependency is intentionally persistent. Inspect all manifest,
+  fingerprint, path, and hash changes after package commands.
 - Treat generated bindings and source as generated: modify the source header,
   schema, or generator input, then regenerate with the pinned toolchain.
 - Keep tests, fuzzers, benchmarks, validation, and release artifacts discoverable
@@ -297,9 +336,11 @@ Preserve the principle, not an uncompiled code sample.
   rely on recovering from a Zig panic: the default panic path aborts or traps
   rather than unwinding. Catch foreign exceptions on the foreign side so they do
   not unwind through Zig frames.
-- C translation is version-sensitive. For current Zig, prefer build-graph C
-  translation and imported modules; check the selected release before using
-  `@cImport`, which is deprecated in Zig 0.16 and removed on newer master.
+- C translation is version-sensitive. In Zig 0.16, `@cImport` remains available
+  but is deprecated, and translation uses Aro rather than libclang. Prefer
+  `b.addTranslateC`, expose `createModule()` through the root module's imports,
+  and consume it with `@import("name")`. Check the exact selected release rather
+  than inferring a stable API from master.
 - Verify bindings on every supported target ABI. Cross-compilation is a Zig
   strength, not evidence that an untested target-specific ABI is correct.
 
@@ -347,11 +388,12 @@ Preserve the principle, not an uncompiled code sample.
 - Use `std.testing.allocator` for allocating unit tests so the default runner can
   report leaks. Inject allocator failure where OOM cleanup is part of the
   contract.
-- When allocation-failure cleanup is contractual, prefer
-  `std.testing.checkAllAllocationFailures` where available. Its test function
-  must reset shared state and have deterministic allocation behavior; handle
-  `SwallowedOutOfMemoryError` and `NondeterministicMemoryUsage` deliberately
-  rather than treating the helper as universal.
+- In Zig 0.16, when allocation-failure cleanup is contractual, prefer
+  `std.testing.checkAllAllocationFailures`. Its test function must accept a
+  `std.mem.Allocator` first, return `!void`, reset shared state on every run, and
+  have deterministic allocation behavior. Accept `SwallowedOutOfMemoryError`
+  only for intentional OOM recovery. `NondeterministicMemoryUsage` means not all
+  allocation points were covered and should normally be fixed, not ignored.
 - Test ownership and lifecycle edges: empty state, partial initialization, each
   `errdefer` path, allocation failure, growth invalidation, cleanup, and repeated
   initialization or deinitialization as permitted by the API.
@@ -359,11 +401,13 @@ Preserve the principle, not an uncompiled code sample.
   endianness, malformed input, error identity, and unsupported target behavior.
 - Use randomized model tests, fuzzing, or deterministic simulation when they
   exercise meaningful invariants. Zig 0.16 `std.testing.fuzz` callbacks receive
-  `*std.testing.Smith`, not the older `[]const u8`; run the repository-owned fuzz
-  step with its supported `zig build ... --fuzz[=limit]` form. Preserve crashing
-  inputs and replay them deterministically through the pinned release's corpus
-  support before fixing the bug. Derive all exact APIs and commands from that
-  release.
+  `*std.testing.Smith`, not the older `[]const u8`. Run the build step containing
+  the fuzz tests with `zig build <step> --fuzz` for unlimited fuzzing or
+  `--fuzz=N` for a bounded iteration count. Unlimited mode enables the Web UI and
+  can use multiple workers controlled by `-j`; bounded mode uses one worker.
+  Preserve the reported crash file and replay it deterministically through
+  `std.testing.FuzzInputOptions.corpus`, commonly with `@embedFile`, before fixing
+  the bug.
 - Follow Mitchell Hashimoto's practical pattern: combine leak-detecting Zig
   allocators with platform memory tools, Valgrind where supported, targeted
   reproductions, and regression tests for the exact ownership failure.
@@ -404,18 +448,6 @@ Also test the affected optimized safety mode, release artifact, and target matri
   pools, libxev's caller-owned operation storage, and TigerBeetle's startup
   allocation solve different constraints.
 
-## Common Version Traps
-
-- Do not mix stable and master language or standard-library docs.
-- Do not copy old managed `ArrayList`, generic reader/writer, build API, pointer
-  cast, `@Type`, `usingnamespace`, allocator, package manifest, or `@cImport`
-  examples without checking the selected release.
-- Do not treat current Learn pages, release notes, or blog snippets as sufficient
-  API evidence. Inspect matching stdlib docs or source and compile the result.
-- Do not assume a successful Debug test proves ReleaseFast safety.
-- Do not assume a stable Zig release is free of known compiler bugs or
-  miscompilations. Check release notes and relevant issues for critical code.
-
 ## Review Checklist
 
 - Is the exact Zig version known, and do syntax, stdlib, build, and package APIs
@@ -451,6 +483,8 @@ Also test the affected optimized safety mode, release artifact, and target matri
 
 ## Primary References
 
+- Zig 0.16 language and standard-library docs:
+  `https://ziglang.org/documentation/0.16.0/`
 - Versioned Zig language and standard-library docs:
   `https://ziglang.org/documentation/`
 - Official build-system guide: `https://ziglang.org/learn/build-system/`

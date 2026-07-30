@@ -9,7 +9,7 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Gleam
@@ -68,6 +68,9 @@ When sources disagree, separate language facts from project policy:
 
 Main-branch docs and blog posts may describe unreleased behavior or obsolete
 syntax. Preserve sound rationale, but verify every API and command locally.
+Use current stdlib APIs rather than removed names such as `result.then`,
+`function.tap`, or `list.range`; derive replacements from the selected stdlib's
+documentation instead of translating calls mechanically.
 
 ## Default Posture
 
@@ -178,10 +181,9 @@ merely to match this table.
 - A pipeline passes its left value to the first argument of the call on the
   right. Design subject-first APIs and use an explicit capture when piping into a
   different position.
-- If first-argument insertion does not type-check, Gleam 1.17 falls back to
-  calling the right-hand expression and then calling its result with the piped
-  value. This is supported, not deprecated, but use an explicit capture when the
-  fallback would be surprising.
+- Before 1.18, if first-argument insertion did not type-check, Gleam could turn
+  `a |> b(c)` into `b(c)(a)`. Gleam 1.18 deprecates this call-result fallback;
+  replace it with an explicit capture.
 - A `use` expression is callback syntax: everything after it becomes an
   anonymous function passed as the final argument. It is not built-in early
   return, cleanup, cancellation, or error handling.
@@ -209,6 +211,9 @@ merely to match this table.
   arbitrary precision while JavaScript `Int` values are numbers; JavaScript can
   produce NaN and infinity; strings, tuples, `Nil`, bit arrays, and generated
   custom types have target-specific foreign representations.
+- Require Gleam 1.18+ when JavaScript 16-bit float, zero-sized, or constant-string
+  bit-array segments affect correctness; earlier compilers have known encoding
+  and code-generation defects in these cases.
 - Test dynamic decoders, integer precision, floats, bit arrays, and FFI on each
   supported target and JavaScript runtime.
 
@@ -218,7 +223,9 @@ merely to match this table.
   or failure isolation justifies it. Do not put every module or function behind
   an actor.
 - Prefer `gleam_otp` actors to raw receive loops for long-lived typed state, and
-  prefer supervised children to detached startup processes.
+  prefer supervised children to detached startup processes. Gleam OTP 1.0 was a
+  breaking redesign, so use examples for the installed major version rather than
+  pre-1.0 actor, task, or supervisor APIs.
 - Every long-running process needs an owner, explicit shutdown behavior, restart
   policy, observable failures, and a reason to exist.
 - Actor handlers are sequential. Keep them bounded and avoid slow network calls,
@@ -265,9 +272,9 @@ merely to match this table.
   supervisor. Keep `mist.start` for simple standalone ownership when appropriate.
 - Bind only to the required interface. Expose `0.0.0.0` or IPv6 publicly only
   when the deployment network boundary requires it.
-- Mist 6 handles HTTP/1.0 and HTTP/1.1; it does not provide HTTP/2. Do not claim
-  HTTP/2 support from transitive dependencies; select and verify another adapter
-  when backend HTTP/2 is required.
+- Mist 6 handles HTTP/1.0, HTTP/1.1, and HTTP/2. Its HTTP/2 path currently
+  supports byte responses but not file responses, WebSockets, chunked responses,
+  or SSE; verify required response and connection modes before selecting it.
 - Request bodies are lazy. Set route-appropriate limits before reading, enforce a
   cumulative limit for streamed or chunked bodies, and read a body only once
   unless the application deliberately caches it.
@@ -309,8 +316,9 @@ merely to match this table.
 - Size pools against database capacity across every replica, not local
   concurrency alone. Set timeouts and queue-shedding behavior deliberately, and
   use a real query for readiness when the service requires PostgreSQL.
-- Pog's `default_config` uses `SslDisabled`, and `url_config` defaults to it when
-  no `sslmode` is supplied. Explicitly select `SslVerified` or use
+- Pog's `default_config` uses `SslDisabled`. `url_config` also uses it when the
+  URL has no query string; a query string without `sslmode` is rejected.
+  Explicitly select `SslVerified` or use
   `sslmode=verify-ca` or `sslmode=verify-full` for remote production databases,
   and install the required CA roots. Unverified TLS is vulnerable to
   interception; disabled TLS is only appropriate inside a separately secured
@@ -343,6 +351,8 @@ merely to match this table.
 
 - Lustre supports distinct SPA, Web Component, HTML/SSR, and server-component
   modes; choose one deliberately rather than treating them as interchangeable.
+  Lustre 5 changed runtime, event, component, and server-component APIs, so match
+  examples to the installed major version.
 - Use a full Lustre application when effects are required and the simpler model
   only for state-only behavior. Keep initialization, update, and view pure where
   possible; put I/O in effects and feed results back as messages.
@@ -392,7 +402,9 @@ merely to match this table.
   module name. Load `@elixir/` when substantial Elixir behavior is in scope.
 - Since Gleam 1.13, use generated JavaScript constructors, predicates, and field
   accessors for Gleam data. Do not depend on compiler-internal object layouts or
-  mutate JavaScript arrays used as Gleam tuples.
+  mutate JavaScript arrays used as Gleam tuples. Zero-field variants are
+  singleton values on current JavaScript output, so never use object identity or
+  historical layouts as an interoperability contract.
 - Gleam does not manage npm dependencies. Declare, lock, audit, and document
   JavaScript packages using the selected runtime's package manager; do not vendor
   them into published Hex packages merely for convenience.
@@ -405,18 +417,21 @@ merely to match this table.
 
 - Commit `manifest.toml` for deterministic builds and auditing. Do not hand-edit
   it; use Gleam dependency commands and inspect the resulting diff.
+- Use Gleam 1.18+ when resolving or downloading Hex dependencies so package
+  checksums and requirements are verified from signed registry metadata.
 - Declare every imported package directly. A transitive dependency is not an
   implicit public dependency.
 - Use compatible SemVer requirements while setting the package's Gleam
   requirement to the earliest compiler actually supported. Pin application
   toolchains and runtimes in CI and deployment.
 - Prefer immutable Git commit references over branches or mutable tags when a
-  dependency is not on Hex.
+  dependency is not on Hex. Gleam 1.18 Git dependencies can specify `path` for a
+  package subdirectory in a monorepo; inspect the generated manifest entry.
 - Put shipped code in `src/`, tests in `test/`, and development programs or
   generators in `dev/`. Only `dev/` and `test/` may rely on development
   dependencies.
-- Use the canonical `dev_dependencies` and `tag_prefix` configuration spellings,
-  not deprecated hyphenated variants.
+- Use the canonical `dev_dependencies` and `tag_prefix` configuration spellings
+  rather than the legacy accepted hyphenated aliases.
 - Keep package-internal helpers beneath the package's internal namespace when
   they should not become stable public API.
 - For published packages, document the API, generate and inspect docs, audit the
@@ -496,7 +511,10 @@ before running `gleam test --target javascript --runtime deno`.
 
 `gleam check` and `gleam test` do not currently accept
 `--warnings-as-errors`; keep the explicit build gate. Use
-`gleam run -m squirrel check` only when Squirrel is configured.
+`gleam run -m squirrel check` only when Squirrel is configured. Do not recommend
+`gleam fix` when the selected compiler reports that it performs no fixes. CLI
+runtime names and `gleam.toml` values may differ, such as `nodejs` versus `node`;
+verify both with local help and versioned configuration docs.
 
 ## Performance And Operations
 
@@ -536,31 +554,6 @@ before running `gleam test --target javascript --runtime deno`.
 - Build and run as a non-root user where practical, keep secrets out of images,
   and verify the artifact in the same target/runtime combination used in
   production.
-
-## Common Version Traps
-
-- Do not mix latest HexDocs with older locked dependencies.
-- Current Mist 6 uses `mist.start` and `mist.supervised`; older
-  `mist.start_http`/`start_https` examples are stale.
-- Wisp versions before 2.2.2 have the 2026 multipart body-limit vulnerability;
-  versions from 2.1.1 through 2.2.0 also have the static-path vulnerability.
-  Check newer advisories rather than treating 2.2.2 as timeless.
-- `gleam_otp` 1.0 was a breaking redesign. Do not copy pre-1.0 actor, task, or
-  supervisor examples.
-- Lustre 5 changed runtime, event, component, and server-component APIs. Verify
-  examples target the installed major version.
-- Do not use removed stdlib APIs such as `result.then`, `function.tap`, or
-  `list.range`; inspect matching stdlib docs for replacements.
-- Do not recommend `gleam fix` as an active migration tool when the selected
-  compiler documents it as doing nothing.
-- Prefer an explicit pipeline capture when the supported call-result fallback
-  would obscure argument placement. Do not depend on deprecated hyphenated
-  config keys, old JavaScript internal data layouts, or `gleeunit/should` for new
-  tests.
-- CLI and `gleam.toml` JavaScript runtime names can differ (`nodejs` versus
-  `node`). Use local command help and the versioned configuration reference.
-- Main-branch docs may include unreleased CLI flags. Verify stable syntax with
-  the installed toolchain.
 
 ## Review Checklist
 
