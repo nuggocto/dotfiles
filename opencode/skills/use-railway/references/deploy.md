@@ -10,7 +10,26 @@ Ship code, manage releases, and configure builds.
 railway up --detach -m "<release summary>"
 ```
 
-`--detach` returns immediately instead of streaming build logs. Without it, the deploy blocks execution until the build finishes. Always include `-m` with a release summary for auditability.
+`--detach` (alias `--no-wait`) returns immediately instead of streaming build logs. Without it, the deploy blocks execution until the build finishes. Always include `-m` with a release summary for auditability.
+
+### Verify before reporting — `--detach` only means QUEUED
+
+A detached `up` returns when the build is **queued**, not deployed. Never tell the user their app is deployed based on `--detach` output (or a streaming `up` that your shell timed out). Poll until the newest deployment reaches a terminal state:
+
+```bash
+railway deployment list --service <service> --environment <environment> --json    # newest first; check .status
+railway deployment list --project <project> --environment <environment> --service <service> --json
+```
+
+Poll with the same project, environment, and service scope used for `railway up`. If the deploy used URL-derived IDs or `--project`, do not rely on the directory's linked context.
+
+- `QUEUED` / `INITIALIZING` / `WAITING` / `BUILDING` / `DEPLOYING` → still in progress. Keep polling (every 10-15s); tell the user "build in progress" if you report interim status.
+- `NEEDS_APPROVAL` → waiting for manual approval. Report that approval is required; do not keep polling as if the deployment is still building.
+- `SUCCESS` → now it's deployed; report it.
+- `FAILED` / `CRASHED` → do not report success. Pull scoped logs (`railway logs --service <service> --json --lines 100`) and triage per [operate.md](operate.md).
+- `SLEEPING` / `SKIPPED` / `REMOVED` / `REMOVING` / unknown → do not report success. Report the exact state and inspect status/logs to decide the next action.
+
+A non-detached `railway up` streams to completion and its exit code is authoritative: 0 = SUCCESS, 1 = FAILED/CRASHED. If it was killed or timed out before printing a terminal status, treat the outcome as unknown and poll as above.
 
 ### Watch the build
 
@@ -38,16 +57,27 @@ railway up --project <project-id> --environment <environment> --detach -m "<summ
 
 `--project` requires `--environment`. Railway needs both to resolve context.
 
+### Path deploys
+
+Deploy a subdirectory without changing the shell's working directory:
+
+```bash
+railway up ./apps/api --path-as-root --service api --environment production --detach -m "<summary>"
+```
+
+Use `--path-as-root` when the path argument should be archived as the root of the deploy instead of preserving the parent directory prefix.
+
 ## Manage releases
 
 ### Redeploy and restart
 
 ```bash
-railway redeploy --service <service> --yes       # rebuild and deploy from same source
-railway restart --service <service> --yes         # restart without rebuilding
+railway redeploy --service <service> --yes              # redeploy the latest deployment
+railway redeploy --service <service> --from-source --yes # pull latest commit or image
+railway restart --service <service> --yes                # restart without rebuilding
 ```
 
-Redeploy triggers a full build cycle. Restart only restarts the running container. Use restart when the code hasn't changed but the service needs a fresh process (for example, after variable changes).
+Redeploy recreates the latest deployment without uploading local code. Use `--from-source` when the service is linked to a repo or image and you need Railway to pull the latest configured source. Restart only restarts the running container. Use restart when the code hasn't changed but the service needs a fresh process.
 
 ### Remove latest deployment
 
@@ -55,18 +85,29 @@ Redeploy triggers a full build cycle. Restart only restarts the running containe
 railway down --service <service> --yes
 ```
 
-This removes the latest successful deployment but doesn't delete the service. To delete a service entirely, use environment config patching (see [configure.md](configure.md)).
+This removes the latest successful deployment but doesn't delete the service. To delete a service entirely, use `railway service delete`.
+
+### Delete a service
+
+Use service deletion when the user wants to remove the service itself:
+
+```bash
+railway service delete --service <service> --environment <environment> --yes --json
+```
+
+Deleting a service is destructive. Confirm the target service and environment before running it.
 
 ## Deployment history and logs
 
 ```bash
-railway deployment list --service <service> --limit 20 --json
+railway deployment list --service <service> --environment <environment> --limit 20 --json
+railway deployment list --project <project> --environment <environment> --service <service> --limit 20 --json
 railway logs --service <service> --lines 200 --json              # runtime logs
 railway logs --service <service> --build --lines 200 --json      # build logs
 railway logs --latest --lines 200 --json                         # latest deployment
 ```
 
-`railway logs` streams indefinitely when no bounding flags are given. An open stream blocks execution and never returns. Always use `--lines`, `--since`, or `--until` to get a bounded fetch.
+In an interactive terminal, `railway logs` streams indefinitely when no bounding flags are given. Always use `--lines`, `--since`, or `--until` to get a bounded fetch for agent workflows.
 
 ## Build configuration
 
@@ -77,7 +118,7 @@ Railway uses Railpack as the default builder. It detects language and framework 
 Three builder options, set via service config:
 
 - **RAILPACK** auto-detects language and framework, builds from source (default)
-- **NIXPACKS** is the legacy builder. DO NOT USE THIS, use RAILPACK instead.
+- **NIXPACKS** is the legacy builder. Use RAILPACK instead.
 - **DOCKERFILE** uses a Dockerfile you provide
 
 ```bash
@@ -174,11 +215,11 @@ railway environment edit --service-config <service> build.watchPatterns '["packa
 - **Build fails before compile**: check dependency graph, lockfiles, and whether the right builder is selected
 - **Build succeeds but app crashes**: verify start command and required runtime variables
 - **Wrong files in build**: check root directory and watch patterns
-- **`railway down` treated as delete**: `down` only removes the latest deployment. For full service deletion, use `isDeleted` in config patch (see [configure.md](configure.md))
+- **`railway down` treated as delete**: `down` only removes the latest deployment. For service deletion, use `railway service delete`
 - **Wrong Node/Python version detected**: set `RAILPACK_NODE_VERSION` or `RAILPACK_PYTHON_VERSION` as a service variable to pin the version
 - **Missing system package at runtime**: add the package to `RAILPACK_DEPLOY_APT_PACKAGES`
 
 ## Validated against
 
-- Docs: [up.md](https://docs.railway.com/cli/up), [deploying.md](https://docs.railway.com/cli/deploying), [deployment.md](https://docs.railway.com/cli/deployment), [down.md](https://docs.railway.com/cli/down), [railpack.md](https://docs.railway.com/builds/railpack), [monorepo.md](https://docs.railway.com/deployments/monorepo)
-- CLI source: [up.rs](https://github.com/railwayapp/cli/blob/a8a5afe/src/commands/up.rs), [deployment.rs](https://github.com/railwayapp/cli/blob/a8a5afe/src/commands/deployment.rs), [down.rs](https://github.com/railwayapp/cli/blob/a8a5afe/src/commands/down.rs), [redeploy.rs](https://github.com/railwayapp/cli/blob/a8a5afe/src/commands/redeploy.rs), [restart.rs](https://github.com/railwayapp/cli/blob/a8a5afe/src/commands/restart.rs)
+- Docs: [up.md](https://docs.railway.com/cli/up), [deploying.md](https://docs.railway.com/cli/deploying), [deployment.md](https://docs.railway.com/cli/deployment), [redeploy.md](https://docs.railway.com/cli/redeploy), [service.md](https://docs.railway.com/cli/service), [down.md](https://docs.railway.com/cli/down), [railpack.md](https://docs.railway.com/builds/railpack), [monorepo.md](https://docs.railway.com/deployments/monorepo)
+- CLI source: [up.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/up.rs), [deployment.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/deployment.rs), [down.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/down.rs), [redeploy.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/redeploy.rs), [restart.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/restart.rs), [service.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/service.rs)

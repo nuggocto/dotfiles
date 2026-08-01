@@ -8,11 +8,15 @@ Start broad, then narrow:
 
 ```bash
 railway status --json                                    # linked context
-railway service status --all --json                      # all services, deployment states
+railway status --project <project> --environment <env> --json
+railway service list --json                              # services in current environment
 railway deployment list --limit 10 --json                # recent deployments
+railway deployment list --project <project> --environment <env> --service <service> --limit 10 --json
 ```
 
-Deployment statuses: `SUCCESS`, `BUILDING`, `DEPLOYING`, `FAILED`, `CRASHED`, `REMOVED`.
+Use explicit `--project`, `--environment`, and `--service` when the user provided a URL or when the current directory may be linked to a different project.
+
+Deployment statuses include `SUCCESS`, `QUEUED`, `INITIALIZING`, `WAITING`, `BUILDING`, `DEPLOYING`, `NEEDS_APPROVAL`, `FAILED`, `CRASHED`, `SLEEPING`, `SKIPPED`, `REMOVING`, and `REMOVED`.
 
 For projects with buckets, include bucket status:
 
@@ -33,7 +37,7 @@ railway logs --service <service> --build --lines 200 --json      # build logs
 railway logs --latest --lines 200 --json                         # latest deployment
 ```
 
-`railway logs` streams indefinitely when no bounding flags are given. Always use `--lines`, `--since`, or `--until` to get a bounded fetch. Open streams block execution.
+In an interactive terminal, `railway logs` streams indefinitely when no bounding flags are given. Always use `--lines`, `--since`, or `--until` to get a bounded fetch for agent workflows.
 
 ### Time-bounded queries
 
@@ -52,7 +56,7 @@ railway logs --service <service> --lines 200 --filter "@level:warn AND timeout" 
 railway logs --service <service> --lines 200 --filter "connection refused" --json
 ```
 
-Filter syntax supports text search (`"error message"`), attribute filters (`@level:error`, `@level:warn`), and boolean operators (`AND`, `OR`, `-` for negation). Full syntax: https://docs.railway.com/guides/logs
+Filter syntax supports text search (`"error message"`), attribute filters (`@level:error`, `@level:warn`), and boolean operators (`AND`, `OR`, `-` for negation). Full syntax: https://docs.railway.com/cli/logs
 
 ### Scoped by environment
 
@@ -60,27 +64,92 @@ Filter syntax supports text search (`"error message"`), attribute filters (`@lev
 railway logs --service <service> --environment <env> --lines 200 --json
 ```
 
-## Metrics
+### HTTP logs
 
-Resource usage metrics (CPU, memory, network, disk) are only available through the GraphQL API:
+Use HTTP logs when a service responds with errors, latency spikes, or routing problems:
 
 ```bash
-scripts/railway-api.sh \
-  'query metrics($environmentId: String!, $serviceId: String, $startDate: DateTime!, $groupBy: [MetricTag!], $measurements: [MetricMeasurement!]!) {
-    metrics(environmentId: $environmentId, serviceId: $serviceId, startDate: $startDate, groupBy: $groupBy, measurements: $measurements) {
-      measurement tags { serviceId deploymentId region } values { ts value }
-    }
-  }' \
-  '{"environmentId":"<env-id>","serviceId":"<service-id>","startDate":"2026-02-19T00:00:00Z","measurements":["CPU_USAGE","MEMORY_USAGE_GB"]}'
+railway logs --service <service> --http --status ">=400" --lines 100 --json
+railway logs --service <service> --http --method POST --path /api/users --lines 100 --json
+railway logs --service <service> --http --request-id <request-id> --lines 20 --json
+railway logs --service <service> --http --filter "@totalDuration:>=1000" --lines 100 --json
 ```
 
-Available measurements: `CPU_USAGE`, `CPU_LIMIT`, `MEMORY_USAGE_GB`, `MEMORY_LIMIT_GB`, `NETWORK_RX_GB`, `NETWORK_TX_GB`, `DISK_USAGE_GB`, `EPHEMERAL_DISK_USAGE_GB`, `BACKUP_USAGE_GB`.
+HTTP filter fields include `@method`, `@path`, `@host`, `@requestId`, `@srcIp`, `@edgeRegion`, `@httpStatus`, `@totalDuration`, `@responseTime`, `@txBytes`, and `@rxBytes`.
 
-Omit `serviceId` and add `"groupBy": ["SERVICE_ID"]` to query all services in the environment at once. Get the environment and service IDs from `railway status --json`.
+### Network flow logs
+
+Use network flow logs for private networking, TCP proxy, outbound allowlist, DNS, or dropped-packet investigations:
+
+```bash
+railway logs --service <service> --network --lines 100 --json
+railway logs --service <service> --network --direction egress --protocol tcp --lines 100 --json
+railway logs --service <service> --network --peer postgres --port 5432 --lines 100 --json
+railway logs --service <service> --network --status dropped --lines 100 --json
+railway logs --service <service> --network --filter "@peer_kind:internet @port:443" --lines 100 --json
+```
+
+Network flow logs are service-level, not deployment-level. Do not pass a deployment ID or `--latest` with `--network`.
+
+Useful filters:
+
+| Flag | Use for |
+|---|---|
+| `--protocol tcp|udp|icmp|icmpv6|unknown` | Layer 4 protocol |
+| `--direction ingress|egress` | Traffic direction |
+| `--peer <service|internet|dns|edge-proxy>` | Named peer or well-known peer |
+| `--peer-kind service|internet|edge_proxy|local_dns|unknown` | Peer class |
+| `--status ok|dropped` / `--dropped true` | Dropped traffic |
+| `--port <port>` | Source or destination port |
+| `--src`, `--dst`, `--host` | IP filters |
+| `--drop-cause <cause>` | Drop reason |
+
+## Metrics
+
+Use `railway metrics` for resource and HTTP metrics. It summarizes CPU, memory, network, volume, and HTTP data for the linked service by default.
+
+```bash
+railway metrics --service <service> --since 1h --json
+railway metrics --service <service> --since 6h --cpu --memory --json
+railway metrics --service <service> --http --method POST --path /api/users --json
+railway metrics --all --environment production --json
+```
+
+Use `--raw` for time-series data points:
+
+```bash
+railway metrics --service <service> --raw --cpu --json
+```
+
+Metric flags can be combined: `--cpu`, `--memory`, `--network`, `--volume`, and `--http`. Use `--watch` only in an interactive terminal; it opens a live TUI and conflicts with `--json` and `--raw`.
+
+For custom grouping or measurements the CLI doesn't expose, use the GraphQL fallback in [request.md](request.md).
+
+## SSH
+
+Use SSH when logs and metrics don't expose enough state and the user needs shell-level inspection inside a running service.
+
+```bash
+railway ssh --service <service> --environment <env>
+railway ssh --service <service> --environment <env> -- "printenv | sort"
+railway ssh --service <service> --environment <env> --session railway-debug
+railway ssh --service <service> --environment <env> --identity-file ~/.ssh/id_ed25519_railway
+```
+
+Manage Railway SSH keys with:
+
+```bash
+railway ssh keys list
+railway ssh keys add --key ~/.ssh/id_ed25519.pub --name <key-name>
+railway ssh keys github
+railway ssh keys remove <key-id> --2fa-code <code>
+```
+
+Workspace-owned keys use `--workspace <workspace-id>` and require workspace Admin access. SSH key management doesn't work with project tokens (`RAILWAY_TOKEN`); use `railway login` or a workspace-scoped `RAILWAY_API_TOKEN`.
 
 ## Database inspection
 
-For database-level metrics and introspection, always use the analysis scripts. See [analyze-db.md](analyze-db.md) for comprehensive database analysis including:
+For database-level metrics and introspection, use the analysis scripts. `railway metrics` can provide infrastructure metrics and supported database summaries, while the scripts provide deeper engine-level analysis. See [analyze-db.md](analyze-db.md) for comprehensive database analysis including:
 
 - Deep Postgres analysis (pg_stat_statements, vacuum health, index health, cache hit ratios)
 - HA cluster checks (Patroni, etcd, HAProxy)
@@ -136,11 +205,38 @@ Compare the config against expected values. Look for changes that may have intro
 Domain returns errors, or service-to-service calls fail:
 
 ```bash
-railway domain --service <service> --json
-railway logs --service <service> --lines 200 --json
+railway domain list --service <service> --json
+railway domain status <domain> --service <service> --json
+railway private-network status --service <service> --json
+railway tcp-proxy list --service <service> --json
+railway outbound-network status --service <service> --json
+railway logs --service <service> --http --status ">=400" --lines 100 --json
+railway logs --service <service> --network --status dropped --lines 100 --json
 ```
 
-Check: target port matches what the service listens on, domain status is healthy, private domain variable references are correct.
+Check: target port matches what the service listens on, domain status is healthy, private domain variable references are correct, TCP proxy status is active, and outbound networking changes have been followed by the required redeploy.
+
+### CDN and WAF incidents
+
+For cache behavior, inspect both CLI settings and response headers:
+
+```bash
+railway cdn status --service <service> --json
+railway logs --service <service> --http --status ">=400" --lines 100 --json
+curl -I https://<domain>/<path>
+curl https://<domain>/.railway/cdn-trace?json
+```
+
+`x-cache: HIT` means the request did not reach the service. `DYNAMIC` means the edge reached the service but did not cache the response. Check method, `Authorization`, `Set-Cookie`, `Cache-Control`, `Vary`, response size, and HTML caching mode.
+
+For active traffic floods or unexpected `429` responses:
+
+```bash
+railway waf under-attack status --service <service> --json
+railway logs --service <service> --http --status 429 --lines 100 --json
+```
+
+Under Attack Mode can block API clients and webhooks. If the service is API-only, disabling WAF may be the correct recovery after confirming with the user.
 
 ## Recovery
 
@@ -155,7 +251,7 @@ railway variable set MISSING_VAR=value --service <service>
 railway redeploy --service <service> --yes
 
 # Verify
-railway service status --service <service> --json
+railway deployment list --service <service> --limit 5 --json
 railway logs --service <service> --lines 200 --json
 ```
 
@@ -165,11 +261,13 @@ Always verify after fixing. Don't assume the redeploy succeeded.
 
 - **Unlinked context**: `railway link --project <id-or-name>`
 - **Missing service scope for logs**: pass `--service` and `--environment` explicitly
+- **Wrong project in status or deploy polling**: pass `--project`, `--environment`, and `--service`; URL IDs beat local linked context
 - **No deployments found**: the service exists but has never deployed, create an initial deploy first
-- **Metrics query returns empty**: verify IDs from `railway status --json` and check the time window
+- **Metrics return empty**: check the time window, service scope, and whether the service has active deployments
 - **Config patch type error**: check the typed paths in [configure.md](configure.md), for example, `numReplicas` is an integer, not a string
+- **No network flow logs**: confirm the time window and service scope; network logs are not tied to deployment IDs
 
 ## Validated against
 
-- Docs: [status.md](https://docs.railway.com/cli/status), [logs.md](https://docs.railway.com/cli/logs), [observability.md](https://docs.railway.com/observability), [observability/logs.md](https://docs.railway.com/observability/logs), [observability/metrics.md](https://docs.railway.com/observability/metrics)
-- CLI source: [status.rs](https://github.com/railwayapp/cli/blob/a8a5afe/src/commands/status.rs), [logs.rs](https://github.com/railwayapp/cli/blob/a8a5afe/src/commands/logs.rs), [deployment.rs](https://github.com/railwayapp/cli/blob/a8a5afe/src/commands/deployment.rs), [redeploy.rs](https://github.com/railwayapp/cli/blob/a8a5afe/src/commands/redeploy.rs)
+- Docs: [status.md](https://docs.railway.com/cli/status), [service.md](https://docs.railway.com/cli/service), [logs.md](https://docs.railway.com/cli/logs), [metrics.md](https://docs.railway.com/cli/metrics), [ssh.md](https://docs.railway.com/cli/ssh), [cdn.md](https://docs.railway.com/cli/cdn), [waf.md](https://docs.railway.com/cli/waf), [observability/logs.md](https://docs.railway.com/observability/logs), [observability/metrics.md](https://docs.railway.com/observability/metrics)
+- CLI source: [status.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/status.rs), [service.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/service.rs), [logs.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/logs.rs), [metrics.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/metrics.rs), [ssh/mod.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/ssh/mod.rs), [deployment.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/deployment.rs), [redeploy.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/redeploy.rs), [cdn.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/cdn.rs), [waf.rs](https://github.com/railwayapp/cli/blob/v5.23.3/src/commands/waf.rs)

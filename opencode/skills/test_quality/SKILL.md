@@ -2,13 +2,13 @@
 name: test_quality
 description: >
   Write and review high-quality tests: deterministic, behavior-focused, and
-  worth their maintenance cost. Use when writing unit, integration, or
-  end-to-end tests, reviewing test code, fixing flaky tests, or when the user
-  asks if the tests are any good.
+  worth their maintenance cost. Use when writing unit, integration, end-to-end,
+  property-based, or fuzz tests; reviewing test code; fixing flaky tests; or
+  when the user asks if the tests are any good.
 license: MIT
 metadata:
   author: opencode
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Test Quality
@@ -59,6 +59,41 @@ A test that cannot fail, or fails for unrelated reasons, is worse than no test.
 - Never assert on incidental call counts or call order unless that ordering is
   the contract.
 
+## Unit testing
+
+- Use a unit test for a focused behavior whose dependencies can be supplied
+  directly without recreating the system around it.
+- Keep the setup smaller than the behavior being verified. Large fixture
+  graphs usually mean the test boundary or production interface is wrong.
+- Include valid, invalid, and boundary-adjacent inputs that can change the
+  result. Do not generate cases merely to increase the test count.
+- Verify state transitions, returned values, and important side effects through
+  the unit's public contract. Do not test private helpers separately when the
+  public behavior already covers them.
+- Keep each case short enough that its inputs, action, and expected outcome can
+  be audited together. Prefer a small table when cases share the same contract.
+- Use real values and collaborators when they are cheap and deterministic;
+  substitute only the dependency that makes the test unsafe, slow, or unstable.
+
+## Integration testing
+
+- Use an integration test when the risk lives at a real boundary: database
+  queries, serialization, filesystem behavior, queues, network protocols, or
+  communication between components.
+- Exercise the real boundary implementation. Replacing the boundary with a mock
+  turns the test into a unit test and can hide schema, protocol, and lifecycle
+  defects.
+- Use isolated, disposable resources owned by the test. Make setup and cleanup
+  explicit, bounded, and safe on failure, timeout, and cancellation.
+- Assert both sides of the contract where useful: the public response and the
+  durable state, message, file, or request produced at the boundary.
+- Test compatibility failures, malformed data, partial failure, timeout, and
+  rollback behavior when those are credible operational risks.
+- Keep fixtures minimal and local. Do not copy a production-sized dataset when
+  a few records expose the same behavior more clearly and quickly.
+- Do not repeat every unit case. Cover interactions and boundary behavior that
+  isolated tests cannot establish.
+
 ## End-to-end testing
 
 - Reserve end-to-end tests for critical user journeys that cross real system
@@ -83,11 +118,38 @@ A test that cannot fail, or fails for unrelated reasons, is worse than no test.
 - End-to-end tests complement focused unit and integration tests; they do not
   replace either layer or exploratory QA.
 
+## Property-based and fuzz testing
+
+- Use property-based tests for invariants over a broad input space; use fuzzing
+  for parser, protocol, state-machine, memory-safety, and trust-boundary code
+  where generated inputs can expose failures humans will not enumerate.
+- Define the model and invariant before generating inputs. Fuzzing validates a
+  reasoned contract; it does not replace understanding the system.
+- Bound every campaign by time, input size, operation count, recursion depth,
+  memory, and concurrency. A test must not create unbounded work or resources.
+- Make failures reproducible. Record the seed or crashing input, minimize it,
+  and promote valuable regressions into small deterministic tests.
+- Preserve and version a compact corpus containing structurally distinct,
+  high-value inputs. Do not retain thousands of redundant cases.
+- Check more than crashes when the contract permits: round trips, invariants,
+  idempotence, resource limits, forbidden state transitions, and differential
+  behavior against a trusted implementation.
+- Run sanitizers and runtime safety checks when supported. Treat hangs,
+  excessive allocation, and pathological latency as failures, not only panics
+  or crashes.
+- Keep fuzz targets narrow, fast, and free of unrelated I/O. Reset all mutable
+  state between inputs so results do not depend on execution order.
+- Separate bounded deterministic fuzz regression tests from longer campaigns.
+  CI must have an explicit budget; extended campaigns belong in scheduled or
+  dedicated jobs.
+
 ## What not to test
 
 - Trivial getters, framework behavior, and generated code.
 - Exact copies of the implementation's logic restated as the expected value.
 - Snapshot/golden tests for output nobody reviews on change.
+- Combinatorial case dumps where boundary analysis or one stated invariant
+  provides the same confidence with less code and runtime.
 
 ## Guardrails
 
@@ -95,6 +157,10 @@ A test that cannot fail, or fails for unrelated reasons, is worse than no test.
 - Do not silence or skip a failing test to make the suite green.
 - Do not let test helpers grow logic complex enough to need their own tests.
 - Do not chase coverage numbers; chase uncovered behaviors and edge cases.
+- Put explicit limits on test duration, generated input size, retries,
+  concurrency, and resources. No test is allowed unbounded work.
+- Delete redundant, unreadable, or low-signal tests. Test volume is not test
+  quality.
 
 ## Response expectations
 
@@ -104,5 +170,6 @@ When using this skill:
 2. Call out flakiness risks (time, ordering, shared state) explicitly.
 3. Point out missing edge cases rather than praising the happy path.
 4. Recommend deleting bad tests as readily as adding good ones.
-5. State whether coverage is unit, integration, end-to-end, or exploratory QA;
-   do not label an internal-component test as end-to-end.
+5. State whether coverage is unit, integration, end-to-end, property-based,
+   fuzz, or exploratory QA; do not label an internal-component test as
+   end-to-end.

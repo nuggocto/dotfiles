@@ -2,10 +2,10 @@
 #
 # Bootstrap these dotfiles on a fresh machine (designed for Omarchy).
 #
-# It symlinks each tracked config from this repo into ~/.config so that any
-# future edits land straight back in git. Anything already present at the
-# destination is moved into a timestamped backup folder first, so the script
-# is safe and reversible. Re-running it is idempotent.
+# It symlinks each tracked config from this repo into ~/.config and selected
+# agent skills into each tool's discovery directory, so future edits land
+# straight back in git. Anything already present at a destination is moved into
+# a timestamped backup folder first. Re-running it is idempotent.
 #
 # Usage (clone anywhere — the script resolves its own location):
 #   git clone git@github.com:nuggocto/dotfiles.git ~/.dotfiles
@@ -36,6 +36,13 @@ OMARCHY_FILES=(
   omarchy/hooks/theme-set.d/00-fish.sh
   omarchy/hooks/theme-set.d/25-terminal-app-themes.sh
   omarchy/themed/ghostty.conf.tpl
+)
+
+# Canonical skills live under opencode/skills. OpenCode reads them through its
+# config link; these links expose the same files to the other supported agents.
+AGENT_SKILLS=(
+  use-railway
+  test_quality
 )
 
 link() {
@@ -92,6 +99,35 @@ link_file() {
   printf '  link  %-44s -> %s\n' "$relative_path" "$src"
 }
 
+link_agent_skill() {
+  local agent="$1"
+  local skills_dir="$2"
+  local skill="$3"
+  local src="$REPO_DIR/opencode/skills/$skill"
+  local dest="$skills_dir/$skill"
+  local backup="$BACKUP_DIR/agent-skills/$agent/$skill"
+
+  if [ ! -f "$src/SKILL.md" ]; then
+    printf '  skip  %-44s (not in repo)\n' "$agent/$skill"
+    return
+  fi
+
+  if [ -L "$dest" ] && [ "$(readlink -f "$dest")" = "$(readlink -f "$src")" ]; then
+    printf '  ok    %-44s (already linked)\n' "$agent/$skill"
+    return
+  fi
+
+  if [ -e "$dest" ] || [ -L "$dest" ]; then
+    mkdir -p "$(dirname "$backup")"
+    mv "$dest" "$backup"
+    printf '  back  %-44s -> %s\n' "$agent/$skill" "$backup"
+  fi
+
+  mkdir -p "$skills_dir"
+  ln -s "$src" "$dest"
+  printf '  link  %-44s -> %s\n' "$agent/$skill" "$src"
+}
+
 install_solitude_theme() {
   local theme_url="https://github.com/HANCORE-linux/omarchy-solitude-theme.git"
   local theme_revision="7c3e45eec3e1c5eba24e6d08844e6bc1231b839d"
@@ -135,6 +171,12 @@ mkdir -p "$CONFIG_DIR"
 for c in "${CONFIGS[@]}"; do link "$c"; done
 for f in "${CONFIG_FILES[@]}"; do link_file "$f"; done
 for f in "${OMARCHY_FILES[@]}"; do link_file "$f"; done
+for skill in "${AGENT_SKILLS[@]}"; do
+  # Kimi CLI and Grok CLI both discover the shared Agent Skills directory.
+  link_agent_skill "agents" "$HOME/.agents/skills" "$skill"
+  link_agent_skill "claude" "$HOME/.claude/skills" "$skill"
+  link_agent_skill "codex" "$HOME/.codex/skills" "$skill"
+done
 install_solitude_theme
 echo
 

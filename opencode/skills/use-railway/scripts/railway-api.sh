@@ -4,6 +4,12 @@
 
 set -e
 
+SKILL_ID="use-railway"
+SKILL_VERSION="${RAILWAY_SKILL_VERSION:-1.2.3}"
+
+export RAILWAY_CALLER="${RAILWAY_CALLER:-skill:${SKILL_ID}@${SKILL_VERSION}}"
+export RAILWAY_AGENT_SESSION="${RAILWAY_AGENT_SESSION:-railway-skill-$(date +%s)-$$}"
+
 if ! command -v jq &>/dev/null; then
   echo '{"error": "jq not installed. Install with: brew install jq"}'
   exit 1
@@ -35,7 +41,17 @@ else
   PAYLOAD=$(jq -n --arg q "$1" '{query: $q}')
 fi
 
-curl -s https://backboard.railway.com/graphql/v2 \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "$PAYLOAD"
+HEADERS=(
+  -H "Content-Type: application/json"
+  -H "X-Railway-Skill-Id: $SKILL_ID"
+  -H "X-Railway-Skill-Version: $SKILL_VERSION"
+  -H "X-Railway-Agent-Session: $RAILWAY_AGENT_SESSION"
+)
+
+# Keep the token and the request body out of argv: /proc/<pid>/cmdline is
+# readable by any other local user, so anything passed as an argument leaks on a
+# shared host. The bearer goes in through --config on a pipe, the payload on stdin.
+printf '%s' "$PAYLOAD" | curl -s https://backboard.railway.com/graphql/v2 \
+  "${HEADERS[@]}" \
+  --config <(printf 'header = "Authorization: Bearer %s"\n' "$TOKEN") \
+  -d @-

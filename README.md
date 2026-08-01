@@ -20,6 +20,11 @@ wherever it lives. It backs up anything already at each destination (into
 `~/.config/dotfiles-backup-<timestamp>/`), then symlinks every tracked config
 into place. It's safe to re-run — it only touches what isn't already linked.
 
+The installer also exposes selected canonical skills from `opencode/skills` to
+Claude, Codex, Kimi CLI, and Grok CLI. Kimi and Grok use the shared
+`~/.agents/skills` links; each tool reads the same tracked files without copied
+skill bundles drifting apart.
+
 Afterwards:
 - Edit `hypr/monitors.conf` for this machine's displays (`hyprctl monitors`).
 - Install the Nerd Fonts (VictorMono / JetBrainsMono) if missing.
@@ -41,7 +46,7 @@ Afterwards:
 | `ghostty` | Primary terminal config |
 | `nvim` | Neovim (LazyVim) config, plugin specs, lockfile |
 | `zed` | Zed settings + keymap |
-| `opencode` | Opencode config, TUI settings, skills |
+| `opencode` | OpenCode config, TUI settings, and canonical agent skills shared with Claude, Codex, Kimi CLI, and Grok CLI |
 | `omarchy` | Solitude patch plus selective theme hooks/templates |
 
 ## Notes
