@@ -3,50 +3,66 @@
   "autoupdate": false,
   "lsp": true,
   "mcp": {
-    "playwright": {
-      "type": "local",
-      "command": ["bun", "x", "@playwright/mcp@latest"],
-      "enabled": true
-    },
     "chrome-devtools": {
-      "type": "local",
-      "command": ["bun", "x", "chrome-devtools-mcp@latest"],
-      "enabled": true
-    },
-    "context7": {
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp",
-      "enabled": true
-    },
-    "sentry": {
-      "type": "remote",
-      "url": "https://mcp.sentry.dev/mcp?utm_source=plugin",
-      "enabled": true
+      "command": [
+        "bun",
+        "x",
+        "chrome-devtools-mcp@latest"
+      ],
+      "enabled": true,
+      "type": "local"
     },
     "cloudflare-api": {
+      "enabled": true,
       "type": "remote",
-      "url": "https://mcp.cloudflare.com/mcp",
-      "enabled": true
-    },
-    "cloudflare-docs": {
-      "type": "remote",
-      "url": "https://docs.mcp.cloudflare.com/mcp",
-      "enabled": true
+      "url": "https://mcp.cloudflare.com/mcp"
     },
     "cloudflare-bindings": {
+      "enabled": true,
       "type": "remote",
-      "url": "https://bindings.mcp.cloudflare.com/mcp",
-      "enabled": true
+      "url": "https://bindings.mcp.cloudflare.com/mcp"
     },
     "cloudflare-builds": {
+      "enabled": true,
       "type": "remote",
-      "url": "https://builds.mcp.cloudflare.com/mcp",
-      "enabled": true
+      "url": "https://builds.mcp.cloudflare.com/mcp"
+    },
+    "cloudflare-docs": {
+      "enabled": true,
+      "type": "remote",
+      "url": "https://docs.mcp.cloudflare.com/mcp"
     },
     "cloudflare-observability": {
+      "enabled": true,
       "type": "remote",
-      "url": "https://observability.mcp.cloudflare.com/mcp",
-      "enabled": true
+      "url": "https://observability.mcp.cloudflare.com/mcp"
+    },
+    "context7": {
+      "enabled": true,
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "playwright": {
+      "command": [
+        "bun",
+        "x",
+        "@playwright/mcp@latest"
+      ],
+      "enabled": true,
+      "type": "local"
+    },
+    "railway": {
+      "command": [
+        "railway",
+        "mcp"
+      ],
+      "enabled": true,
+      "type": "local"
+    },
+    "sentry": {
+      "enabled": true,
+      "type": "remote",
+      "url": "https://mcp.sentry.dev/mcp?utm_source=plugin"
     }
   }
 }
