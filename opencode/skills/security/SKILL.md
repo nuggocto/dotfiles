@@ -8,7 +8,7 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Security
@@ -30,13 +30,15 @@ a fix behaves correctly, use `@qa/`; to add focused regression coverage, use
 - Determine the mode before starting: review-only, review-and-remediate, or
   retest. In review-only mode, report findings without modifying code. In
   remediation mode, preserve the evidence before applying the requested fix.
-- A request to review code in the shared workspace authorizes non-invasive
-  analysis of that material. It does not authorize sending traffic to deployed
-  systems, testing production, using discovered credentials, or probing vendors.
-- Before active testing, confirm written authorization or an applicable
-  disclosure policy covering the exact targets, environments, accounts, dates,
-  techniques, request-rate limits, data rules, third parties, contacts, and stop
-  conditions.
+- A request to review code in the shared workspace authorizes source and
+  configuration analysis plus local, isolated execution with synthetic data
+  when it does not contact external services, use real credentials, mutate
+  non-test data, consume material resources, or write outside the workspace and
+  approved temporary locations.
+- Before testing a deployed or external target, confirm written authorization or
+  an applicable disclosure policy covering the exact targets, environments,
+  accounts, dates, techniques, request-rate limits, data rules, third parties,
+  contacts, and stop conditions.
 - If active scope is unclear, continue only authorized non-invasive review and
   ask before sending traffic or executing intrusive tooling.
 
@@ -85,6 +87,9 @@ a fix behaves correctly, use `@qa/`; to add focused regression coverage, use
   applicable, or out of scope.
 - For non-web software, supplement architecture-specific threats with the active
   language, platform, cloud, database, and deployment guidance.
+- For product and build-lifecycle controls, select applicable practices from the
+  current NIST SSDF. For AI or agentic systems, also use current AI-specific
+  security guidance rather than treating them as ordinary request handlers.
 - Prioritize by reachability and blast radius. A versioned baseline supports the
   review; it does not replace system-specific reasoning.
 
@@ -123,13 +128,26 @@ a fix behaves correctly, use `@qa/`; to add focused regression coverage, use
 - **Files, deserialization, and parsing:** unsafe native deserialization, XXE,
   archive and path traversal, file-type confusion, decompression bombs,
   unbounded nesting, and parser memory-safety boundaries.
+- **Native and runtime safety:** memory corruption, unsafe or FFI boundaries,
+  integer overflow and truncation, runtime or sandbox escapes, privilege
+  separation, compiler hardening, and unsafe interactions across language or
+  process boundaries.
 - **Dependencies and software supply chain:** deployed-version applicability,
-  lock and integrity data, provenance, build isolation, install scripts,
-  artifact integrity, compromised maintainers, and reachable known
-  vulnerabilities.
+  lock and integrity data, source-control and CI/CD permissions, untrusted pull
+  request and workflow execution, runner and build isolation, protected release
+  references, install scripts, SBOMs, provenance, signing, artifact integrity,
+  compromised maintainers, and reachable known vulnerabilities.
 - **Configuration and deployment:** fail-open behavior, debug settings, default
   credentials, CORS and security headers, public storage, IAM, containers, IaC,
   network exposure, observability, backup, and recovery configuration.
+- **Detection and incident readiness:** security-event and administrative audit
+  logging, actor and object attribution, sensitive-data redaction, log injection,
+  tamper resistance, alertability, time synchronization, retention, and whether
+  responders can reconstruct critical actions.
+- **AI and agentic systems:** treat prompts, retrieved content, model output,
+  memory, and agent-to-agent messages as untrusted. Review tool authority,
+  identity propagation, data access and egress, delegation, approval boundaries,
+  goal or memory poisoning, and unsafe execution of model-generated output.
 - **Resource exhaustion:** unbounded loops, recursion, parsing, allocation,
   retries, queues, fan-out, concurrency, and missing limits, quotas, or rate
   controls. Use `@benchmark/` only for authorized non-destructive capacity work.
@@ -144,14 +162,18 @@ context. Scanner output is a lead, not a confirmed vulnerability.
 | Dependency review | `osv-scanner`, `trivy`, native ecosystem tools | Confirm deployed version, applicability, reachability, advisory quality, exploit maturity, and compensating controls |
 | Secret scanning | `gitleaks`, `trufflehog` | Prefer local scanning; do not verify discovered credentials or send them to external services |
 | Static analysis | `semgrep`, CodeQL, language security linters | Tune rules and manually establish the reachable path and controls |
-| Container and IaC | `trivy`, `checkov`, `tfsec`, `hadolint` | Review effective deployment configuration, not templates alone |
+| Container and IaC | `trivy`, `checkov`, `hadolint` | Review effective deployment configuration, not templates alone |
 | Dynamic testing | OWASP ZAP, Burp Suite | Use only within active authorization; prefer isolated non-production targets and synthetic data |
 | Fuzzing | language-native fuzzers, `AFL++` | Sandbox targets, bound resources, and protect external dependencies |
 
-Before running any tool, check whether it executes package hooks or plugins,
-sends code or metadata off-machine, verifies tokens online, creates traffic, or
-stores sensitive output. Use local targets, synthetic data, and approved output
-locations by default.
+Treat security tools as supply-chain dependencies. Prefer already-installed,
+approved tools with a known version and integrity; verify their publisher and
+source; pin versions, container digests, and CI actions to immutable references;
+verify checksums, signatures, or attestations when available. Before running a
+tool, check whether it executes package hooks or plugins, sends code or metadata
+off-machine, verifies tokens online, creates traffic, or stores sensitive output.
+Run with least privilege and bounded egress; use local targets, synthetic data,
+and approved output locations by default.
 
 ## Safe verification
 
@@ -214,9 +236,9 @@ locations by default.
 
 ## Reporting findings
 
-- For each finding include location, affected surface, root-cause class,
-  preconditions, impact, safe evidence or reproduction, technical severity,
-  remediation priority, confidence, concrete fix, and validation plan.
+- Use one consistent finding shape: `ID · title · location · affected
+  surface · preconditions · impact · safe evidence · technical severity ·
+  remediation priority · confidence · root cause/CWE · fix · validation`.
 - Include a precise CWE or OWASP reference only when it fits; do not force a
   taxonomy label onto uncertain evidence.
 - Store evidence only in an approved access-controlled location and collect the
@@ -252,10 +274,9 @@ When using this skill:
 
 1. Lead with the risk verdict and highest-priority confirmed or high-confidence
    findings.
-2. Give each finding a location, impact, safe evidence, technical severity,
-   remediation priority, confidence, and concrete fix.
-3. Separate confirmed vulnerabilities from unverified scanner leads.
-4. Be explicit about authorization, coverage, assumptions, exclusions, and
+2. Use the finding shape above and separate confirmed vulnerabilities from
+   unverified scanner leads.
+3. Be explicit about authorization, coverage, assumptions, exclusions, and
    residual risk.
-5. In remediation mode, report the fix, regression coverage, verification, and
+4. In remediation mode, report the fix, regression coverage, verification, and
    remaining risk after the findings.
