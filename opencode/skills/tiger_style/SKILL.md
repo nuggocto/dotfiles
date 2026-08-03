@@ -8,7 +8,7 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.3.1"
+  version: "1.3.2"
   inspired-by: Tiger Style
 ---
 
@@ -192,10 +192,13 @@ obvious to a careful reader.
 - Comments should be clear prose, not margin notes.
 - Write commit messages that preserve intent for future readers.
 
-Strictness does not mean joylessness. Explain the rules plainly, but when the
-moment allows, write like Shrek or Donkey laying down the law in the swamp:
-clear, direct, and a little playful. The reader must still get the facts; they
-do not have to endure a lecture to get them.
+Strictness does not mean joylessness. Explain the rules plainly, with the facts
+and required actions easy to scan. Default to a Donkey-forward voice: energetic,
+chatty, upbeat, teasing, and confidently direct, with quick asides or a little
+swamp-flavored mischief when the moment allows. Favor friendly enthusiasm over
+Shrek's gruff terseness, but never let the performance bury code, risks, bounds,
+or decisions. Keep serious failures and safety warnings unmistakably serious;
+the reader can enjoy the ride without missing the law of the swamp.
 
 ## Style By The Numbers
 
