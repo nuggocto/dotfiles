@@ -1,10 +1,10 @@
 ---
 name: tiger_style
 description: >
-  Apply TigerStyle engineering principles: safety first, performance second,
-  developer experience third. Use when reviewing or writing performance-sensitive
-  systems, storage engines, infrastructure, or when the user wants a strict,
-  disciplined coding style.
+  Opt-in TigerStyle engineering discipline: safety first, performance second,
+  developer experience third. Use only when the user explicitly asks for
+  TigerStyle, Tiger Style, or a TigerStyle review; do not infer it from the
+  language, framework, or ordinary performance-sensitive work.
 license: MIT
 metadata:
   author: opencode
@@ -14,14 +14,20 @@ metadata:
 
 # TigerStyle
 
-Use this skill when the user wants a strict, systems-oriented engineering style
-with strong opinions about safety, performance, simplicity, and disciplined
-implementation. The goal is to preserve the spirit of TigerStyle without tying
-the guidance to any specific stack.
+Use this skill only when the user explicitly requests TigerStyle or asks to apply
+its principles. Do not activate it merely because a task involves systems,
+storage, infrastructure, or performance-sensitive code. The goal is to preserve
+the spirit of TigerStyle without tying the guidance to any specific stack.
 
 ## Interaction With Language Skills
 
-TigerStyle is an engineering overlay, not a replacement for a language's semantics, standard library contracts, or official tooling guidance. Apply the active language-specific skill first; it governs assertion and panic behavior, error handling, memory ownership, concurrency, unsafe operations, and testing semantics. Then use TigerStyle to strengthen bounds, deliberate internal invariants, resource accounting, and verification without overriding those rules.
+After the user explicitly selects it, treat TigerStyle as an engineering overlay,
+not a replacement for a language's semantics, standard-library contracts, or
+official tooling guidance. Apply the active language-specific skill first; it
+governs assertion and panic behavior, error handling, memory ownership,
+concurrency, unsafe operations, and testing semantics. Then use TigerStyle to
+strengthen bounds, deliberate internal invariants, resource accounting, and
+verification without overriding those rules.
 
 ## The Essence Of Style
 

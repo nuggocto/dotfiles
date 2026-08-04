@@ -17,8 +17,6 @@ Use this skill for production-grade Rust applications, libraries, services, APIs
 
 Resolve the selected edition, workspace resolver, `rust-version`/MSRV, toolchain, Cargo configuration, features, and dependency versions from workspace and package manifests, `.cargo/config.toml`, `Cargo.lock`, `rust-toolchain.toml`, and CI before consulting APIs. Virtual workspaces have no package edition from which to infer a resolver, so verify that `[workspace].resolver` is explicit. Use a current patch release of the selected Rust line; in particular, do not ship artifacts built with Rust 1.97.0 because 1.97.1 fixes a known LLVM miscompilation. Use documentation for those versions; use latest docs to evaluate an upgrade, not as evidence that an API exists in the checked-out project. docs.rs hosts third-party crate documentation but does not make guidance official Rust-project policy.
 
-For performance-sensitive, systems-level, or storage/infra code, apply `@tiger_style/` as an engineering overlay. Rust semantics and the rules in this skill take precedence: TigerStyle may strengthen bounds and deliberate internal-invariant checks, but it must not replace `Result` or `Option`, runtime validation, panic policy, ownership, or `unsafe` contracts with assertions.
-
 ## Workflow
 
 1. Identify the program shape and constraints: application or library, runtime, entrypoint, storage, external I/O, latency target, and deployment model.
@@ -130,8 +128,8 @@ migrations/
 - Require explicit unsafe blocks inside `unsafe fn`. Edition 2024 warns for `unsafe_op_in_unsafe_fn` by default; for earlier editions enable the lint when working with unsafe code. Use `forbid(unsafe_code)` where unsafe is not expected and Miri or sanitizers for unsafe-heavy changes when applicable.
 - For FFI and exported symbols, verify every foreign signature, safe or unsafe item classification, symbol name, and linker-section invariant. Edition 2024 requires unsafe extern blocks and unsafe forms of `no_mangle`, `export_name`, and `link_section`; automated migration syntax does not prove the contract sound.
 - Avoid references to `static mut`; prefer scoped ownership, atomics, locks, `OnceLock`, or `LazyLock`. Mutate the process environment only before other threads can exist; Edition 2024 makes `std::env::set_var` and `remove_var` unsafe to expose that requirement.
-- In tests, Rust's standard `assert!`, `assert_eq!`, `assert_ne!`, and pattern assertions are the normal test expectations; TigerStyle's generic test guidance does not prohibit them.
-- When TigerStyle calls for aggressive assertions, add non-redundant checks at important internal boundaries. Do not mechanically assert every argument or return value.
+- In tests, Rust's standard `assert!`, `assert_eq!`, `assert_ne!`, and pattern assertions are normal test expectations.
+- Add non-redundant assertions at important internal boundaries when they improve defect detection. Do not mechanically assert every argument or return value.
 
 ## Async and concurrency
 

@@ -28,10 +28,10 @@ HexDocs. Latest documentation is useful for evaluating an upgrade, not evidence
 that an API exists in the locked project. Run `gleam --version` and
 `gleam help <command>` when exact local CLI behavior matters.
 
-Apply `@tiger_style/` as an engineering overlay for bounds, mailbox and queue
-growth, process ownership, resource accounting, and important internal
-invariants. Gleam, BEAM/OTP, browser, and package semantics take precedence for
-errors, panics, supervision, process links, target portability, FFI, and tests.
+For mailboxes, queues, processes, and other resource-owning paths, make bounds,
+ownership, resource accounting, and important internal invariants explicit.
+Gleam, BEAM/OTP, browser, and package semantics govern errors, panics,
+supervision, process links, target portability, FFI, and tests.
 Supervision does not replace validation, backpressure, timeouts, or durable
 workflow design.
 
@@ -399,7 +399,8 @@ merely to match this table.
   Bare `ok`/`error` atoms are not Gleam `Result` values; Erlang character lists
   are not Gleam UTF-8 strings; improper lists are not Gleam lists.
 - Elixir externals still use the `erlang` target and the `Elixir.ModuleName`
-  module name. Load `@elixir/` when substantial Elixir behavior is in scope.
+  module name. When substantial Elixir behavior is in scope, verify it against
+  current Elixir/OTP documentation and the foreign module's tests.
 - Since Gleam 1.13, use generated JavaScript constructors, predicates, and field
   accessors for Gleam data. Do not depend on compiler-internal object layouts or
   mutate JavaScript arrays used as Gleam tuples. Zero-field variants are

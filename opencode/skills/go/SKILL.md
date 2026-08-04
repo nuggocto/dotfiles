@@ -16,8 +16,6 @@ Use this skill for production-grade Go applications, libraries, services, APIs, 
 
 Resolve the mandatory minimum and language semantics from the `go` directive. When present in the main module or workspace, also resolve the optional `toolchain` preference, `GOTOOLCHAIN` policy, dependency versions, build tags, CI matrix, module checksums, and deployment configuration from `go.mod`, `go.work`, `go.sum`, and automation before consulting APIs. Confirm that CI, release builds, and production use the latest patch release of a supported Go line; Go 1.26 deployments should use 1.26.5 or newer. Patch releases carry security and correctness fixes, and the `go` directive alone does not keep the building toolchain current. Use documentation matching those versions; pkg.go.dev hosting does not make a recommendation official Go-project policy.
 
-Apply `@tiger_style/` as an engineering overlay, especially for bounded concurrency, resource accounting, and systems code. Go semantics and this skill take precedence for error handling, panic policy, goroutine lifetimes, contexts, and testing; TigerStyle must not replace operational error handling with assertions.
-
 ## Workflow
 
 1. Identify the program shape and constraints: application or library, entrypoint, transport, storage, concurrency model, latency target, and deployment model.

@@ -27,12 +27,11 @@ docs, release notes, installed source, and compiler help. Use master docs only
 for a project pinned to a development build. Compile every generated example;
 do not assume an older Zig example still works.
 
-For performance-sensitive, storage, engine, or infrastructure code, apply
-`@tiger_style/` as an engineering overlay. Zig semantics and this skill take
-precedence for errors, assertions, safety modes, ownership, allocators, pointers,
-concurrency, FFI, and tests. TigerStyle strengthens explicit bounds, resource
-accounting, internal invariants, and measurement; it does not turn application-
-specific TigerBeetle policies into universal Zig rules.
+For performance-sensitive, storage, engine, or infrastructure code, make bounds,
+resource accounting, internal invariants, and measurements proportionate to the
+program's actual constraints. Zig semantics govern errors, assertions, safety
+modes, ownership, allocators, pointers, concurrency, FFI, and tests. Do not turn
+application-specific storage-engine policies into universal Zig rules.
 
 ## Workflow
 
@@ -181,9 +180,9 @@ Preserve the principle, not an uncompiled code sample.
   scope, and a build graph can mix module optimization modes. Record the modes
   of all relevant modules rather than inferring whole-artifact safety from one
   build flag.
-- Keep assertion expressions free of required side effects. Apply TigerStyle's
-  paired assertions to high-value internal state transitions without replacing
-  trust-boundary validation.
+- Keep assertion expressions free of required side effects. Use paired assertions
+  for high-value internal state transitions when they improve defect detection,
+  without replacing trust-boundary validation.
 - Treat ordinary integer overflow as a design decision. Use checked operations
   when overflow is recoverable, wrapping operators only for intentional modular
   arithmetic, saturating operations only for intentional clamping, and explicit
@@ -489,8 +488,6 @@ Also test the affected optimized safety mode, release artifact, and target matri
   `https://ziglang.org/documentation/`
 - Official build-system guide: `https://ziglang.org/learn/build-system/`
 - Zig downloads and release notes: `https://ziglang.org/download/`
-- TigerBeetle's TigerStyle:
-  `https://github.com/tigerbeetle/tigerbeetle/blob/main/docs/TIGER_STYLE.md`
 - TigerBeetle architecture and deterministic simulation:
   `https://github.com/tigerbeetle/tigerbeetle/tree/main/docs`
 - Mitchell Hashimoto's Zig writing: `https://mitchellh.com/zig`

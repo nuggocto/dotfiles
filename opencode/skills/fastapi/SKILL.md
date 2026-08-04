@@ -13,7 +13,7 @@ metadata:
 
 # FastAPI
 
-Apply `@python/` first for Python semantics, typing, exceptions, task ownership, packaging, security, testing, and performance. This skill adds FastAPI, Starlette, Pydantic, ASGI, and deployment-specific guidance. Apply `@tiger_style/` as an overlay for bounded resources and explicit invariants without replacing HTTP validation, exception handling, cancellation, or dependency cleanup.
+Apply `@python/` first for Python semantics, typing, exceptions, task ownership, packaging, security, testing, and performance. This skill adds FastAPI, Starlette, Pydantic, ASGI, and deployment-specific guidance.
 
 FastAPI remains pre-1.0. Resolve exact FastAPI, Starlette, Pydantic, AnyIO, HTTPX, Uvicorn, Python, ORM, and security-library versions from `pyproject.toml`, lockfiles, installed metadata, and CI before using APIs. FastAPI 0.141.1 requires Python 3.10 or newer and declares support through Python 3.14, but derive the repository's actual contract from its metadata and CI. Pin and test the complete resolved stack; do not assume current online docs match the repository or independently upgrade FastAPI's constrained transitive internals without evidence.
 

@@ -17,8 +17,6 @@ Use this skill for production-grade Python applications, libraries, services, CL
 
 Resolve the supported Python range and actual execution interpreter from `[project].requires-python`, lockfiles, CI, containers, deployment configuration, and version-manager files before using syntax or APIs. `requires-python` is a compatibility contract, not an exact runtime pin. Run supported Python lines on current maintenance or security patch releases, and pin the full interpreter version in deployment artifacts; Python 3.14 deployments should use 3.14.6 or newer. Use version-matched Python and dependency documentation; do not assume the newest local interpreter represents the project.
 
-Apply `@tiger_style/` as an engineering overlay for bounded work, resource accounting, explicit invariants, and performance-sensitive code. Python semantics and this skill take precedence for exceptions, assertions, cleanup, cancellation, typing, concurrency, and tests.
-
 ## Workflow
 
 1. Identify the artifact and constraints: application or library, supported Python versions and implementations, entrypoint, trust boundaries, external I/O, concurrency model, latency and memory budgets, and deployment model.
