@@ -162,11 +162,13 @@ migrations/
 
 ## Testing and verification
 
-- Keep unit tests close to the code when that improves locality.
+- Use `@test-quality/` when writing or reviewing tests. Keep unit tests close to the code when that improves locality.
 - Add integration tests with real dependencies when external systems affect behavior.
 - Use property tests, fuzzing, or benchmarks when invariants or performance justify them.
+- Use `@benchmark/` for performance claims. Benchmark the shipped crate or binary in the intended release profile and report target, features, and LTO settings.
 - Run `cargo fmt --all -- --check`, repository/CI-equivalent Clippy, tests, and doctests. Derive the matrix from CI: verify default features, no-default-features where supported, documented combinations, affected targets, and the declared MSRV. A current-stable build does not prove MSRV support. Use `--all-features` only when all features are designed to coexist. With Cargo 1.97+, prefer `build.warnings = "deny"` or `CARGO_BUILD_WARNINGS=deny` over injecting `-D warnings`; follow existing repository policy for older Cargo versions.
 - For shipped binaries or native libraries, build and smoke-test the actual release profile and deployment target with `--locked`. Review panic strategy, overflow checks, debug information, LTO, target features, stripping, symbol mangling, and debugger/profiler/crash-symbolization compatibility rather than assuming development-profile behavior carries over. Inspect linker diagnostics, including `linker_messages` on Rust 1.97+, before suppressing them.
+- Use `@qa/` to exercise the shipped binary or library integration as a real consumer; unit tests and compilation do not verify packaging, startup, or supported-platform behavior.
 - Run `cargo deny check` or `cargo audit` when dependency or security-sensitive work is involved.
 
 ## Guardrails

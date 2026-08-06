@@ -22,8 +22,8 @@ with the uncertainty and caveats attached.
 Pair this skill with the relevant language skill when the repository makes the
 runtime obvious: `@rust/`, `@zig/`, `@go/`, `@gleam/`, or `@python/`. For
 systems, storage, infrastructure, hot paths, or resource-exhaustion concerns,
-also apply `@tiger_style/`. For real end-user verification use `@qa/`; for
-regression tests around benchmarked behavior use `@test_quality/`; for
+also apply `@tiger-style/`. For real end-user verification use `@qa/`; for
+regression tests around benchmarked behavior use `@test-quality/`; for
 denial-of-service or quota risks use `@security/`. For browser Core Web Vitals
 and page-load work, use `@web-perf/` as the measurement companion.
 

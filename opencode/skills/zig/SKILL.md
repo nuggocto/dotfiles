@@ -381,7 +381,7 @@ Preserve the principle, not an uncompiled code sample.
 
 ## Testing, QA, And Verification
 
-- Use `@test_quality/` when writing or reviewing tests. Prefer specific
+- Use `@test-quality/` when writing or reviewing tests. Prefer specific
   `std.testing` expectations such as equality, slice, string, and exact-error
   checks over a generic boolean assertion when they improve diagnostics.
 - Use `std.testing.allocator` for allocating unit tests so the default runner can

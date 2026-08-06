@@ -182,7 +182,7 @@ Resolve the supported Python range and actual execution interpreter from `[proje
 
 ## Testing And Verification
 
-- Test observable behavior and contracts, including success, invalid input, boundaries, partial failure, retries, cleanup, timeout, cancellation, and shutdown.
+- Use `@test-quality/` when writing or reviewing tests. Test observable behavior and contracts, including success, invalid input, boundaries, partial failure, retries, cleanup, timeout, cancellation, and shutdown.
 - Keep tests deterministic by controlling clocks, randomness, timezone, locale, environment, network, filesystem, and concurrency. Do not synchronize with arbitrary sleeps.
 - Prefer real collaborators, focused fakes, and integration tests over deep mock graphs. Patch where a name is looked up and use `autospec` or `spec_set` when mocking.
 - Assert cleanup and absence of leaked tasks, threads, processes, files, connections, and warnings.
@@ -192,9 +192,11 @@ Resolve the supported Python range and actual execution interpreter from `[proje
 - Turn unexpected warnings into CI failures and run targeted tests with development mode, asyncio debug mode, and resource warnings.
 - Use the repository's pinned formatter, linter, and type checker with a target matching `requires-python`. Keep one canonical invocation for local and CI use.
 - Build and install package artifacts for release-sensitive changes. Coverage indicates execution, not assertion quality; inspect meaningful branches rather than chasing a percentage.
+- Use `@qa/` to exercise the shipped service, CLI, or package as a real consumer; unit tests and the test suite do not verify packaging, startup, deployment, or upgrade behavior.
 
 ## Performance
 
+- Use `@benchmark/` for performance claims. Measure the shipped service, CLI, or package with production-equivalent data, process topology, and dependency versions.
 - Establish a representative workload, baseline, target metric, and correctness check before optimization.
 - Improve algorithms, data movement, I/O count, serialization, batching, and cache design before micro-optimizing syntax.
 - Measure latency distributions, throughput, memory, startup, and allocation behavior relevant to the deployed workload; separate cold and warm paths.

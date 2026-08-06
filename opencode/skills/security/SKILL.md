@@ -21,9 +21,9 @@ with green ticks. A clean scan is not proof of safety.
 Stay defensive. Establish risk with the least-invasive evidence that is safe and
 authorized; never cause the harm being demonstrated.
 
-For resource-exhaustion and bounds issues, pair with `@tiger_style/`; to confirm
+For resource-exhaustion and bounds issues, pair with `@tiger-style/`; to confirm
 a fix behaves correctly, use `@qa/`; to add focused regression coverage, use
-`@test_quality/`.
+`@test-quality/`.
 
 ## Engagement mode and authorization
 

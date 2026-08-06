@@ -19,7 +19,7 @@ but insufficient evidence that a feature is fit to release; combine them with
 end-to-end behavior and state the limits of every evidence source.
 
 Keep `@qa/` focused on observed release behavior. Use `@security/` for
-authorized adversarial testing, `@test_quality/` for automated tests and flaky
+authorized adversarial testing, `@test-quality/` for automated tests and flaky
 test remediation, `@benchmark/` for non-browser performance measurement, and
 `@web-perf/` for browser performance and Core Web Vitals. QA may run safe
 acceptance checks but must not claim a security, accessibility, or performance
@@ -108,7 +108,7 @@ storing artifacts.
 - Do not retry until green. Use `INCONCLUSIVE` while a release-relevant
   intermittent result remains unexplained, `BLOCKED` when infrastructure
   prevents useful execution, and `FAIL` when evidence supports a product defect.
-- Route automated-test flakiness investigation and repair to `@test_quality/`.
+- Route automated-test flakiness investigation and repair to `@test-quality/`.
 
 ## Verdicts
 

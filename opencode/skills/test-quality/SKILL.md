@@ -1,5 +1,5 @@
 ---
-name: test_quality
+name: test-quality
 description: >
   Write and review high-quality tests: deterministic, behavior-focused, and
   worth their maintenance cost. Use when writing unit, integration, end-to-end,

@@ -47,6 +47,7 @@ Afterwards:
 | `nvim` | Neovim (LazyVim) config, plugin specs, lockfile |
 | `zed` | Zed settings + keymap |
 | `opencode` | OpenCode config, TUI settings, and canonical agent skills shared with Claude, Codex, Kimi CLI, and Grok CLI |
+| `pi` | Pi coding agent Solitude theme (credentials and sessions remain local) |
 | `omarchy` | Solitude patch plus selective theme hooks/templates |
 
 ## Notes

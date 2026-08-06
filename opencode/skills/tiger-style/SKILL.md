@@ -1,5 +1,5 @@
 ---
-name: tiger_style
+name: tiger-style
 description: >
   Opt-in TigerStyle engineering discipline: safety first, performance second,
   developer experience third. Use only when the user explicitly asks for

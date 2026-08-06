@@ -459,7 +459,7 @@ merely to match this table.
 
 ## Testing And Verification
 
-- Use `@test_quality/` when writing or reviewing tests. `gleam test` runs the
+- Use `@test-quality/` when writing or reviewing tests. `gleam test` runs the
   package's `<package>_test.main`; with gleeunit, that function must import
   `gleeunit` and call `gleeunit.main()`. Gleeunit then discovers public functions
   under `test/` whose names end in `_test`; a panic fails the test.
