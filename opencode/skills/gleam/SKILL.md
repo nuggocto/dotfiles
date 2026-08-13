@@ -2,10 +2,9 @@
 name: gleam
 description: >
   Production-grade Gleam guidance focused on typed functional design, explicit
-  errors, BEAM/OTP reliability, multi-target portability, and the Mist, Wisp,
-  Pog, Squirrel, and Lustre ecosystem. Use when working with .gleam files,
-  gleam.toml, manifest.toml, Gleam packages, Erlang or JavaScript targets, web
-  services, actors, supervisors, PostgreSQL, or Lustre applications.
+  errors, BEAM/OTP reliability, and multi-target portability. Use when working
+  with .gleam files, gleam.toml, manifest.toml, Gleam packages, or Gleam code
+  using actors, supervisors, Mist, Wisp, Pog, Squirrel, or Lustre.
 license: MIT
 metadata:
   author: opencode
@@ -26,7 +25,11 @@ JavaScript runtime versions from `gleam.toml`, `manifest.toml`, toolchain files,
 containers, and CI before consulting APIs. Use version-matched official docs and
 HexDocs. Latest documentation is useful for evaluating an upgrade, not evidence
 that an API exists in the locked project. Run `gleam --version` and
-`gleam help <command>` when exact local CLI behavior matters.
+`gleam help <command>` when exact local CLI behavior matters. For new projects,
+use the latest stable compatible compiler and package releases. For existing
+projects, preserve declared compatibility and locked versions unless an upgrade
+is requested or required by the change. When upgrading, choose the latest
+compatible stable release after reviewing changelogs and advisories.
 
 For mailboxes, queues, processes, and other resource-owning paths, make bounds,
 ownership, resource accounting, and important internal invariants explicit.
@@ -50,9 +53,9 @@ workflow design.
    expected errors, effects, process ownership, and target support explicit.
 5. Before editing generated code, find the source SQL, schema, generator, and
    pinned version; change the input and regenerate instead of hand-editing.
-6. Verify narrowly first, then widen to formatting, warnings-as-errors builds,
-   tests, documentation, every supported target/runtime, integration behavior,
-   and the CI-equivalent matrix.
+6. Verify narrowly first, then widen as the change requires to formatting,
+   warnings-as-errors builds, tests, documentation, affected supported
+   targets/runtimes, integration behavior, and the CI-equivalent matrix.
 
 ## Source Hierarchy
 
@@ -126,11 +129,12 @@ merely to match this table.
 - Use `////` for module documentation and `///` immediately before documented
   functions and types. Explain domain rules, effects, errors, target support,
   process ownership, and non-obvious decisions.
-- Put every published module under the package's unique namespace. The BEAM has a
-  global module namespace, so collisions across packages fail compilation.
-- Organize modules around business domains and cohesive public APIs, not
-  `types`, `utils`, `services`, `controllers`, design patterns, or category
-  theory. Do not split a cohesive module merely because it is large.
+- Keep published modules within the package namespace, including the package's
+  root module. The BEAM has a global module namespace, so collisions across
+  packages fail compilation.
+- Prefer modules organized around business domains and cohesive public APIs over
+  generic technical buckets. Preserve an established coherent structure, and do
+  not split a module merely because it is large.
 
 ## Types And Public APIs
 
@@ -181,9 +185,9 @@ merely to match this table.
 - A pipeline passes its left value to the first argument of the call on the
   right. Design subject-first APIs and use an explicit capture when piping into a
   different position.
-- Before 1.18, if first-argument insertion did not type-check, Gleam could turn
-  `a |> b(c)` into `b(c)(a)`. Gleam 1.18 deprecates this call-result fallback;
-  replace it with an explicit capture.
+- Use an explicit capture when piping into a position other than the first.
+  During compiler upgrades, review pipeline deprecations rather than relying on
+  historical call-result fallback behavior.
 - A `use` expression is callback syntax: everything after it becomes an
   anonymous function passed as the final argument. It is not built-in early
   return, cleanup, cancellation, or error handling.
@@ -211,9 +215,9 @@ merely to match this table.
   arbitrary precision while JavaScript `Int` values are numbers; JavaScript can
   produce NaN and infinity; strings, tuples, `Nil`, bit arrays, and generated
   custom types have target-specific foreign representations.
-- Require Gleam 1.18+ when JavaScript 16-bit float, zero-sized, or constant-string
-  bit-array segments affect correctness; earlier compilers have known encoding
-  and code-generation defects in these cases.
+- When bit-array encoding or generated JavaScript representation affects
+  correctness, use the latest compatible compiler and review its release notes
+  for target-specific fixes.
 - Test dynamic decoders, integer precision, floats, bit arrays, and FFI on each
   supported target and JavaScript runtime.
 
@@ -223,9 +227,9 @@ merely to match this table.
   or failure isolation justifies it. Do not put every module or function behind
   an actor.
 - Prefer `gleam_otp` actors to raw receive loops for long-lived typed state, and
-  prefer supervised children to detached startup processes. Gleam OTP 1.0 was a
-  breaking redesign, so use examples for the installed major version rather than
-  pre-1.0 actor, task, or supervisor APIs.
+  prefer supervised children to detached startup processes. Use examples for
+  the installed major version because actor and supervisor APIs have changed
+  across major releases.
 - Every long-running process needs an owner, explicit shutdown behavior, restart
   policy, observable failures, and a reason to exist.
 - Actor handlers are sequential. Keep them bounded and avoid slow network calls,
@@ -234,20 +238,21 @@ merely to match this table.
 - BEAM mailboxes are not bounded automatically. Apply admission control,
   backpressure, bounded concurrency, message-size limits, and overload behavior.
   Supervision does not prevent mailbox memory exhaustion.
-- Use finite call and receive timeouts. Current `actor.call` and `process.call`
-  APIs panic when the callee dies, a name is missing, or a timeout expires; when
+- Use finite call and receive timeouts. Verify the selected `actor.call` and
+  `process.call` failure behavior in version-matched HexDocs; when
   timeout is expected domain behavior, model it through an explicit reply and
   timed receive or isolate the call under supervision. A call timeout stops only
   the caller's wait: queued or in-flight work may still run and reply later. Do
   not blindly retry non-idempotent work; use operation identifiers,
   deduplication, or explicit cancellation semantics where required.
-- Understand links and monitors before spawning. Current `process.spawn` is
-  linked; never assume a spawn is detached because another language uses that
-  default.
-- Create a fixed set of `process.Name` values during startup and pass them down.
-  Do not call `process.new_name` for request, tenant, database, path, or other
-  unbounded values: each name creates a non-garbage-collected Erlang atom, and
-  unregistering the name does not reclaim that atom.
+- Understand links and monitors before spawning. Verify the selected spawn API's
+  link behavior; never assume a spawn is detached because another language uses
+  that default.
+- Pass returned `Subject` values directly by default. Create a fixed set of
+  `process.Name` values during startup only when stable registration and lookup
+  are required. Do not call `process.new_name` for request, tenant, database,
+  path, or other unbounded values: each name creates a non-garbage-collected
+  Erlang atom, and unregistering the name does not reclaim that atom.
 - Choose supervisor strategy, restart intensity, child restart type, order, and
   shutdown behavior from dependency topology and actual cleanup behavior.
   Worker children need bounded cleanup and a finite shutdown timeout;
@@ -262,126 +267,13 @@ merely to match this table.
 - Resolve the effective OTP minimum from all dependencies. A stdlib-compatible
   OTP version may still be too old for the selected `gleam_erlang` or framework.
 
-## Mist And Wisp
+## Ecosystem References
 
-- Mist is an Erlang-target HTTP server; Wisp adds web handler and middleware
-  conventions. Use a direct Mist handler for a small service and add Wisp when
-  its body parsing, forms, cookies, security helpers, simulation, and middleware
-  reduce total complexity.
-- Start production Mist services with `mist.supervised` under the application
-  supervisor. Keep `mist.start` for simple standalone ownership when appropriate.
-- Bind only to the required interface. Expose `0.0.0.0` or IPv6 publicly only
-  when the deployment network boundary requires it.
-- Mist 6 handles HTTP/1.0, HTTP/1.1, and HTTP/2. Its HTTP/2 path currently
-  supports byte responses but not file responses, WebSockets, chunked responses,
-  or SSE; verify required response and connection modes before selecting it.
-- Request bodies are lazy. Set route-appropriate limits before reading, enforce a
-  cumulative limit for streamed or chunked bodies, and read a body only once
-  unless the application deliberately caches it.
-- Authenticate before WebSocket or SSE upgrades. Bound connections, messages,
-  subscriptions, and per-user fan-out; validate browser WebSocket origins.
-- Treat direct peer addresses and forwarded headers according to the deployment
-  proxy trust model. Never trust client-supplied forwarding headers globally.
-- Resolve static and download paths from an allowlisted root. Reject traversal
-  and symlink escape; do not serve the repository, configuration, database, or
-  secret directories.
-- For Wisp 2.x, use at least 2.2.2. Versions before 2.2.2 have a chunked
-  multipart limit bypass; versions from 2.1.1 through 2.2.0 also have an encoded
-  static-file path traversal vulnerability. Recheck current advisories before
-  selecting a version.
-- Set per-route body, upload, and chunk limits rather than relying blindly on
-  Wisp defaults. Uploaded filenames are untrusted. Mist and other compliant
-  adapters delete temporary files when request handling completes; other
-  adapters must call `wisp.delete_temporary_files`. Move validated files before
-  the handler returns if they are needed later or asynchronously.
-- Use a stable secret key base of the documented minimum size across restarts and
-  replicas. Signed cookies provide integrity, not confidentiality; store no
-  secrets in them.
-- Apply CSRF protection to cookie-authenticated state changes and keep GET/HEAD
-  free of side effects. Design CORS and cross-origin authentication explicitly.
-- Escape user-controlled HTML or use typed rendering. Add a complete,
-  application-appropriate security-header policy; nonce CSP middleware alone is
-  not a full policy.
-- Crash-to-500 middleware is an HTTP boundary, not observability or recovery.
-  Monitor recurring crashes and fix their cause.
-
-## Pog And Squirrel
-
-- Pog is the runtime PostgreSQL pool and query client. Create its fixed pool name
-  during startup, add `pog.supervised` before dependent children, and pass a
-  `pog.Connection` or typed application dependency to consumers.
-- Parameterize every data value with Pog or generated Squirrel parameters.
-  Never concatenate untrusted values into SQL. Map dynamic identifiers and sort
-  expressions through a closed allowlist.
-- Size pools against database capacity across every replica, not local
-  concurrency alone. Set timeouts and queue-shedding behavior deliberately, and
-  use a real query for readiness when the service requires PostgreSQL.
-- Pog's `default_config` uses `SslDisabled`. `url_config` also uses it when the
-  URL has no query string; a query string without `sslmode` is rejected.
-  Explicitly select `SslVerified` or use
-  `sslmode=verify-ca` or `sslmode=verify-full` for remote production databases,
-  and install the required CA roots. Unverified TLS is vulnerable to
-  interception; disabled TLS is only appropriate inside a separately secured
-  transport boundary.
-- Keep transactions short and perform all transaction work through the provided
-  connection. Do not make slow external calls while holding a connection and
-  database locks.
-- A row-decoder failure happens after PostgreSQL executed the statement. Outside
-  a transaction, an unexpected result type does not prove a write was rolled
-  back.
-- Do not decode PostgreSQL `numeric` to `Float` for exact money or other decimal
-  domains without explicitly accepting precision loss.
-- Squirrel is a development-time PostgreSQL code generator. It is not an ORM,
-  query builder, migration system, or runtime pool.
-- Keep Squirrel as a development dependency and Pog as a runtime dependency.
-  Generate from one reviewable statement per `.sql` file, commit generated
-  `sql.gleam`, and run `gleam run -m squirrel check` in CI.
-- Generate against a migrated disposable or dedicated database matching the
-  production schema and extensions. Use a least-privileged account and do not
-  expose generation traffic or credentials over an untrusted network. Current
-  Squirrel 4.7 generation has no direct TLS configuration; recheck the installed
-  version before using a remote database.
-- Verify Squirrel's supported PostgreSQL version and type matrix. Current 4.7
-  requires PostgreSQL 16+, does not support every PostgreSQL type, maps `numeric`
-  to `Float`, and cannot infer nullable parameters reliably.
-- Prefer separate explicit SQL statements for setting and clearing nullable
-  fields. Do not universalize sentinel values that can collide with valid data.
-
-## Lustre
-
-- Lustre supports distinct SPA, Web Component, HTML/SSR, and server-component
-  modes; choose one deliberately rather than treating them as interchangeable.
-  Lustre 5 changed runtime, event, component, and server-component APIs, so match
-  examples to the installed major version.
-- Use a full Lustre application when effects are required and the simpler model
-  only for state-only behavior. Keep initialization, update, and view pure where
-  possible; put I/O in effects and feed results back as messages.
-- Prefer ordinary view functions over stateful components. Use a component when
-  an encapsulated update loop and lifecycle are genuinely useful.
-- Use keyed elements for reordered collections. Add memoization only after
-  measuring; retained dependency state and frequent invalidation can make it
-  slower.
-- Prefer typed elements and text nodes. Never pass untrusted content to unsafe
-  raw-HTML APIs.
-- Treat SSR hydration data as untrusted serialized input. Include no secrets,
-  decode on the client, and handle missing, malformed, or stale state.
-- For larger full-stack systems, consider separate Erlang server, JavaScript
-  client, and cross-target shared packages. This keeps target-specific
-  dependencies and runtime assumptions visible.
-- Keep `lustre_dev_tools` in development dependencies. It can automatically
-  download pinned Bun and Tailwind executables into the project and verifies
-  embedded SHA-256 hashes; account for this network and executable supply-chain
-  boundary, or configure a reviewed local or system binary.
-- Its production build can minify bundles but does not fingerprint bundles or
-  copied assets. Add a content-hashing or versioning step before serving them
-  with immutable cache headers, and define an explicit cache policy.
-- Server components still require transport integration. Authenticate and
-  authorize each connection, verify CSRF and browser origin server-side, bound
-  connection and message growth, and clean up subscriptions on disconnect.
-- Use `lustre/dev/simulate` for pure model/view/message behavior, but remember it
-  does not execute effects or reproduce browser event propagation. Use browser
-  end-to-end tests for hydration, focus, accessibility, Web Components, network
-  effects, and reconnection.
+When Mist, Wisp, Pog, Squirrel, or Lustre is in scope, read
+`references/ecosystem.md` before changing framework configuration, security,
+database access, code generation, browser behavior, or deployment. Verify all
+APIs, limits, advisories, and runtime support against the installed package's
+HexDocs and changelog.
 
 ## Externals And Interoperability
 
@@ -401,33 +293,33 @@ merely to match this table.
 - Elixir externals still use the `erlang` target and the `Elixir.ModuleName`
   module name. When substantial Elixir behavior is in scope, verify it against
   current Elixir/OTP documentation and the foreign module's tests.
-- Since Gleam 1.13, use generated JavaScript constructors, predicates, and field
-  accessors for Gleam data. Do not depend on compiler-internal object layouts or
-  mutate JavaScript arrays used as Gleam tuples. Zero-field variants are
-  singleton values on current JavaScript output, so never use object identity or
-  historical layouts as an interoperability contract.
+- Use the selected compiler's generated JavaScript constructors, predicates, and
+  field accessors for Gleam data. Do not depend on compiler-internal object
+  layouts, mutate JavaScript arrays used as Gleam tuples, or use object identity
+  as an interoperability contract.
 - Gleam does not manage npm dependencies. Declare, lock, audit, and document
   JavaScript packages using the selected runtime's package manager; do not vendor
   them into published Hex packages merely for convenience.
-- Native code and NIFs share the BEAM process. Keep regular NIF calls short,
+- Native code and NIFs execute inside the BEAM VM. Keep regular NIF calls short,
   classify unavoidable blocking work correctly, and remember that a crashing
-  NIF can crash the VM. Load the relevant native-language and `@security/` skills
-  for that boundary.
+  NIF can crash the VM. Load the relevant native-language skill and the
+  `security` skill for that boundary.
 
 ## Dependencies, Manifests, And Publishing
 
 - Commit `manifest.toml` for deterministic builds and auditing. Do not hand-edit
   it; use Gleam dependency commands and inspect the resulting diff.
-- Use Gleam 1.18+ when resolving or downloading Hex dependencies so package
-  checksums and requirements are verified from signed registry metadata.
+- Resolve dependencies with the repository-selected compatible Gleam compiler
+  and verify that release's registry-integrity behavior. Do not upgrade the
+  compiler or unrelated dependencies merely because dependency resolution runs.
 - Declare every imported package directly. A transitive dependency is not an
   implicit public dependency.
 - Use compatible SemVer requirements while setting the package's Gleam
   requirement to the earliest compiler actually supported. Pin application
   toolchains and runtimes in CI and deployment.
 - Prefer immutable Git commit references over branches or mutable tags when a
-  dependency is not on Hex. Gleam 1.18 Git dependencies can specify `path` for a
-  package subdirectory in a monorepo; inspect the generated manifest entry.
+  dependency is not on Hex. Verify monorepo subdirectory support against the
+  selected compiler and inspect the generated manifest entry.
 - Put shipped code in `src/`, tests in `test/`, and development programs or
   generators in `dev/`. Only `dev/` and `test/` may rely on development
   dependencies.
@@ -441,17 +333,19 @@ merely to match this table.
 
 ## Security Boundaries
 
-- Load `@security/` for authentication, authorization, cryptography, untrusted
-  paths or URLs, uploads, process execution, deserialization, external code, or
-  privileged operations.
+- Load the `security` skill when a change creates or alters an authentication,
+  authorization, cryptography, untrusted-path, URL, upload, process-execution,
+  deserialization, external-code, or privileged-operation boundary.
 - Decode untyped JSON and foreign data immediately into domain types. Bound body,
   header, upload, decompression, parser, collection, mailbox, queue, concurrency,
   response, and per-request work.
 - Never generate atoms or process names from untrusted or unbounded input.
 - Treat file serving and uploads as traversal and lifecycle boundaries, outbound
   networking as an SSRF boundary, and JavaScript/Erlang externals as untyped code.
-- Use parameterized SQL, verified TLS, least-privileged database users, explicit
-  transaction scope, and server-owned authorization context.
+- Use parameterized SQL, least-privileged database users, explicit transaction
+  scope, and server-owned authorization context. Require verified TLS across
+  untrusted networks; disabled TLS is acceptable only inside a reviewed,
+  separately secured transport boundary.
 - Keep secrets out of URLs, logs, signed-but-readable cookies, generated files,
   client hydration state, crash reports, and test snapshots.
 - Review package locks, Hex/Git/npm provenance, advisories, generated code, FFI,
@@ -459,12 +353,12 @@ merely to match this table.
 
 ## Testing And Verification
 
-- Use `@test-quality/` when writing or reviewing tests. `gleam test` runs the
+- Load the `test-quality` skill when writing or reviewing tests. `gleam test` runs the
   package's `<package>_test.main`; with gleeunit, that function must import
   `gleeunit` and call `gleeunit.main()`. Gleeunit then discovers public functions
   under `test/` whose names end in `_test`; a panic fails the test.
-- Prefer Gleam's `assert` and `let assert` in tests. Older
-  `gleeunit/should` examples are obsolete for new code.
+- Prefer Gleam's `assert` and `let assert` in new tests. `gleeunit/should`
+  remains available but is not the current default.
 - Test success and exact error variants, opaque smart constructors, exhaustive
   state transitions, decoder failures, and target-specific representations.
 - Keep process tests bounded with monitors, finite receives, and timeouts. Do not
@@ -484,7 +378,8 @@ merely to match this table.
   reconnection.
 - Cross-target packages should build and test Erlang and JavaScript. Also run
   every JavaScript runtime the package claims to support.
-- Use `@qa/` for the shipped server, browser application, library integration,
+- Load the `qa` skill when the change needs validation of the shipped server,
+  browser application, library integration,
   deployment artifact, startup, readiness, shutdown, and upgrade behavior.
 
 Derive exact commands from the pinned compiler and repository. A common baseline
@@ -519,11 +414,12 @@ verify both with local help and versioned configuration docs.
 
 ## Performance And Operations
 
-- Use `@benchmark/` for performance claims. Measure the shipped target and
+- Load the `benchmark` skill for performance claims. Measure the shipped target and
   runtime with production-equivalent data, process topology, pool sizes,
   connection behavior, and external services.
-- Bound actor mailboxes, WebSocket/SSE connections, database queues, request
-  bodies, retries, and fan-out before load testing.
+- Bound actor ingress, outstanding work, message sizes, and tolerated backlog.
+  Also bound WebSocket/SSE connections, database queues, request bodies, retries,
+  and fan-out before load testing.
 - Account for list traversal, immutable updates, process message size and copying,
   retained binaries, serialization, FFI crossings, browser rendering, and
   database round trips. Optimize measured hot paths, not functional-style myths.
@@ -555,23 +451,6 @@ verify both with local help and versioned configuration docs.
 - Build and run as a non-root user where practical, keep secrets out of images,
   and verify the artifact in the same target/runtime combination used in
   production.
-
-## Review Checklist
-
-- Are the compiler, dependency, target, OTP or JavaScript runtime, and CI versions
-  known and matched to the docs?
-- Do custom and opaque types prevent invalid states, and are public variants and
-  errors intentional compatibility contracts?
-- Are expected failures returned as `Result`, panics reserved for designed
-  process-local defects, and FFI exceptions translated?
-- Does every actor, supervisor child, mailbox, pool, connection, stream, and
-  callback have bounded work and an explicit lifecycle?
-- Can untrusted input create atoms, paths, SQL, HTML, redirects, outbound
-  requests, messages, or unbounded allocations?
-- Are Mist/Wisp body and connection limits, Pog pool/TLS/transaction policy,
-  Squirrel generation, and Lustre target mode explicit where used?
-- Are all claimed targets/runtimes, real external dependencies, deployment
-  artifact, and important failure path tested?
 
 ## Guardrails
 
@@ -606,16 +485,3 @@ verify both with local help and versioned configuration docs.
 - Gleeunit: `https://hexdocs.pm/gleeunit/`
 - Gleam version 1, by Louis Pilfold:
   `https://gleam.run/news/gleam-version-1/`
-
-## Response Expectations
-
-For substantial changes using this skill:
-
-1. State the compiler, target, runtime, process/supervision, and compatibility
-   impact.
-2. Call out custom-type, error, effect, mailbox, timeout, FFI, database, and
-   security contracts.
-3. Explain framework and package choices from requirements rather than popularity.
-4. Point to official or version-matched HexDocs when API details matter.
-5. End with exact repository-appropriate format, warnings-as-errors build, test,
-   target/runtime, integration, security, QA, or benchmark verification performed.

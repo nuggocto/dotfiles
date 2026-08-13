@@ -21,9 +21,10 @@ with green ticks. A clean scan is not proof of safety.
 Stay defensive. Establish risk with the least-invasive evidence that is safe and
 authorized; never cause the harm being demonstrated.
 
-For resource-exhaustion and bounds issues, pair with `@tiger-style/`; to confirm
-a fix behaves correctly, use `@qa/`; to add focused regression coverage, use
-`@test-quality/`.
+For resource-exhaustion and bounds issues, load the `tiger-style` skill only when
+the user explicitly asks for TigerStyle. To confirm a fix behaves correctly,
+load the `qa` skill. To add focused regression coverage, load the `test-quality`
+skill.
 
 ## Engagement mode and authorization
 
@@ -150,7 +151,7 @@ a fix behaves correctly, use `@qa/`; to add focused regression coverage, use
   goal or memory poisoning, and unsafe execution of model-generated output.
 - **Resource exhaustion:** unbounded loops, recursion, parsing, allocation,
   retries, queues, fan-out, concurrency, and missing limits, quotas, or rate
-  controls. Use `@benchmark/` only for authorized non-destructive capacity work.
+  controls. Load the `benchmark` skill only for authorized non-destructive capacity work.
 
 ## Tooling
 

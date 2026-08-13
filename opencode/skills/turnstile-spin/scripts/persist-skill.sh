@@ -4,9 +4,9 @@
 # follow-up tasks without re-pasting the bootstrap prompt.
 #
 # Args:
-#   --path <path>   SKILL.md destination, e.g. .claude/skills/turnstile-spin/SKILL.md.
+#   --path <path>   SKILL.md destination, e.g. .opencode/skills/turnstile-spin/SKILL.md.
 #                   The bundle is extracted into the parent directory of <path>,
-#                   so scripts land at e.g. .claude/skills/turnstile-spin/scripts/.
+#                   so scripts land at e.g. .opencode/skills/turnstile-spin/scripts/.
 #
 # Outputs JSON. Exit 0 if the bundle was written, 1 on failure.
 #   ok:    {"status":"ok","path":"<path>","bundle_root":"<dir>","scripts":[<list>]}

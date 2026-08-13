@@ -42,7 +42,7 @@
 [user]
 	name = nugget
 	email = vincent.tantei@proton.me
-	signingkey = /home/nuggocto/.ssh/id_ed25519.pub
+	signingkey = ~/.ssh/id_ed25519.pub
 [gpg]
 	format = ssh
 [credential "https://github.com"]

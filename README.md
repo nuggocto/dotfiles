@@ -18,12 +18,13 @@ git clone git@github.com:nuggocto/dotfiles.git ~/.dotfiles
 (`~/.dotfiles` is just the suggested spot) — the symlinks always point back to
 wherever it lives. It backs up anything already at each destination (into
 `~/.config/dotfiles-backup-<timestamp>/`), then symlinks every tracked config
-into place. It's safe to re-run — it only touches what isn't already linked.
+into place. It is safe to re-run. It leaves correct links alone and removes
+obsolete skill links only when they point back into this repository.
 
-The installer also exposes selected canonical skills from `opencode/skills` to
-Claude, Codex, Kimi CLI, and Grok CLI. Kimi and Grok use the shared
-`~/.agents/skills` links; each tool reads the same tracked files without copied
-skill bundles drifting apart.
+The installer also exposes the shared language and workflow skills from
+`opencode/skills` to Codex, Kimi CLI, Grok CLI, and Pi. Kimi and Grok use
+the shared `~/.agents/skills` links; each tool reads the same tracked files
+without copied skill bundles drifting apart.
 
 Afterwards:
 - Edit `hypr/monitors.conf` for this machine's displays (`hyprctl monitors`).
@@ -36,7 +37,7 @@ Afterwards:
 | Config | What it is |
 | --- | --- |
 | `hypr` | Hyprland overrides (bindings, looknfeel, monitors, idle/lock, etc.) |
-| `waybar` | Bar config, style, and the japanese-clock scripts |
+| `waybar` | Bar config, style, and custom Chinese clock |
 | `fastfetch` | fastfetch config + custom logo |
 | `fish` | Shell config (`fish_variables` is gitignored) |
 | `starship.toml` | Prompt layout and semantic ANSI colors |
@@ -46,7 +47,7 @@ Afterwards:
 | `ghostty` | Primary terminal config |
 | `nvim` | Neovim (LazyVim) config, plugin specs, lockfile |
 | `zed` | Zed settings + keymap |
-| `opencode` | OpenCode config, TUI settings, and canonical agent skills shared with Claude, Codex, Kimi CLI, and Grok CLI |
+| `opencode` | OpenCode config, TUI settings, and canonical agent skills shared with Codex, Kimi CLI, Grok CLI, and Pi |
 | `pi` | Pi coding agent Solitude theme (credentials and sessions remain local) |
 | `omarchy` | Solitude patch plus selective theme hooks/templates |
 

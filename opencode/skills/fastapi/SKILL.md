@@ -13,9 +13,9 @@ metadata:
 
 # FastAPI
 
-Apply `@python/` first for Python semantics, typing, exceptions, task ownership, packaging, security, testing, and performance. This skill adds FastAPI, Starlette, Pydantic, ASGI, and deployment-specific guidance.
+Load the `python` skill first for Python semantics, typing, exceptions, task ownership, packaging, security, testing, and performance. This skill adds FastAPI, Starlette, Pydantic, ASGI, and deployment-specific guidance. Use uv, Ruff, and ty as specified by the Python skill.
 
-FastAPI remains pre-1.0. Resolve exact FastAPI, Starlette, Pydantic, AnyIO, HTTPX, Uvicorn, Python, ORM, and security-library versions from `pyproject.toml`, lockfiles, installed metadata, and CI before using APIs. FastAPI 0.141.1 requires Python 3.10 or newer and declares support through Python 3.14, but derive the repository's actual contract from its metadata and CI. Pin and test the complete resolved stack; do not assume current online docs match the repository or independently upgrade FastAPI's constrained transitive internals without evidence.
+FastAPI remains pre-1.0. For new services, use the latest stable mutually compatible FastAPI, Starlette, Pydantic, AnyIO, HTTPX, Uvicorn, Python, ORM, and security-library releases. For existing services, resolve the exact stack from `pyproject.toml`, `uv.lock`, installed metadata, and CI, then preserve it unless an upgrade is requested or required. Pin and test the complete resolved stack; do not assume current online docs match the repository or independently upgrade FastAPI's constrained transitive internals without evidence.
 
 ## Workflow
 
@@ -111,7 +111,7 @@ FastAPI remains pre-1.0. Resolve exact FastAPI, Starlette, Pydantic, AnyIO, HTTP
 
 ## Authentication And Authorization
 
-- Load `@security/` for authentication, authorization, cryptography, uploads, user-controlled URLs/paths, commands, templates, or privileged endpoints.
+- Load the `security` skill for authentication, authorization, cryptography, uploads, user-controlled URLs or paths, commands, templates, or privileged endpoints.
 - Prefer a maintained identity provider and standards-compliant OIDC/JWT verification over inventing an authentication protocol.
 - Verify fixed allowed algorithms, signature, issuer, audience, expiry, not-before, and key rotation. JWT payloads are signed, not encrypted.
 - Separate authentication from authorization. Dependencies establish identity; application/service policy enforces tenant, ownership, role, and scope against server-owned data.
@@ -195,7 +195,7 @@ FastAPI remains pre-1.0. Resolve exact FastAPI, Starlette, Pydantic, AnyIO, HTTP
 - Set transport exception behavior appropriately when testing the actual 500 response rather than expecting the application exception to escape.
 - Use disposable real databases for SQL, pool, transaction, migration, and isolation behavior; mocks do not validate those contracts.
 - Snapshot or semantically diff OpenAPI and preserve regression tests for production failures.
-- Run the repository's pinned quality toolchain (e.g. `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy .` / `pyright`) before finishing. Match versions locally and in CI.
+- Run Ruff and ty through uv before finishing. Match the same pinned tool versions locally and in CI.
 
 ## Deployment And Observability
 

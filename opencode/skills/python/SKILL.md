@@ -13,16 +13,16 @@ metadata:
 
 # Python
 
-Use this skill for production-grade Python applications, libraries, services, CLIs, workers, data pipelines, and tooling. Apply framework-specific guidance only when that framework is present; use `@fastapi/` for FastAPI applications. Prefer the repository's existing interpreter, package manager, toolchain, and architecture.
+Use this skill for production-grade Python applications, libraries, services, CLIs, workers, data pipelines, and tooling. Apply framework-specific guidance only when that framework is present; load the `fastapi` skill for FastAPI applications. Preserve the repository's supported interpreter, architecture, packages, and frameworks. Always use uv, Ruff, and ty for Python environments, dependencies, execution, formatting, linting, and type checking; read `references/astral-tooling.md` for setup and FastAPI integration.
 
-Resolve the supported Python range and actual execution interpreter from `[project].requires-python`, lockfiles, CI, containers, deployment configuration, and version-manager files before using syntax or APIs. `requires-python` is a compatibility contract, not an exact runtime pin. Run supported Python lines on current maintenance or security patch releases, and pin the full interpreter version in deployment artifacts; Python 3.14 deployments should use 3.14.6 or newer. Use version-matched Python and dependency documentation; do not assume the newest local interpreter represents the project.
+Resolve the supported Python range and actual execution interpreter from `[project].requires-python`, lockfiles, CI, containers, deployment configuration, and version-manager files before using syntax or APIs. `requires-python` is a compatibility contract, not an exact runtime pin. Run supported Python lines on their latest maintenance or security patch release. Pin the full interpreter version in owned artifacts when possible; on managed or distribution-provided runtimes, use the strongest reproducibility control the platform supports. Use version-matched Python and dependency documentation; do not assume the newest local interpreter represents the project. For interpreter upgrades or version-sensitive runtime behavior, read `references/runtime-upgrades.md`.
 
 ## Workflow
 
 1. Identify the artifact and constraints: application or library, supported Python versions and implementations, entrypoint, trust boundaries, external I/O, concurrency model, latency and memory budgets, and deployment model.
 2. Start with `pyproject.toml`, lockfiles, environment/toolchain files, entrypoints, implementation, tests, generated-code inputs, and CI. Follow imports, callers, protocols, plugin entry points, and deployment configuration until behavior and compatibility contracts are understood.
-3. Confirm the interpreter used by repository commands; do not assume `python` or `python3` resolves correctly. Use the established environment manager and `sys.executable -m ...` when invoking the current interpreter matters.
-4. Preserve established package, formatter, linter, type checker, and framework choices unless they are unsafe, broken, or clearly block the request.
+3. Confirm the interpreter used by repository commands; do not assume `python` or `python3` resolves correctly. Use uv to select, install, and invoke the required interpreter.
+4. Preserve established package and framework choices unless they are unsafe, broken, or clearly block the request. Use uv, Ruff, and ty even when older project tooling is present.
 5. Before editing generated code, identify its source and pinned generator, modify the input or template, and review regenerated output for unrelated churn.
 6. Make the smallest change that keeps API, ownership, cleanup, exception, cancellation, and compatibility behavior explicit.
 7. Verify narrowly first, then run the repository's Python-version, OS, optional-dependency, typing, lint, test, packaging, and deployment matrix affected by the change.
@@ -58,28 +58,18 @@ Resolve the supported Python range and actual execution interpreter from `[proje
 - Keep every `cast`, `# type: ignore`, and checker suppression narrow and justified. Include diagnostic codes where supported and detect unused suppressions.
 - Use typing syntax supported by the minimum declared Python. Use `typing_extensions` for maintained backports instead of silently raising the runtime floor.
 - Published annotations are library API. Test complex typing contracts and preserve their compatibility deliberately.
-- Python 3.14 defaults to deferred annotations. Audit annotation side effects,
-  direct access or mutation of `__annotations__`, assumptions that forward
-  references are strings, and `from __future__ import annotations`, which
-  retains stringified semantics. Treat runtime annotation introspection as code
-  execution. On Python 3.14+, use
-  `annotationlib.get_annotations()` with an explicit format; on older supported
-  versions use the documented compatible API or a maintained backport. Do not
-  read `__annotations__` directly when deferred evaluation matters or introspect
-  annotations from untrusted input. String and forward-reference formats may
-  still execute annotation code or raise evaluation errors. Do not add
-  `from __future__ import annotations` mechanically without checking consumers.
+- Treat runtime annotation introspection as potentially executable behavior. Use the selected interpreter's documented annotation API, and do not add future imports or change annotation evaluation semantics without checking runtime consumers.
 
 ## Exceptions And Assertions
 
 - Derive application exceptions from `Exception`, not `BaseException`. Avoid multiple inheritance from built-in exception classes.
 - Catch the narrowest exception that can be handled correctly and keep the protected `try` block small.
 - Avoid bare `except`; when top-level cleanup must catch termination exceptions, clean up and immediately re-raise unless the process boundary deliberately reports them.
-- Raise `TypeError` for unsupported argument types and `ValueError` for invalid values of accepted types.
+- For new APIs, normally raise `TypeError` for unsupported argument types and `ValueError` for invalid values of accepted types. Preserve established public and protocol-specific exception contracts.
 - Translate lower-level exceptions only when the abstraction benefits. Preserve causality with `raise DomainError(...) from exc`; suppress context only when it is deliberately irrelevant.
 - Do not log and re-raise the same exception at every layer. Report it once where enough context exists to handle or terminate the operation.
 - Use `assert` only for programmer-error invariants. Optimized execution can remove assertions, so never use them for validation, authorization, required side effects, or recoverable failure.
-- Account for `ExceptionGroup` and `except*` when concurrent operations can fail together. Do not return, break, or continue from `finally`: these statements can suppress an exception or override an earlier return, and Python 3.14 emits a compile-time `SyntaxWarning` for them. Treat that warning as a failure and rewrite the control flow.
+- Account for `ExceptionGroup` and `except*` when concurrent operations can fail together. Avoid `return`, `break`, or `continue` when the statement exits a `finally` block: it can suppress an exception or override an earlier return. Treat interpreter warnings about this control flow as failures and rewrite it.
 
 ## Resources And Mutability
 
@@ -111,9 +101,8 @@ Resolve the supported Python range and actual execution interpreter from `[proje
 - Use threads primarily for overlapping blocking I/O or native code that releases the GIL. Use processes for isolation, killability, or CPU parallelism when their serialization and startup costs fit.
 - Guard multiprocessing entrypoints with `if __name__ == "__main__":`; keep worker callables and arguments importable and picklable for `spawn` and `forkserver`.
 - Do not assume `fork` is the default or safe. Follow the selected Python version and platform, let library callers supply a multiprocessing context, and document required start methods.
-- Python 3.14 defaults to `forkserver` on supported POSIX platforms and `spawn` on Windows and macOS. Audit picklability, import-time effects, `__main__` guards, frozen executables, synchronization objects, and dependencies on inherited process state.
 - Never deserialize untrusted process, queue, pipe, cache, or interpreter messages that use pickle.
-- Free-threaded CPython is optional, not the universal runtime. Python 3.14's free-threaded build has different context inheritance and context-aware warning defaults and generally higher memory use. Do not depend on built-in container locking as a language guarantee; test the actual runtime and complete native dependency set under conventional and free-threaded builds before claiming support.
+- Free-threaded CPython is optional, not the universal runtime. Its context inheritance and warning-filter defaults can differ from a GIL-enabled build, and it typically uses more memory. Do not depend on built-in container locking as a language guarantee; test the actual runtime, memory capacity, and complete native dependency set under conventional and free-threaded builds before claiming support.
 - On a free-threaded build, verify after loading production dependencies that
   `sys._is_gil_enabled()` is false when GIL-free execution is required;
   unsupported extension modules may automatically re-enable the GIL.
@@ -126,7 +115,7 @@ Resolve the supported Python range and actual execution interpreter from `[proje
 
 ## Security Boundaries
 
-- Load `@security/` when handling authentication, authorization, cryptography, untrusted files, archives, URLs, templates, commands, plugins, deserialization, or privileged operations.
+- Load the `security` skill when a change creates or alters an authentication, authorization, cryptography, untrusted-file, archive, URL, template, command, plugin, deserialization, or privileged-operation boundary.
 - Validate external type, format, length, count, recursion, decompression, timeout, and memory limits before expensive work.
 - Never use `eval`, `exec`, unsafe dynamic imports, templates, or object deserialization on untrusted input. Python is not a security sandbox; `ast.literal_eval()` still permits denial-of-service inputs.
 - Never unpickle untrusted or tamperable data, including through `shelve`, multiprocessing, caches, or socket logging.
@@ -159,15 +148,16 @@ Resolve the supported Python range and actual execution interpreter from `[proje
 - For new distributions, use an SPDX expression in `[project].license` and
   declare `[project].license-files`; do not introduce the deprecated license
   table or license classifiers.
-- Preserve the repository's environment and lock tool. Do not migrate package managers simply because another tool is fashionable.
+- Use uv as the environment, dependency, lock, build, and command runner. Remove redundant package-manager configuration and lockfiles only after uv reproduces the required environments and deployment artifacts.
 
 ## Toolchain And Quality
 
-- Prefer the repository's existing toolchain. When starting fresh or the repository has no established choice, use `uv` for Python installation, virtual-environment creation, dependency resolution, lockfile generation, and running commands. Use `ruff` for linting and formatting, configured in `pyproject.toml`. Use `mypy` or `pyright` for static type checking according to project convention.
-- Pin `uv`, `ruff`, `mypy`, `pyright`, and other quality-tool versions in development dependency groups or in the tool's own lockfile. Reproduce the same versions locally and in CI.
-- Let `ruff format` replace `black` and `isort` when the project adopts it; let `ruff check` replace `flake8`, `pydocstyle`, and many plugins. Keep rule selection explicit and version-locked; do not enable every rule blindly.
-- Keep type-checker configuration in `pyproject.toml` and aligned with the minimum supported Python. Enable strict or incremental checks deliberately and fix newly surfaced errors rather than suppressing them broadly.
-- Run formatter, linter, and type checker from the same pinned versions in local development and CI. Provide one canonical command such as `uv run ruff check . && uv run ruff format --check . && uv run mypy .` or the repository's equivalent.
+- Use uv for Python installation, virtual environments, dependency resolution, lockfile generation, syncing, building, and running commands in every project. Make `uv.lock` the canonical lock for applications and development environments.
+- Use Ruff for formatting and linting and ty for type checking. For Python 3.7 through 3.9 targets, account for ty's incomplete bundled standard-library stubs when reviewing diagnostics, but do not replace ty with another checker.
+- Pin Ruff and ty in the development dependency group and `uv.lock`. Pin uv through CI actions, installer versions, or toolchain metadata. Reproduce the same versions locally and in CI.
+- Use `ruff format` instead of Black and isort, and `ruff check` instead of Flake8, pydocstyle, and overlapping plugins. Keep rule selection explicit and version-locked; do not enable every rule blindly.
+- Keep ty configuration in `[tool.ty]` in `pyproject.toml` and align it with the minimum supported Python. Enable rules deliberately and keep suppressions narrow.
+- Run the pinned tools locally and in CI with the same commands: `uv run ruff check .`, `uv run ruff format --check .`, and `uv run ty check`.
 - Use `pre-commit` only when the team enforces it consistently; ensure hooks match CI versions and do not replace CI checks.
 - Do not add tools merely because they are popular. Each tool in the pipeline must justify its maintenance and review cost.
 
@@ -182,21 +172,21 @@ Resolve the supported Python range and actual execution interpreter from `[proje
 
 ## Testing And Verification
 
-- Use `@test-quality/` when writing or reviewing tests. Test observable behavior and contracts, including success, invalid input, boundaries, partial failure, retries, cleanup, timeout, cancellation, and shutdown.
+- Load the `test-quality` skill when writing or reviewing tests. Test observable behavior and contracts, including success, invalid input, boundaries, partial failure, retries, cleanup, timeout, cancellation, and shutdown.
 - Keep tests deterministic by controlling clocks, randomness, timezone, locale, environment, network, filesystem, and concurrency. Do not synchronize with arbitrary sleeps.
 - Prefer real collaborators, focused fakes, and integration tests over deep mock graphs. Patch where a name is looked up and use `autospec` or `spec_set` when mocking.
 - Assert cleanup and absence of leaked tasks, threads, processes, files, connections, and warnings.
 - Use property-based tests for parsers, serializers, normalization, state machines, round trips, and broad invariant spaces. Preserve minimized failures as ordinary regression tests.
 - Fuzz hostile-input boundaries and native extensions with explicit time, memory, input-size, and recursion limits.
 - Run the suite on the minimum and maximum supported Python versions, relevant OSes, architectures, and optional dependencies. Test prerelease Python for libraries when practical.
-- Turn unexpected warnings into CI failures and run targeted tests with development mode, asyncio debug mode, and resource warnings.
-- Use the repository's pinned formatter, linter, and type checker with a target matching `requires-python`. Keep one canonical invocation for local and CI use.
+- Turn warnings from project-owned code into CI failures. Use targeted category, module, or message filters for dependency warnings so third-party deprecations do not break CI without review. Run targeted tests with development mode, asyncio debug mode, and resource warnings.
+- Use the repository's pinned uv, Ruff, and ty versions with a target matching `requires-python`. Keep one canonical invocation for local and CI use.
 - Build and install package artifacts for release-sensitive changes. Coverage indicates execution, not assertion quality; inspect meaningful branches rather than chasing a percentage.
-- Use `@qa/` to exercise the shipped service, CLI, or package as a real consumer; unit tests and the test suite do not verify packaging, startup, deployment, or upgrade behavior.
+- Load the `qa` skill when the change needs validation of the shipped service, CLI, or package as a real consumer; unit tests and the test suite do not verify packaging, startup, deployment, or upgrade behavior.
 
 ## Performance
 
-- Use `@benchmark/` for performance claims. Measure the shipped service, CLI, or package with production-equivalent data, process topology, and dependency versions.
+- Load the `benchmark` skill for performance claims. Measure the shipped service, CLI, or package with production-equivalent data, process topology, and dependency versions.
 - Establish a representative workload, baseline, target metric, and correctness check before optimization.
 - Improve algorithms, data movement, I/O count, serialization, batching, and cache design before micro-optimizing syntax.
 - Measure latency distributions, throughput, memory, startup, and allocation behavior relevant to the deployed workload; separate cold and warm paths.
@@ -211,18 +201,18 @@ Resolve the supported Python range and actual execution interpreter from `[proje
 - Do not hide blocking work, I/O, mutation, or process creation behind innocent-looking APIs.
 - Do not rely on assertions, type hints, or linters as runtime validation.
 - Do not leave tasks, threads, processes, executors, or clients without owners and shutdown behavior.
-- Do not add dependencies or tool migrations for tiny convenience without a maintenance win.
+- Do not introduce overlapping non-Astral environment, formatter, linter, or type-checker tooling.
 - Do not broaden a refactor when a targeted change preserves behavior more safely.
 
 ## Primary References
 
 - Python releases: `https://www.python.org/downloads/`
-- Python standard library: `https://docs.python.org/3/library/`
+- Versioned Python documentation: substitute the selected `X.Y` in `https://docs.python.org/X.Y/`
 - Python packaging specifications: `https://packaging.python.org/specifications/`
 
 ## Response Expectations
 
-For substantial changes using this skill:
+For substantial changes using this skill, unless the user requests another format:
 
 1. State Python-version, public API, resource-lifecycle, and concurrency impact.
 2. Call out exception, cancellation, typing, and trust-boundary decisions.

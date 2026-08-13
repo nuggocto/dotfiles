@@ -25,7 +25,12 @@ the repository's toolchain pin, `build.zig.zon`, `build.zig`, CI, and editor
 configuration. Use the matching versioned language reference, standard-library
 docs, release notes, installed source, and compiler help. Use master docs only
 for a project pinned to a development build. Compile every generated example;
-do not assume an older Zig example still works.
+do not assume an older Zig example still works. For new projects, use the latest
+stable Zig release. For existing projects, preserve the pin unless an upgrade is
+part of the request, then move to the latest compatible release after reviewing
+the migration notes. Read `references/toolchain-changes.md` when the task depends
+on version-sensitive standard-library, build, package, testing, or C-translation
+behavior.
 
 For performance-sensitive, storage, engine, or infrastructure code, make bounds,
 resource accounting, internal invariants, and measurements proportionate to the
@@ -138,10 +143,9 @@ Preserve the principle, not an uncompiled code sample.
   repeated shapes, and general-purpose allocators only where lifetimes vary.
 - Pair the selected version's allocation and release operations correctly, such
   as `alloc` with `free` and `create` with `destroy`.
-- In Zig 0.16, initialize allocator-external `std.ArrayList(T)` with `.empty` or
-  `initCapacity`, and pass the same allocator to allocation, ownership-transfer,
-  and `deinit` operations. Do not copy older managed-container examples;
-  `ArrayListUnmanaged` is now a deprecated alias.
+- Derive container initialization, allocator arguments, ownership transfer, and
+  deinitialization from the selected standard library. Do not copy container
+  examples from another Zig release.
 - Put `defer` immediately after successful acquisition when lexical cleanup fits.
   Put `errdefer` immediately after each successful step that partial
   initialization must roll back.
@@ -198,14 +202,9 @@ Preserve the principle, not an uncompiled code sample.
 - Use `extern struct` or `extern union` only for an ABI contract and `packed`
   types only for deliberate bit layout. Verify size, alignment, offsets, backing
   types, endianness, and target assumptions at compile time and in tests.
-- Current Zig forbids pointers in packed structs and unions, requires packed
-  union fields to fill the backing integer, and requires explicit tag or backing
-  types for enum or packed types in extern contexts. Treat explicitly aligned
-  and naturally aligned pointer types as distinct even where coercion exists.
-- Runtime-known vector indexes are invalid; iterate or convert to an array. Do
-  not rely on vector/array pointer coercions merely because layouts appear equal,
-  and do not mistake diagnostics for obvious local-address escapes for complete
-  lifetime checking.
+- Verify packed, extern, enum, union, pointer-alignment, and vector rules against
+  the selected compiler. Do not rely on apparent layout equivalence or compiler
+  diagnostics as a complete lifetime proof.
 - Do not compare, hash, persist, or transmit arbitrary structs as raw bytes until
   padding, pointers, endianness, and unique bit representation are proved.
 - Parse untrusted formats field by field. Native struct layout is not a wire or
@@ -220,26 +219,18 @@ Preserve the principle, not an uncompiled code sample.
 - Keep reflection focused and readable. Exhaustive tagged-union transformations
   and generated bindings can justify it; replacing straightforward code usually
   does not.
-- On Zig 0.16, use the individual type-creating builtins such as `@Int`,
-  `@Pointer`, `@Fn`, `@Struct`, `@Union`, `@Enum`, and `@Tuple`; `@Type` was
-  removed and error sets must be declared with `error{...}` rather than reified.
+- Derive type-creation and reflection builtins from the selected compiler; these
+  APIs have changed across Zig releases.
 - Use `inline` only when semantics require inline iteration or measurement proves
   the trade. Do not raise the evaluation branch quota before examining the
   algorithm and generated work.
-- Audit compile time with the pinned compiler's supported timing facilities. In
-  Zig 0.16, `zig build --time-report` forces a full rebuild, reports detailed Zig
-  source compilation timing, and implies `--webui`; inspect build-runner work,
-  linking, generated code, binary size, and cache behavior separately. Do not
-  assume `comptime` or `inline` is free.
-- Zig lazily analyzes declarations and, since 0.16, lazily resolves container
-  types. A struct or file struct, union, enum, or opaque type resolves only when
-  its size or a field type is required. Importing a module, using a type as a
-  namespace, or forming a non-dereferenced `*T` does not prove that `T` resolves.
-  CI must instantiate supported generic APIs, reference optional branches, and
-  force representative field-dependent use for every supported target and
-  feature combination. In 0.16, `std.testing.refAllDecls` references
-  declarations in tests, but it does not force field resolution, instantiate
-  generic call sites, cover target-dependent branches, or replace behavior tests.
+- Audit compile time with the pinned compiler's supported timing facilities and
+  inspect build-runner work, linking, generated code, binary size, and cache
+  behavior separately. Do not assume `comptime` or `inline` is free.
+- Zig analyzes declarations lazily. CI should instantiate affected generic APIs,
+  reference optional branches, and force representative field-dependent use for
+  the affected supported targets and feature combinations. Declaration-reference
+  helpers do not replace behavior tests or representative instantiation.
 
 ## Concurrency And I/O
 
@@ -253,31 +244,10 @@ Preserve the principle, not an uncompiled code sample.
 - Keep lock scopes short and avoid invoking unknown callbacks or foreign code
   while holding a lock unless reentrancy and lock ordering are understood.
 - Confirm allocator, container, and I/O object thread-safety before sharing them.
-- Zig's I/O and concurrency APIs are especially version-sensitive. Derive exact
-  types and lifecycle behavior from the pinned standard library rather than old
-  examples.
-- Zig 0.16 introduced `std.Io`; standard-library operations that may block or
-  introduce nondeterminism generally require an explicit `std.Io`. `main` may
-  take no parameter, `std.process.Init.Minimal`, or `std.process.Init`. A
-  parameterless `main` has no standard-library access to arguments or the
-  environment; `Init.Minimal` supplies raw forms, while `Init` also supplies
-  allocators, a default `Io`, a parsed environment map, and preopens. Pass only
-  required values and capabilities into reusable code. Do not mechanically port
-  0.15 filesystem, process, synchronization, Reader, or Writer APIs: files and
-  directories moved under `std.Io`, Io-task synchronization moved from
-  `std.Thread`, and APIs including `std.Thread.Pool`, `GenericReader`,
-  `AnyReader`, and `FixedBufferStream` were removed. `std.Io.Evented` remains
-  experimental.
-- Treat every Zig 0.16 `std.Io.Future(T)` as a single-owner lifecycle obligation:
-  call `await` or `cancel` on every exit path, and do not copy or concurrently
-  operate on a live Future. Both operations release the task resource and return
-  the callee's full result. Deferred cancellation must therefore handle errors
-  and release any resource returned by a task that completed despite the
-  cancellation request. `io.async` is infallible and may call the function to
-  completion before returning. Use `io.concurrent` only when concurrent caller
-  progress is required for correctness; handle `error.ConcurrencyUnavailable`,
-  which can mean temporary resource exhaustion or unsupported concurrency.
-  Derive exact APIs from the pinned release because master continues to change.
+- I/O, process, reader/writer, task, and concurrency APIs are especially
+  version-sensitive. Pass only required capabilities into reusable code and
+  derive every task's ownership, completion, cancellation, and error behavior
+  from the pinned standard library.
 
 ## Build, Packages, And Toolchain
 
@@ -293,26 +263,10 @@ Preserve the principle, not an uncompiled code sample.
   targets, run through a configured emulator or system integration when
   execution is required; otherwise label the check as compile-only and never
   report that the tests ran.
-- Zig 0.16 package identity is the pair of enum-literal `.name` and
-  `.fingerprint`. Preserve the fingerprint for new versions of the same project,
-  continuations of abandoned projects, and temporary `--fork` overrides. For a
-  permanent fork of a maintained upstream, delete the root package's fingerprint
-  and run `zig build` to generate a new identity. Dependencies with no
-  fingerprint or a string rather than enum-literal name are rejected. Declare an
-  accurate `.minimum_zig_version`. Audit `.paths` because only selected files are
-  hashed and retained after fetching; include all build inputs and licenses. For
-  URL dependencies, `.hash` identifies the contents and the URL is only a
-  retrieval location. `.path` dependencies have no package hash. Package fetches
-  use the project-local `zig-pkg` directory, while the global cache retains
-  canonical compressed package data; keep ignore files and `.paths` aligned with
-  every required generated input, source file, and license.
-- In Zig 0.16, `zig build --fork=PATH` provides an ephemeral project override.
-  `PATH` must contain `build.zig.zon`; matching packages anywhere in the
-  dependency tree resolve by `.name` and `.fingerprint`, ignoring `.version` and
-  before fetching. An override that matches nothing is an error. Preserve the
-  upstream fingerprint for this workflow. Use a manifest `.path` dependency only
-  when the local dependency is intentionally persistent. Inspect all manifest,
-  fingerprint, path, and hash changes after package commands.
+- Derive package identity, hashes, fingerprints, local overrides, cache paths,
+  and manifest fields from the selected Zig release. Declare an accurate minimum
+  Zig version, include all build inputs and licenses in package paths, and inspect
+  every manifest or identity change after package commands.
 - Treat generated bindings and source as generated: modify the source header,
   schema, or generator input, then regenerate with the pinned toolchain.
 - Keep tests, fuzzers, benchmarks, validation, and release artifacts discoverable
@@ -335,18 +289,18 @@ Preserve the principle, not an uncompiled code sample.
   rely on recovering from a Zig panic: the default panic path aborts or traps
   rather than unwinding. Catch foreign exceptions on the foreign side so they do
   not unwind through Zig frames.
-- C translation is version-sensitive. In Zig 0.16, `@cImport` remains available
-  but is deprecated, and translation uses Aro rather than libclang. Prefer
-  `b.addTranslateC`, expose `createModule()` through the root module's imports,
-  and consume it with `@import("name")`. Check the exact selected release rather
-  than inferring a stable API from master.
+- C translation is version-sensitive. Zig 0.16 still provides `@cImport` but
+  deprecates it while moving translation into the build system. Prefer
+  `b.addTranslateC` and import its module for new 0.16 code. Check the selected
+  release rather than inferring a stable API from master.
 - Verify bindings on every supported target ABI. Cross-compilation is a Zig
   strength, not evidence that an untested target-specific ABI is correct.
 
 ## Security Boundaries
 
-- Load `@security/` for authentication, cryptography, untrusted files or network
-  data, paths, commands, plugins, parsers, serialization, or privileged actions.
+- Load the `security` skill when a change creates or alters an authentication,
+  cryptography, untrusted-file, network-data, path, command, plugin, parser,
+  serialization, or privileged-operation boundary.
 - Bound input, output, decompression, recursion, allocation, collection growth,
   concurrency, and work per request or event.
 - Treat path handling as a traversal boundary, outbound networking as an SSRF
@@ -367,7 +321,7 @@ Preserve the principle, not an uncompiled code sample.
   before optimizing.
 - Batch fixed-cost I/O, allocation, synchronization, and foreign calls. Keep hot
   loops simple and separate control-plane branching when measurement supports it.
-- Use `@benchmark/` for performance claims. Benchmark a correct production-like
+- Load the `benchmark` skill for performance claims. Benchmark a correct production-like
   artifact in the intended optimization and safety mode, and report compiler
   version, target CPU, allocator, linking, LTO, and relevant build options.
 - Do not benchmark Debug unless Debug performance is the question. Compare
@@ -381,39 +335,32 @@ Preserve the principle, not an uncompiled code sample.
 
 ## Testing, QA, And Verification
 
-- Use `@test-quality/` when writing or reviewing tests. Prefer specific
+- Load the `test-quality` skill when writing or reviewing tests. Prefer specific
   `std.testing` expectations such as equality, slice, string, and exact-error
   checks over a generic boolean assertion when they improve diagnostics.
 - Use `std.testing.allocator` for allocating unit tests so the default runner can
   report leaks. Inject allocator failure where OOM cleanup is part of the
   contract.
-- In Zig 0.16, when allocation-failure cleanup is contractual, prefer
-  `std.testing.checkAllAllocationFailures`. Its test function must accept a
-  `std.mem.Allocator` first, return `!void`, reset shared state on every run, and
-  have deterministic allocation behavior. Accept `SwallowedOutOfMemoryError`
-  only for intentional OOM recovery. `NondeterministicMemoryUsage` means not all
-  allocation points were covered and should normally be fixed, not ignored.
+- When allocation-failure cleanup is contractual, use the selected standard
+  library's allocation-failure test helper and satisfy its determinism and reset
+  requirements. Do not ignore incomplete failure coverage.
 - Test ownership and lifecycle edges: empty state, partial initialization, each
   `errdefer` path, allocation failure, growth invalidation, cleanup, and repeated
   initialization or deinitialization as permitted by the API.
 - Test zero, one, maximum, maximum plus one, integer conversion, alignment,
   endianness, malformed input, error identity, and unsupported target behavior.
 - Use randomized model tests, fuzzing, or deterministic simulation when they
-  exercise meaningful invariants. Zig 0.16 `std.testing.fuzz` callbacks receive
-  `*std.testing.Smith`, not the older `[]const u8`. Run the build step containing
-  the fuzz tests with `zig build <step> --fuzz` for unlimited fuzzing or
-  `--fuzz=N` for a bounded iteration count. Unlimited mode enables the Web UI and
-  can use multiple workers controlled by `-j`; bounded mode uses one worker.
-  Preserve the reported crash file and replay it deterministically through
-  `std.testing.FuzzInputOptions.corpus`, commonly with `@embedFile`, before fixing
-  the bug.
-- Follow Mitchell Hashimoto's practical pattern: combine leak-detecting Zig
-  allocators with platform memory tools, Valgrind where supported, targeted
-  reproductions, and regression tests for the exact ownership failure.
+  exercise meaningful invariants. Derive callback and command syntax from the
+  selected toolchain. Preserve each reported crash input and replay it
+  deterministically before fixing the bug.
+- Combine leak-detecting Zig allocators with platform memory tools where
+  supported, targeted reproductions, and regression tests for the exact
+  ownership failure.
 - When tests run through `zig build`, keep stdout free for the build-runner and
   test-runner protocol; use `std.testing` diagnostics or stderr for test output.
   Successful test compilation is not evidence that tests executed.
-- Use `@qa/` to exercise the shipped executable or library integration as a real
+- Load the `qa` skill when the change needs validation of the shipped executable
+  or library integration as a real
   consumer. Unit tests and successful compilation do not verify packaging,
   startup, foreign loading, shutdown, or supported-platform behavior.
 
@@ -430,22 +377,6 @@ zig build
 Use `zig test path/to/root.zig` when the project intentionally tests a source
 root directly. Inspect `zig build --help` for project-defined steps and options.
 Also test the affected optimized safety mode, release artifact, and target matrix.
-
-## Practitioner Lessons
-
-- Language features and test suites complement rather than replace careful
-  design, review, targeted failure testing, fuzzing, and prompt bug repair.
-  Practitioner-specific lessons should be tied to a dated source and translated
-  to the selected Zig version.
-- Mitchell Hashimoto and Ghostty: allocation provenance must be explicit;
-  mutable size metadata is not ownership. Install `errdefer` cleanup immediately,
-  reproduce rare paths, and use multiple memory-debugging tools.
-- TigerBeetle: bound resources, model performance before implementation, assert
-  important internal contracts, use fixed-width domain values, and combine
-  randomized model tests with deterministic fault simulation.
-- These are transferable methods, not APIs to copy blindly. Ghostty's dynamic
-  pools, libxev's caller-owned operation storage, and TigerBeetle's startup
-  allocation solve different constraints.
 
 ## Review Checklist
 
@@ -482,8 +413,6 @@ Also test the affected optimized safety mode, release artifact, and target matri
 
 ## Primary References
 
-- Zig 0.16 language and standard-library docs:
-  `https://ziglang.org/documentation/0.16.0/`
 - Versioned Zig language and standard-library docs:
   `https://ziglang.org/documentation/`
 - Official build-system guide: `https://ziglang.org/learn/build-system/`
@@ -499,7 +428,7 @@ Also test the affected optimized safety mode, release artifact, and target matri
 
 ## Response Expectations
 
-For substantial changes using this skill:
+For substantial changes using this skill, unless the user requests another format:
 
 1. State the Zig version, target, ownership, lifetime, and safety-mode impact.
 2. Call out allocator, error, layout, concurrency, comptime, and FFI contracts.

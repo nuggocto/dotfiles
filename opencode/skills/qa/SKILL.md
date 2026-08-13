@@ -18,10 +18,11 @@ the result. Passing automated tests, static checks, and code review are relevant
 but insufficient evidence that a feature is fit to release; combine them with
 end-to-end behavior and state the limits of every evidence source.
 
-Keep `@qa/` focused on observed release behavior. Use `@security/` for
-authorized adversarial testing, `@test-quality/` for automated tests and flaky
-test remediation, `@benchmark/` for non-browser performance measurement, and
-`@web-perf/` for browser performance and Core Web Vitals. QA may run safe
+Keep this skill focused on observed release behavior. Load the `security` skill
+for authorized adversarial testing, the `test-quality` skill for automated tests
+and flaky test remediation, and the `benchmark` skill for non-browser
+performance measurement. Load the `web-perf` skill for browser performance and
+Core Web Vitals. QA may run safe
 acceptance checks but must not claim a security, accessibility, or performance
 audit unless that specialist scope was exercised.
 
@@ -60,8 +61,8 @@ audit unless that specialist scope was exercised.
 ## Test dimensions
 
 - **Inputs:** empty, whitespace, long, Unicode, malformed, wrong type,
-  normalization, and boundary-sized values. Use `@security/` before adversarial
-  or intrusive payloads.
+  normalization, and boundary-sized values. Load the `security` skill before
+  adversarial or intrusive payloads.
 - **State:** first run, no data, existing data, stale data, stale session,
   repeated action, double-submit, refresh, back navigation, and retry.
 - **Identity and permissions:** supported roles, unauthenticated behavior,
@@ -108,7 +109,7 @@ storing artifacts.
 - Do not retry until green. Use `INCONCLUSIVE` while a release-relevant
   intermittent result remains unexplained, `BLOCKED` when infrastructure
   prevents useful execution, and `FAIL` when evidence supports a product defect.
-- Route automated-test flakiness investigation and repair to `@test-quality/`.
+- Load the `test-quality` skill for automated-test flakiness investigation and repair.
 
 ## Verdicts
 

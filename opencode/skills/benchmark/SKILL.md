@@ -20,12 +20,12 @@ artifact, control the environment, collect enough samples, and report the result
 with the uncertainty and caveats attached.
 
 Pair this skill with the relevant language skill when the repository makes the
-runtime obvious: `@rust/`, `@zig/`, `@go/`, `@gleam/`, or `@python/`. For
-systems, storage, infrastructure, hot paths, or resource-exhaustion concerns,
-also apply `@tiger-style/`. For real end-user verification use `@qa/`; for
-regression tests around benchmarked behavior use `@test-quality/`; for
-denial-of-service or quota risks use `@security/`. For browser Core Web Vitals
-and page-load work, use `@web-perf/` as the measurement companion.
+runtime obvious: `rust`, `zig`, `go`, `gleam`, or `python`. Load the
+`tiger-style` skill for systems, storage, infrastructure, hot paths, or
+resource-exhaustion concerns only when the user explicitly asks for TigerStyle.
+Load the `qa` skill for real end-user verification, the `test-quality` skill for
+regression tests, and the `security` skill for denial-of-service or quota risks.
+Load the `web-perf` skill for browser Core Web Vitals and page-load work.
 
 ## Non-Negotiables
 
@@ -245,7 +245,7 @@ project's pinned toolchain before choosing exact commands or APIs.
   checks, panic behavior, allocator, and relevant code-generation options.
 - For JIT, VM, or garbage-collected runtimes, use harness-supported warmup and
   independent forks and report runtime, scheduler, heap, and GC settings.
-- For browser work, use production assets and `@web-perf/` for Core Web Vitals,
+- For browser work, use production assets and load the `web-perf` skill for Core Web Vitals,
   trace analysis, network throttling, and device profiles.
 - For databases, use production-like volume and indexes and capture plans, rows,
   buffers, locks, cache state, and connection settings. Use the applicable

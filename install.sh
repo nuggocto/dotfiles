@@ -39,11 +39,24 @@ OMARCHY_FILES=(
 )
 
 # Canonical skills live under opencode/skills. OpenCode reads them through its
-# config link; these links expose the same files to the other supported agents.
+# config link; these links expose the shared language and workflow skills to the
+# other supported agents without flooding their discovery budgets.
 AGENT_SKILLS=(
-  use-railway
+  benchmark
+  choose-data-structures
+  fastapi
+  gleam
+  go
+  postgres
+  python
+  qa
+  rust
+  security
   test-quality
   tiger-style
+  unslop
+  use-railway
+  zig
 )
 
 link() {
@@ -179,6 +192,35 @@ link_agent_skill() {
   printf '  link  %-44s -> %s\n' "$agent/$skill" "$src"
 }
 
+reconcile_agent_skills() {
+  local agent="$1"
+  local skills_dir="$2"
+  local dest target skill keep candidate
+
+  for dest in "$skills_dir"/*; do
+    [ -L "$dest" ] || continue
+    target="$(readlink -f "$dest" 2>/dev/null || true)"
+    case "$target" in
+      "$REPO_DIR"/opencode/skills/*) ;;
+      *) continue ;;
+    esac
+
+    skill="$(basename "$dest")"
+    keep=false
+    for candidate in "${AGENT_SKILLS[@]}"; do
+      if [ "$skill" = "$candidate" ]; then
+        keep=true
+        break
+      fi
+    done
+
+    if [ "$keep" = false ]; then
+      rm "$dest"
+      printf '  clean %-44s (no longer shared)\n' "$agent/$skill"
+    fi
+  done
+}
+
 remove_legacy_skill_link() {
   local agent="$1"
   local skills_dir="$2"
@@ -239,16 +281,17 @@ mkdir -p "$CONFIG_DIR"
 for c in "${CONFIGS[@]}"; do link "$c"; done
 for f in "${CONFIG_FILES[@]}"; do link_file "$f"; done
 for f in "${OMARCHY_FILES[@]}"; do link_file "$f"; done
+reconcile_agent_skills "agents" "$HOME/.agents/skills"
+reconcile_agent_skills "codex" "$HOME/.codex/skills"
+reconcile_agent_skills "pi" "$HOME/.pi/agent/skills"
 for skill in test_quality tiger_style; do
   remove_legacy_skill_link "agents" "$HOME/.agents/skills" "$skill"
-  remove_legacy_skill_link "claude" "$HOME/.claude/skills" "$skill"
   remove_legacy_skill_link "codex" "$HOME/.codex/skills" "$skill"
   remove_legacy_skill_link "pi" "$HOME/.pi/agent/skills" "$skill"
 done
 for skill in "${AGENT_SKILLS[@]}"; do
   # Kimi CLI and Grok CLI both discover the shared Agent Skills directory.
   link_agent_skill "agents" "$HOME/.agents/skills" "$skill"
-  link_agent_skill "claude" "$HOME/.claude/skills" "$skill"
   link_agent_skill "codex" "$HOME/.codex/skills" "$skill"
   link_agent_skill "pi" "$HOME/.pi/agent/skills" "$skill"
 done

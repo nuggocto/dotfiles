@@ -1,10 +1,10 @@
 ---
 name: rust
 description: >
-  Production-grade Rust backend guidance focused on idiomatic design,
-  explicit error handling, safe concurrency, and reliable operations. Use when
-  working with Rust code, .rs files, Cargo projects, or Rust services, APIs,
-  and workers.
+  Production-grade Rust guidance focused on idiomatic design, explicit error
+  handling, safe concurrency, and reliable operations. Use when working with
+  Rust code, .rs files, Cargo projects, libraries, CLIs, services, APIs, or
+  workers.
 license: MIT
 metadata:
   author: opencode
@@ -15,7 +15,7 @@ metadata:
 
 Use this skill for production-grade Rust applications, libraries, services, APIs, workers, and tooling. Apply the backend stack options only when creating or extending a backend service. Prefer the repository's existing stack over generic defaults.
 
-Resolve the selected edition, workspace resolver, `rust-version`/MSRV, toolchain, Cargo configuration, features, and dependency versions from workspace and package manifests, `.cargo/config.toml`, `Cargo.lock`, `rust-toolchain.toml`, and CI before consulting APIs. Virtual workspaces have no package edition from which to infer a resolver, so verify that `[workspace].resolver` is explicit. Use a current patch release of the selected Rust line; in particular, do not ship artifacts built with Rust 1.97.0 because 1.97.1 fixes a known LLVM miscompilation. Use documentation for those versions; use latest docs to evaluate an upgrade, not as evidence that an API exists in the checked-out project. docs.rs hosts third-party crate documentation but does not make guidance official Rust-project policy.
+Resolve the selected edition, workspace resolver, `rust-version`/MSRV, toolchain, Cargo configuration, features, and dependency versions from workspace and package manifests, `.cargo/config.toml`, `Cargo.lock`, `rust-toolchain.toml`, and CI before consulting APIs. Virtual workspaces have no package edition from which to infer a resolver, so verify that `[workspace].resolver` is explicit. Use a currently maintained Rust release for shipping artifacts and check current release notes and advisories. If compatibility requires an older compiler, preserve the declared MSRV and do not imply that its release line still receives patches. Use documentation for the selected versions; use latest docs to evaluate an upgrade, not as evidence that an API exists in the checked-out project. docs.rs hosts third-party crate documentation but does not make guidance official Rust-project policy.
 
 ## Workflow
 
@@ -58,6 +58,9 @@ Use these only for a new backend application when its requirements fit. They are
 | Security checks | `cargo-deny`, `cargo-audit` | Use when deps or security posture change |
 
 If the repository already uses alternatives such as Actix, SeaORM, Diesel, or `chrono`, stay consistent unless the user asks for a migration.
+
+When Axum, Tokio, Tower, SQLx, or the starter stack is in scope, read
+`references/backend-stack.md`.
 
 ## Architecture options
 
@@ -104,7 +107,7 @@ migrations/
 - For reusable crates, treat public items, trait implementations, error chains, feature names/defaults, auto-trait behavior, and MSRV as compatibility contracts.
 - Check Cargo's SemVer guidance before changing public structs, enums, traits, generic bounds, or exposed dependency errors. Keep features additive and test supported combinations rather than assuming `--all-features` is valid.
 - Preserve the declared `rust-version` unless the requested change intentionally raises the project's MSRV under its documented policy. When raising it, update the declaration explicitly, treat it as a compatibility decision, and verify the declared version in CI. Document public APIs, error and panic conditions, and safety contracts; run doctests for changed public behavior.
-- Keep `Cargo.lock` under version control unless the repository has a deliberate alternative. Use `--locked` for deterministic CI and release builds; use `--frozen` only when dependencies are already available and network access must also be prohibited.
+- Follow the repository's lockfile policy. Commit `Cargo.lock` for applications and shipped workspace artifacts. Reusable libraries may commit it for contributor and CI reproducibility or omit it deliberately because downstream consumers do not use the published lockfile. Use `--locked` where a committed lockfile defines the build; use `--frozen` only when dependencies are already available and network access must also be prohibited.
 - For an edition upgrade, run `cargo fix --edition` on the old edition for supported feature and target configurations, then change the manifest edition and rerun formatting, checks, tests, doctests, and release builds. Manually audit macros, generated code, unsafe changes, and doctests; automated fixes establish compatibility, not soundness.
 
 ## Errors and observability
@@ -125,7 +128,7 @@ migrations/
 - `unreachable!()` is a panic for impossible control flow; use it only when the state is logically impossible. Never substitute `std::hint::unreachable_unchecked()` unless an `unsafe` proof establishes that reaching it cannot occur.
 - A safe API must make invalid states unrepresentable or check safety preconditions in every build before entering `unsafe` code. A `debug_assert!` cannot uphold a memory-safety contract.
 - Document public unsafe APIs with a `# Safety` contract, justify each unsafe block with a local `// SAFETY:` explanation, and keep the block as small as practical.
-- Require explicit unsafe blocks inside `unsafe fn`. Edition 2024 warns for `unsafe_op_in_unsafe_fn` by default; for earlier editions enable the lint when working with unsafe code. Use `forbid(unsafe_code)` where unsafe is not expected and Miri or sanitizers for unsafe-heavy changes when applicable.
+- Require explicit unsafe blocks inside `unsafe fn`. Edition 2024 warns for `unsafe_op_in_unsafe_fn` by default; for earlier editions enable the lint when working with unsafe code. Prefer `deny(unsafe_code)` where unsafe is not expected; use `forbid` only when the crate deliberately makes an irreversible no-unsafe promise. Use Miri or sanitizers for unsafe-heavy changes when applicable.
 - For FFI and exported symbols, verify every foreign signature, safe or unsafe item classification, symbol name, and linker-section invariant. Edition 2024 requires unsafe extern blocks and unsafe forms of `no_mangle`, `export_name`, and `link_section`; automated migration syntax does not prove the contract sound.
 - Avoid references to `static mut`; prefer scoped ownership, atomics, locks, `OnceLock`, or `LazyLock`. Mutate the process environment only before other threads can exist; Edition 2024 makes `std::env::set_var` and `remove_var` unsafe to expose that requirement.
 - In tests, Rust's standard `assert!`, `assert_eq!`, `assert_ne!`, and pattern assertions are normal test expectations.
@@ -142,7 +145,7 @@ migrations/
 
 ## HTTP, database, and security
 
-- Use `http::StatusCode` constants, not numeric literals.
+- In application HTTP code, use `http::StatusCode` constants rather than numeric literals. Protocol tables and parser fixtures may use numbers when that is clearer.
 - Set body size limits, handler timeouts, outbound timeouts, and bounded response reads. Do not enable CORS unless a cross-origin browser client requires it; then allowlist exact trusted origins, methods, and headers.
 - Keep response and error envelopes stable within a service.
 - The operation coordinating an atomic use case owns the transaction boundary.
@@ -151,24 +154,24 @@ migrations/
 - Before changing schema or performance-sensitive SQL, load the matching database skill. Account for table size, lock behavior, deployment order, and overlap between old and new application versions; prefer expand-and-contract changes and separate bounded backfills from deploy-time migrations.
 - Use Argon2id for password hashing. Use cryptographically random opaque tokens or a vetted token format, keep credentials short-lived where appropriate, and explicitly validate required token claims.
 - Use secret wrappers where practical and avoid logging sensitive values.
-- Load `@security/` for authentication, authorization, cryptography, user-controlled URLs or paths, uploads, commands, deserialization, or templates. Bound request, response, decompression, and collection sizes and enforce authorization from server-owned identity and resource scope.
+- Load the `security` skill when a change creates or alters an authentication, authorization, cryptography, upload, command, template, parser, or other trust boundary. Bound request, response, decompression, and collection sizes and enforce authorization from server-owned identity and resource scope.
 
 ## Serialization and API contracts
 
-- Use `serde` for transport, config, and persistence DTOs; avoid forcing domain types to match JSON shape.
+- When serialization is required and the repository uses it, prefer `serde` for transport, configuration, and persistence DTOs. Do not add it to code that has no serialization boundary, and avoid forcing domain types to match wire formats.
 - Treat field names, defaults, skipped fields, and unknown-field behavior as API contract decisions.
 - Prefer explicit request and response structs at service boundaries.
 - Use strict deserialization such as `#[serde(deny_unknown_fields)]` only when rejecting unknown input is intentional.
 
 ## Testing and verification
 
-- Use `@test-quality/` when writing or reviewing tests. Keep unit tests close to the code when that improves locality.
+- Load the `test-quality` skill when writing or reviewing tests. Keep unit tests close to the code when that improves locality.
 - Add integration tests with real dependencies when external systems affect behavior.
 - Use property tests, fuzzing, or benchmarks when invariants or performance justify them.
-- Use `@benchmark/` for performance claims. Benchmark the shipped crate or binary in the intended release profile and report target, features, and LTO settings.
-- Run `cargo fmt --all -- --check`, repository/CI-equivalent Clippy, tests, and doctests. Derive the matrix from CI: verify default features, no-default-features where supported, documented combinations, affected targets, and the declared MSRV. A current-stable build does not prove MSRV support. Use `--all-features` only when all features are designed to coexist. With Cargo 1.97+, prefer `build.warnings = "deny"` or `CARGO_BUILD_WARNINGS=deny` over injecting `-D warnings`; follow existing repository policy for older Cargo versions.
-- For shipped binaries or native libraries, build and smoke-test the actual release profile and deployment target with `--locked`. Review panic strategy, overflow checks, debug information, LTO, target features, stripping, symbol mangling, and debugger/profiler/crash-symbolization compatibility rather than assuming development-profile behavior carries over. Inspect linker diagnostics, including `linker_messages` on Rust 1.97+, before suppressing them.
-- Use `@qa/` to exercise the shipped binary or library integration as a real consumer; unit tests and compilation do not verify packaging, startup, or supported-platform behavior.
+- Load the `benchmark` skill for performance claims. Benchmark the shipped crate or binary in the intended release profile and report target, features, and LTO settings.
+- Format touched Rust files with the repository's configured `cargo fmt` invocation, then run `cargo fmt --all -- --check`, repository/CI-equivalent Clippy, tests, and doctests. Derive the matrix from CI: verify default features, no-default-features where supported, documented combinations, affected targets, and the declared MSRV. A current-stable build does not prove MSRV support. Use `--all-features` only when all features are designed to coexist. Follow the selected Cargo version's documented warning controls and the repository's existing warning policy rather than copying flags from another toolchain.
+- For shipped binaries or native libraries, build and smoke-test the actual release profile and deployment target with `--locked` when the project commits a lockfile. Review panic strategy, overflow checks, debug information, LTO, target features, stripping, symbol mangling, and debugger/profiler/crash-symbolization compatibility rather than assuming development-profile behavior carries over. Inspect linker diagnostics before suppressing them.
+- Load the `qa` skill when the change needs validation of the shipped binary or library integration as a real consumer; unit tests and compilation do not verify packaging, startup, or supported-platform behavior.
 - Run `cargo deny check` or `cargo audit` when dependency or security-sensitive work is involved.
 
 ## Guardrails
@@ -188,7 +191,7 @@ migrations/
 
 ## Response expectations
 
-For substantial changes using this skill:
+For substantial changes using this skill, unless the user requests another format:
 
 1. State the architecture impact of the change in plain language.
 2. Call out trade-offs when choosing crates, async patterns, or boundaries.

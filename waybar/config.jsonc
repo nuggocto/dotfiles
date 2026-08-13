@@ -5,7 +5,7 @@
   "spacing": 4,
   "width": 54,
   "modules-left": ["custom/omarchy", "hyprland/workspaces"],
-  "modules-center": ["custom/japanese-clock", "custom/weather", "custom/update", "custom/voxtype", "custom/screenrecording-indicator", "custom/idle-indicator", "custom/notification-silencing-indicator"],
+  "modules-center": ["custom/chinese-clock", "custom/weather", "custom/update", "custom/voxtype", "custom/screenrecording-indicator", "custom/idle-indicator", "custom/notification-silencing-indicator"],
   "modules-right": [
     "group/tray-expander",
     "bluetooth",
@@ -59,8 +59,8 @@
     "on-click": "omarchy-launch-or-focus-tui btop",
     "on-click-right": "xdg-terminal-exec"
   },
-  "custom/japanese-clock": {
-    "exec": "bash ~/.config/waybar/japanese-clock.sh",
+  "custom/chinese-clock": {
+    "exec": "bash ~/.config/waybar/chinese-clock.sh",
     "return-type": "json",
     "interval": 30,
     "tooltip": true,

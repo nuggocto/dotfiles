@@ -22,7 +22,7 @@ window#waybar {
 }
 
 #custom-omarchy,
-#custom-japanese-clock,
+#custom-chinese-clock,
 #custom-weather,
 #custom-update,
 #custom-voxtype,
@@ -85,9 +85,10 @@ window#waybar {
   opacity: 0.38;
 }
 
-#custom-japanese-clock {
+#custom-chinese-clock {
   background: rgba(212, 190, 152, 0.1);
   border-radius: 18px;
+  font-family: 'Noto Sans CJK SC', 'Noto Sans CJK JP';
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 8px;

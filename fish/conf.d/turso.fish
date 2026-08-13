@@ -1,3 +1,3 @@
 
 # Turso
-export PATH="$PATH:/home/nuggocto/.turso"
+export PATH="$PATH:$HOME/.turso"

@@ -1,13 +1,6 @@
 ---
 name: turnstile-spin
 description: Set up Cloudflare Turnstile end-to-end in a project — scan the codebase, create the widget via the Cloudflare API, deploy the managed siteverify Worker, write the frontend snippets, validate, and persist the skill. Load this when a user asks to add Turnstile, set up CAPTCHA, protect a form from bots, or fix a Turnstile integration. Mirrors developers.cloudflare.com/turnstile/spin.
-references:
-  - vanilla-html
-  - nextjs-app
-  - nextjs-pages
-  - astro
-  - sveltekit
-  - hugo
 ---
 
 # Turnstile Spin skill
@@ -63,7 +56,7 @@ The user pasted the prompt. You are in a multi-step dialog. Detect what you can,
 
 11. **Validation.** Run `scripts/validate.sh`. Report each check as it passes. If any fails, surface the error and stop. **[wait for user if anything fails]**
 
-12. **Persist skill.** Ask: "Save the Spin skill to `.claude/skills/turnstile-spin/SKILL.md` so I can reuse it on follow-up tasks?" Default yes. **[wait for user]** Then run `scripts/persist-skill.sh --path <agent-specific-path>`.
+12. **Persist skill.** When running from a bootstrap copy, ask: "Save the Spin skill to your agent's skill directory so I can reuse it on follow-up tasks?" Default yes. **[wait for user]** Then run `scripts/persist-skill.sh --path <agent-specific-path>`.
 
 13. **Final report.** Print the structured summary: what was created, what was validated, what to do next.
 
