@@ -1,165 +1,111 @@
 @import "../omarchy/current/theme/waybar.css";
 
 * {
-  background: transparent;
+  background-color: @background;
+  color: @foreground;
+
   border: none;
   border-radius: 0;
-  color: @foreground;
-  font-family: 'VictorMono Nerd Font Mono', 'Noto Sans CJK JP';
-  font-size: 17px;
   min-height: 0;
+  font-family: 'JetBrainsMono Nerd Font';
+  font-size: 12px;
 }
 
-window#waybar {
-  background: @background;
-  border-right: 1px solid rgba(212, 190, 152, 0.14);
+.modules-left {
+  margin-left: 8px;
 }
 
-.modules-left,
-.modules-center,
 .modules-right {
-  margin: 8px 0;
-}
-
-#custom-omarchy,
-#custom-chinese-clock,
-#custom-weather,
-#custom-update,
-#custom-voxtype,
-#custom-screenrecording-indicator,
-#custom-idle-indicator,
-#custom-notification-silencing-indicator,
-#pulseaudio,
-#bluetooth,
-#network,
-#cpu,
-#battery,
-#custom-expand-icon,
-#tray {
-  background: rgba(212, 190, 152, 0.06);
-  border-radius: 14px;
-  margin: 3px 7px;
-  min-height: 34px;
-  min-width: 40px;
-}
-
-#custom-omarchy {
-  background: rgba(212, 190, 152, 0.12);
-  border-radius: 16px;
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 9px;
-  min-height: 40px;
-}
-
-#workspaces {
-  background: rgba(212, 190, 152, 0.045);
-  border-radius: 18px;
-  margin: 0 7px;
-  padding: 4px 0;
+  margin-right: 8px;
 }
 
 #workspaces button {
   all: initial;
-  border-radius: 13px;
-  color: rgba(212, 190, 152, 0.78);
-  font-family: 'VictorMono Nerd Font Mono', 'Noto Sans CJK JP';
-  font-size: 16px;
-  margin: 2px 4px;
-  min-height: 31px;
-  min-width: 32px;
-  padding: 0;
-}
-
-#workspaces button:hover {
-  background: rgba(212, 190, 152, 0.1);
-}
-
-#workspaces button.active {
-  background: @foreground;
-  color: @background;
-  font-weight: 700;
+  padding: 0 6px;
+  margin: 0 1.5px;
+  min-width: 9px;
 }
 
 #workspaces button.empty {
-  opacity: 0.38;
+  opacity: 0.5;
 }
 
-#custom-chinese-clock {
-  background: rgba(212, 190, 152, 0.1);
-  border-radius: 18px;
-  font-family: 'Noto Sans CJK SC', 'Noto Sans CJK JP';
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  min-height: 150px;
-  padding: 11px 0;
+#cpu,
+#battery,
+#pulseaudio,
+#custom-omarchy,
+#custom-update {
+  min-width: 12px;
+  margin: 0 7.5px;
 }
 
-#custom-weather {
-  font-size: 15px;
+#tray {
+  margin-right: 16px;
 }
 
-#custom-weather.unavailable,
-#custom-voxtype.idle,
-#custom-screenrecording-indicator.empty,
-#custom-idle-indicator.empty,
-#custom-notification-silencing-indicator.empty {
-  margin: 0;
-  min-height: 0;
-  min-width: 0;
-  padding: 0;
+#bluetooth {
+  margin-right: 17px;
+}
+
+#network {
+  margin-right: 13px;
+}
+
+#custom-expand-icon {
+  margin-right: 18px;
+}
+
+tooltip {
+  padding: 2px;
 }
 
 #custom-update {
-  color: #e0af68;
-  font-size: 15px;
+  font-size: 10px;
+}
+
+#clock {
+  margin-left: 8.75px;
+}
+
+#custom-weather {
+  margin-left: 7.5px;
+  margin-right: 7.5px;
+}
+
+#custom-weather.unavailable {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.hidden {
+  opacity: 0;
 }
 
 #custom-screenrecording-indicator,
 #custom-idle-indicator,
-#custom-notification-silencing-indicator,
-#custom-voxtype {
-  font-size: 15px;
+#custom-notification-silencing-indicator {
+  min-width: 12px;
+  margin-left: 5px;
+  margin-right: 0;
+  font-size: 10px;
+  padding-bottom: 1px;
 }
 
-#custom-screenrecording-indicator.active,
+#custom-screenrecording-indicator.active {
+  color: #a55555;
+}
+
 #custom-idle-indicator.active,
-#custom-notification-silencing-indicator.active,
+#custom-notification-silencing-indicator.active {
+  color: #a55555;
+}
+
+#custom-voxtype {
+  min-width: 12px;
+  margin: 0 0 0 7.5px;
+}
+
 #custom-voxtype.recording {
-  background: rgba(165, 85, 85, 0.18);
-  color: #d3869b;
-}
-
-#pulseaudio.muted,
-#network.disconnected,
-#bluetooth.off,
-#bluetooth.disabled {
-  opacity: 0.55;
-}
-
-#battery.warning {
-  color: #e0af68;
-}
-
-#battery.critical {
-  background: rgba(165, 85, 85, 0.2);
-  color: #d3869b;
-}
-
-#custom-expand-icon {
-  color: rgba(212, 190, 152, 0.55);
-  font-size: 20px;
-  min-height: 24px;
-}
-
-#tray {
-  padding: 6px 0;
-}
-
-tooltip {
-  background: @background;
-  border: 1px solid rgba(212, 190, 152, 0.16);
-  border-radius: 10px;
-  padding: 6px;
+  color: #a55555;
 }
