@@ -2,7 +2,10 @@
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": false,
   "lsp": true,
-  "plugin": ["opencode-kimi-subscription"],
+  "plugin": [
+    "opencode-kimi-subscription",
+    "opencode-chatgpt-websearch"
+  ],
   "mcp": {
     "chrome-devtools": {
       "command": [

@@ -22,7 +22,7 @@ CONFIGS=(
   # Editors / terminals / tools
   ghostty nvim zed opencode zellij btop fastfetch git lazygit
   # Omarchy desktop layer (your overrides on top of Omarchy defaults)
-  hypr waybar fish
+  hypr fish
 )
 
 # Standalone files that live directly under ~/.config.
@@ -53,6 +53,7 @@ AGENT_SKILLS=(
   qa
   rust
   security
+  show-me
   test-quality
   tiger-style
   unslop
@@ -145,7 +146,13 @@ link_external_file() {
 configure_pi_theme() {
   local settings_dir="$HOME/.pi/agent"
   local settings_file="$settings_dir/settings.json"
+  local colors_file="$HOME/.local/state/omarchy/current/theme/colors.toml"
+  local theme="solitude"
   local tmp_file
+
+  if [ -f "$colors_file" ] && grep -Eq '^mode[[:space:]]*=[[:space:]]*"light"' "$colors_file"; then
+    theme="rose-pine-dawn"
+  fi
 
   mkdir -p "$settings_dir"
   if [ -f "$settings_file" ]; then
@@ -155,13 +162,36 @@ configure_pi_theme() {
     fi
 
     tmp_file=$(mktemp)
-    jq '.theme = "rose-pine-dawn/solitude"' "$settings_file" >"$tmp_file"
+    jq --arg theme "$theme" '.theme = $theme' "$settings_file" >"$tmp_file"
     mv "$tmp_file" "$settings_file"
   else
-    printf '{\n  "theme": "rose-pine-dawn/solitude"\n}\n' >"$settings_file"
+    printf '{\n  "theme": "%s"\n}\n' "$theme" >"$settings_file"
   fi
 
-  printf '  set   %-44s -> rose-pine-dawn/solitude\n' "pi theme selection"
+  printf '  set   %-44s -> %s\n' "pi theme selection" "$theme"
+}
+
+install_pi_packages() {
+  local settings_file="$HOME/.pi/agent/settings.json"
+  local package
+  local pi_packages=(
+    "npm:@nicknisi/pi-cloak@0.1.2"
+    "npm:pi-lens@4.0.0"
+    "npm:pi-web-access@0.23.0"
+    "npm:@ff-labs/pi-fff@0.10.3"
+  )
+
+  command -v pi >/dev/null 2>&1 || return
+
+  for package in "${pi_packages[@]}"; do
+    if [ -f "$settings_file" ] && command -v jq >/dev/null 2>&1 \
+      && jq -e --arg package "$package" '(.packages // []) | index($package) != null' "$settings_file" >/dev/null; then
+      printf '  ok    %-44s (already installed)\n' "$package"
+      continue
+    fi
+
+    pi install "$package"
+  done
 }
 
 link_agent_skill() {
@@ -309,7 +339,11 @@ install_solitude_theme
 OMARCHY_THEME_SKIP_OPENCODE_RELOAD=1 bash "$CONFIG_DIR/omarchy/hooks/theme-set.d/25-terminal-app-themes.sh"
 link_external_file "pi/themes/solitude.json" "$HOME/.pi/agent/themes/solitude.json" "pi-agent/themes/solitude.json"
 link_external_file "pi/themes/rose-pine-dawn.json" "$HOME/.pi/agent/themes/rose-pine-dawn.json" "pi-agent/themes/rose-pine-dawn.json"
+link_external_file "pi/extensions/omarchy-system-theme.ts" "$HOME/.pi/agent/extensions/omarchy-system-theme.ts" "pi-agent/extensions/omarchy-system-theme.ts"
+link_external_file "pi/cloak.json" "$HOME/.pi/agent/cloak.json" "pi-agent/cloak.json"
+rm -f "$HOME/.pi/agent/themes/omarchy-system.json"
 configure_pi_theme
+install_pi_packages
 echo
 
 if [ -d "$BACKUP_DIR" ]; then

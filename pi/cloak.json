@@ -1,0 +1,94 @@
+{
+  "enabled": true,
+  "cloakCharacter": "*",
+  "cloakLength": 96,
+  "tryAllPatterns": true,
+  "patterns": [
+    {
+      "filePattern": ["**/.env", "**/.env.*"],
+      "cloakPattern": [
+        {
+          "pattern": "^(\\s*(?:export\\s+)?[A-Za-z_][A-Za-z0-9_]*\\s*=\\s*).+$",
+          "replace": "$1"
+        },
+        {
+          "pattern": "^(?!\\s*(?:export\\s+)?[A-Za-z_][A-Za-z0-9_]*\\s*=)(?=\\s*\\S).+$",
+          "replace": "[REDACTED]"
+        }
+      ]
+    },
+    {
+      "filePattern": [
+        "**/*.pem",
+        "**/*.key",
+        "**/id_rsa",
+        "**/id_dsa",
+        "**/id_ecdsa",
+        "**/id_ed25519",
+        "**/.git-credentials",
+        "**/.netrc",
+        "**/_netrc",
+        "**/.npmrc",
+        "**/.pypirc",
+        "**/.aws/credentials",
+        "**/.azure/accessTokens.json",
+        "**/.config/gcloud/application_default_credentials.json",
+        "**/.docker/config.json",
+        "**/.kube/config",
+        "**/auth.json",
+        "**/credentials",
+        "**/credentials.json",
+        "**/service-account*.json",
+        "**/service_account*.json",
+        "**/secrets.json",
+        "**/secrets.yaml",
+        "**/secrets.yml",
+        "**/secrets.toml"
+      ],
+      "cloakPattern": {
+        "pattern": ".+",
+        "replace": "[REDACTED]"
+      }
+    },
+    {
+      "filePattern": [
+        "**/*.json",
+        "**/*.jsonc",
+        "**/*.yaml",
+        "**/*.yml",
+        "**/*.toml",
+        "**/*.ini",
+        "**/*.conf",
+        "**/*.config",
+        "**/*.properties"
+      ],
+      "cloakPattern": {
+        "pattern": "((?:\\\"?(?:api[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret|private[_-]?key|secret|password|passwd|token)\\\"?\\s*(?:=|:)\\s*))(?:\\\"[^\\\"]*\\\"|'[^']*'|[^\\s,#}]+)",
+        "flags": "i",
+        "replace": "$1"
+      }
+    },
+    {
+      "filePattern": "**/*",
+      "cloakPattern": [
+        {
+          "pattern": "(Authorization\\s*:\\s*(?:Bearer|Basic)\\s+)[A-Za-z0-9._~+/=-]+",
+          "flags": "i",
+          "replace": "$1"
+        },
+        {
+          "pattern": "[A-Za-z][A-Za-z0-9+.-]*://[^\\s/:]+:[^\\s/@]+@[^\\s]+",
+          "replace": "[REDACTED-URL]"
+        },
+        {
+          "pattern": "(?:AKIA|ASIA)[A-Z0-9]{16}|gh[pousr]_[A-Za-z0-9]{20,255}|github_pat_[A-Za-z0-9_]{20,255}|sk-[A-Za-z0-9_-]{16,255}|xox[baprs]-[A-Za-z0-9-]{10,255}",
+          "replace": "[REDACTED-TOKEN]"
+        },
+        {
+          "pattern": "eyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}",
+          "replace": "[REDACTED-JWT]"
+        }
+      ]
+    }
+  ]
+}
