@@ -27,7 +27,7 @@ the shared `~/.agents/skills` links; each tool reads the same tracked files
 without copied skill bundles drifting apart.
 
 Afterwards:
-- Edit `hypr/monitors.conf` for this machine's displays (`hyprctl monitors`).
+- Edit `hypr/monitors.lua` for this machine's displays (`hyprctl monitors`).
 - Install the Nerd Fonts (VictorMono / JetBrainsMono) if missing.
 - Run `omarchy theme set solitude` to generate and distribute app themes.
 - Log out/in or `hyprctl reload`, and restart waybar/terminals.

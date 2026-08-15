@@ -71,8 +71,8 @@
 
   "theme": {
     "mode": "system",
-    "light": "Omarchy",
-    "dark": "Omarchy",
+    "light": "Omarchy Light",
+    "dark": "Omarchy Dark",
   },
   "experimental.theme_overrides": {
     "syntax": {

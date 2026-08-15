@@ -24,6 +24,7 @@ return {
         "sqls",
         "svelte-language-server",
         "terraform-ls",
+        "typescript-language-server",
         "ty",
         "yaml-language-server",
         "yamlfmt",
@@ -48,7 +49,24 @@ return {
       vim.treesitter.language.register("sql", "pgsql")
     end,
     opts = {
+      setup = {
+        astro = function(server, opts)
+          vim.lsp.config(server, opts)
+          vim.lsp.enable(server)
+          return true
+        end,
+      },
       servers = {
+        -- Astro's Mason adapter currently selects its incompatible bundled TypeScript 7 SDK.
+        astro = {
+          mason = false,
+          before_init = function(_, config)
+            config.init_options = config.init_options or {}
+            config.init_options.typescript = config.init_options.typescript or {}
+            config.init_options.typescript.tsdk = vim.fn.stdpath("data")
+              .. "/mason/packages/typescript-language-server/node_modules/typescript/lib"
+          end,
+        },
         clangd = { mason = false },
         denols = {
           root_dir = function(bufnr, on_dir)
@@ -64,7 +82,7 @@ return {
             },
           },
         },
-        gopls = { mason = false },
+        gopls = {},
         expert = { enabled = false },
         htmx = {
           filetypes = { "html", "templ", "astro", "svelte", "typescriptreact", "javascriptreact" },

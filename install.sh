@@ -28,6 +28,7 @@ CONFIGS=(
 # Standalone files that live directly under ~/.config.
 CONFIG_FILES=(
   starship.toml
+  xdg-terminals.list
 )
 
 # Selective Omarchy files. Never link the whole directory because current/
@@ -269,9 +270,18 @@ install_solitude_theme() {
     git -C "$theme_dir" apply "$patch_file"
     printf '  patch %-44s -> readability overrides\n' "omarchy/themes/solitude"
   else
-    printf '  error %-44s (custom patch conflicts with installed theme)\n' "omarchy/themes/solitude" >&2
-    return 1
+    local backup="$BACKUP_DIR/omarchy/themes/solitude"
+    mkdir -p "$(dirname "$backup")"
+    mv "$theme_dir" "$backup"
+    git clone --quiet "$theme_url" "$theme_dir"
+    git -C "$theme_dir" checkout --quiet "$theme_revision"
+    git -C "$theme_dir" apply "$patch_file"
+    printf '  back  %-44s -> %s\n' "omarchy/themes/solitude" "$backup"
+    printf '  patch %-44s -> refreshed readability overrides\n' "omarchy/themes/solitude"
   fi
+
+  # Zed themes are tracked under zed/themes; remove the copy from older patches.
+  rm -f "$theme_dir/zed.json"
 }
 
 echo "Dotfiles : $REPO_DIR"
@@ -296,6 +306,7 @@ for skill in "${AGENT_SKILLS[@]}"; do
   link_agent_skill "pi" "$HOME/.pi/agent/skills" "$skill"
 done
 install_solitude_theme
+OMARCHY_THEME_SKIP_OPENCODE_RELOAD=1 bash "$CONFIG_DIR/omarchy/hooks/theme-set.d/25-terminal-app-themes.sh"
 link_external_file "pi/themes/solitude.json" "$HOME/.pi/agent/themes/solitude.json" "pi-agent/themes/solitude.json"
 link_external_file "pi/themes/rose-pine-dawn.json" "$HOME/.pi/agent/themes/rose-pine-dawn.json" "pi-agent/themes/rose-pine-dawn.json"
 configure_pi_theme
@@ -308,7 +319,7 @@ fi
 cat <<'NOTE'
 
 Done. A couple of per-machine things to check by hand:
-  - hypr/monitors.conf  : display layout/resolution/scale is machine-specific.
+  - hypr/monitors.lua   : display layout/resolution/scale is machine-specific.
                           Run `hyprctl monitors` and edit it for this machine.
   - Fonts               : install your Nerd Fonts (VictorMono / JetBrainsMono)
                           if they're missing.

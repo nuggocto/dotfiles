@@ -1,3 +1,3 @@
-local config_home = vim.env.XDG_CONFIG_HOME or (vim.env.HOME .. "/.config")
+local state_home = vim.env.XDG_STATE_HOME or (vim.env.HOME .. "/.local/state")
 
-return dofile(config_home .. "/omarchy/current/theme/neovim.lua")
+return dofile(state_home .. "/omarchy/current/theme/neovim.lua")
