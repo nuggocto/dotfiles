@@ -14,11 +14,11 @@ Prefer retrieval over pre-training knowledge. Docs: https://planetscale.com/docs
 
 When the PlanetScale MCP server is configured in your environment, prefer it over CLI. Key tools:
 
-- `planetscale_get_branch_schema` — Get schema for a branch
-- `planetscale_execute_read_query` — Run SELECT, SHOW, DESCRIBE, EXPLAIN
-- `planetscale_get_insights` — Query performance insights
-- `planetscale_list_schema_recommendations` — Index and schema suggestions
-- `planetscale_search_documentation` — Search PlanetScale docs
+- `planetscale_get_branch_schema` , Get schema for a branch
+- `planetscale_execute_read_query` , Run SELECT, SHOW, DESCRIBE, EXPLAIN
+- `planetscale_get_insights` , Query performance insights
+- `planetscale_list_schema_recommendations` , Index and schema suggestions
+- `planetscale_search_documentation` , Search PlanetScale docs
 
 MCP setup: https://planetscale.com/docs/connect/mcp
 
@@ -40,13 +40,13 @@ What to look for:
 
 In the [PlanetScale dashboard](https://app.planetscale.com/), select your database and click **Insights**.
 
-- **Filtering** — Pick a branch, choose primary or replica, and scroll through the last 7 days. Click-and-drag on graphs to zoom into a time window.
-- **Graphs** — Four tabs: Query latency (p50/p95/p99/p99.9), Queries per second, Rows read/s, and Rows written/s.
-- **Queries table** — All queries in the selected timeframe, normalized into patterns. Sortable and filterable by SQL, schema, table, latency, index usage, and more. Customizable columns (count, total time, latency percentiles, rows read/returned/affected, CPU/IO time, cache hit ratio, etc.). Enable sparklines for inline trend graphs. Orange icons flag full table scans.
-- **Query deep dive** — Click any query to see per-pattern graphs, summary stats, index usage breakdown, and a table of notable executions (>1 s, >10k rows read, or errors). Use "Summarize query" for an LLM-generated plain-English description.
-- **Anomalies tab** — Flags periods with elevated slow-running queries and surfaces the responsible patterns.
-- **Errors tab** — Surfaces queries that produced errors.
-- **pginsights settings** — `pginsights.raw_queries` enables full query text collection for notable queries; `pginsights.normalize_schema_names` groups identical patterns across schemas (useful for schema-per-tenant designs). Both configurable in the Extensions tab on the Clusters page.
+- **Filtering** , Pick a branch, choose primary or replica, and scroll through the last 7 days. Click-and-drag on graphs to zoom into a time window.
+- **Graphs** , Four tabs: Query latency (p50/p95/p99/p99.9), Queries per second, Rows read/s, and Rows written/s.
+- **Queries table** , All queries in the selected timeframe, normalized into patterns. Sortable and filterable by SQL, schema, table, latency, index usage, and more. Customizable columns (count, total time, latency percentiles, rows read/returned/affected, CPU/IO time, cache hit ratio, etc.). Enable sparklines for inline trend graphs. Orange icons flag full table scans.
+- **Query deep dive** , Click any query to see per-pattern graphs, summary stats, index usage breakdown, and a table of notable executions (>1 s, >10k rows read, or errors). Use "Summarize query" for an LLM-generated plain-English description.
+- **Anomalies tab** , Flags periods with elevated slow-running queries and surfaces the responsible patterns.
+- **Errors tab** , Surfaces queries that produced errors.
+- **pginsights settings** , `pginsights.raw_queries` enables full query text collection for notable queries; `pginsights.normalize_schema_names` groups identical patterns across schemas (useful for schema-per-tenant designs). Both configurable in the Extensions tab on the Clusters page.
 
 More: [PlanetScale Insights docs](https://planetscale.com/docs/postgres/monitoring/query-insights)
 

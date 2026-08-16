@@ -9,7 +9,7 @@ tags: mysql, connections, pooling, max-connections, performance
 Every MySQL connection costs memory (~1–10 MB depending on buffers). Unbounded connections cause OOM or `Too many connections` errors.
 
 ## Sizing `max_connections`
-Default is 151. Don't blindly raise it — more connections = more memory + more contention.
+Default is 151. Don't blindly raise it , more connections = more memory + more contention.
 
 ```sql
 SHOW VARIABLES LIKE 'max_connections';         -- current limit
@@ -18,7 +18,7 @@ SHOW STATUS LIKE 'Threads_connected';           -- current count
 ```
 
 ## Pool Sizing Formula
-A good starting point for OLTP: **pool size = (CPU cores * N)** where N is typically 2-10. This is a baseline — tune based on:
+A good starting point for OLTP: **pool size = (CPU cores * N)** where N is typically 2-10. This is a baseline , tune based on:
 - Query characteristics (I/O-bound queries may benefit from more connections)
 - Actual connection usage patterns (monitor `Threads_connected` vs `Max_used_connections`)
 - Application concurrency requirements
@@ -29,7 +29,7 @@ More connections beyond CPU-bound optimal add context-switch overhead without im
 
 ### Idle Connection Timeouts
 ```sql
--- Kill idle connections after 5 minutes (default is 28800 seconds / 8 hours — way too long)
+-- Kill idle connections after 5 minutes (default is 28800 seconds / 8 hours , way too long)
 SET GLOBAL wait_timeout = 300;         -- Non-interactive connections (apps)
 SET GLOBAL interactive_timeout = 300;  -- Interactive connections (CLI)
 ```
@@ -51,7 +51,7 @@ MySQL uses a **one-thread-per-connection** model by default: each connection get
 MySQL also caches threads for reuse. If connections fluctuate frequently, increase `thread_cache_size` to reduce thread creation overhead.
 
 ## Common Pitfalls
-- **ORM default pools too large**: Rails default is 5 per process — 20 Puma workers = 100 connections from one app server. Multiply by app server count.
+- **ORM default pools too large**: Rails default is 5 per process , 20 Puma workers = 100 connections from one app server. Multiply by app server count.
 - **No pool at all**: PHP/CGI models open a new connection per request. Use persistent connections or ProxySQL.
 - **Connection storms on deploy**: All app servers reconnect simultaneously when restarted, potentially exhausting `max_connections`. Mitigations: stagger deployments, use connection pool warm-up (gradually open connections), or use a proxy layer.
 - **Idle transactions**: Connections with open transactions (`BEGIN` without `COMMIT`/`ROLLBACK`) are **not** closed by `wait_timeout` and hold locks. This causes deadlocks and connection leaks. Always commit or rollback promptly, and use application-level transaction timeouts.

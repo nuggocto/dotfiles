@@ -34,7 +34,7 @@ Check routing with `VEXPLAIN PLAN`: look for Route variant `EqualUnique` (single
 
 **Joins**: Cross-shard joins work but are expensive (nested loop joins). Co-locate tables by sharding on the same column so joins stay single-shard.
 
-**Aggregations**: `GROUP BY`, `ORDER BY`, `LIMIT`, and aggregates work across shards. When grouping on at least one sharding key, Vitess pushes aggregation down to MySQL, then aggregates the per-shard results—making queries fast since shards process different chunks in parallel.
+**Aggregations**: `GROUP BY`, `ORDER BY`, `LIMIT`, and aggregates work across shards. When grouping on at least one sharding key, Vitess pushes aggregation down to MySQL, then aggregates the per-shard results,making queries fast since shards process different chunks in parallel.
 
 **Ordering**: As with MySQL itself, queries without `ORDER BY` have no guaranteed order (MySQL typically returns rows in index order, but this is not contractual). In Vitess this is especially true since results come from multiple shards. Always use `ORDER BY` when order matters.
 
@@ -77,7 +77,7 @@ Reference: https://vitess.io/docs/23.0/reference/vreplication/reference_tables/
 
 Reference tables are small, rarely-changing lookup tables (e.g. countries, currencies, product categories) that Vitess replicates to every shard via a `Materialize` VReplication workflow. The source of truth lives in an unsharded keyspace where all DMLs are executed.
 
-Mark tables with `"type": "reference"` in the VSchema of both keyspaces (the target also needs a `"source"` field). SELECTs are then served locally per shard — no cross-shard lookup needed.
+Mark tables with `"type": "reference"` in the VSchema of both keyspaces (the target also needs a `"source"` field). SELECTs are then served locally per shard , no cross-shard lookup needed.
 
 ## Performance checklist
 

@@ -32,7 +32,7 @@ References:
 - Composite order: equality first, then range/sort (leftmost prefix rule).
 - Range predicates stop index usage for subsequent columns.
 - Secondary indexes include PK implicitly. Prefix indexes for long strings.
-- Audit via `performance_schema` — drop indexes with `count_read = 0`.
+- Audit via `performance_schema` , drop indexes with `count_read = 0`.
 
 References:
 - [composite-indexes](https://raw.githubusercontent.com/planetscale/database-skills/main/skills/mysql/references/composite-indexes.md)
@@ -41,14 +41,14 @@ References:
 - [index-maintenance](https://raw.githubusercontent.com/planetscale/database-skills/main/skills/mysql/references/index-maintenance.md)
 
 ## Partitioning
-- Partition time-series (>50M rows) or large tables (>100M rows). Plan early — retrofit = full rebuild.
+- Partition time-series (>50M rows) or large tables (>100M rows). Plan early , retrofit = full rebuild.
 - Include partition column in every unique/PK. Always add a `MAXVALUE` catch-all.
 
 References:
 - [partitioning](https://raw.githubusercontent.com/planetscale/database-skills/main/skills/mysql/references/partitioning.md)
 
 ## Query Optimization
-- Check `EXPLAIN` — red flags: `type: ALL`, `Using filesort`, `Using temporary`.
+- Check `EXPLAIN` , red flags: `type: ALL`, `Using filesort`, `Using temporary`.
 - Cursor pagination, not `OFFSET`. Avoid functions on indexed columns in `WHERE`.
 - Batch inserts (500–5000 rows). `UNION ALL` over `UNION` when dedup unnecessary.
 
@@ -69,7 +69,7 @@ References:
 
 ## Operations
 - Use online DDL (`ALGORITHM=INPLACE`) when possible; test on replicas first.
-- Tune connection pooling — avoid `max_connections` exhaustion under load.
+- Tune connection pooling , avoid `max_connections` exhaustion under load.
 - Monitor replication lag; avoid stale reads from replicas during writes.
 
 References:

@@ -28,7 +28,7 @@ SELECT * FROM orders WHERE id = 999 FOR UPDATE;
 ```
 
 ## Index-Less UPDATE/DELETE = Full Scan and Broad Locking
-If the WHERE column has no index, InnoDB must scan all rows and locks every row examined (often effectively all rows in the table). This is not table-level locking—InnoDB doesn't escalate locks—but rather row-level locks on all rows:
+If the WHERE column has no index, InnoDB must scan all rows and locks every row examined (often effectively all rows in the table). This is not table-level locking,InnoDB doesn't escalate locks,but rather row-level locks on all rows:
 ```sql
 -- No index on status → locks all rows (not a table lock, but all row locks)
 UPDATE orders SET processed = 1 WHERE status = 'pending';
@@ -55,9 +55,9 @@ Gap/next-key locks can still apply in REPEATABLE READ, so inserts into locked ga
 Takes an exclusive next-key lock on the index entry. If multiple sessions do this concurrently on nearby key values, gap-lock deadlocks are common.
 
 ## Lock Escalation Misconception
-InnoDB does **not** automatically escalate row locks to table locks. When a missing index causes "table-wide" locking, it's because InnoDB scans and locks all rows individually—not because locks were escalated.
+InnoDB does **not** automatically escalate row locks to table locks. When a missing index causes "table-wide" locking, it's because InnoDB scans and locks all rows individually,not because locks were escalated.
 
 ## Mitigation Strategies
 - **Use READ COMMITTED** when gap locks cause excessive blocking (gap locks disabled in RC except for FK/duplicate-key checks).
-- **Keep transactions short** — hold locks for milliseconds, not seconds.
+- **Keep transactions short** , hold locks for milliseconds, not seconds.
 - **Ensure WHERE columns are indexed** to avoid full-table lock scans.

@@ -35,7 +35,7 @@ PARTITION BY RANGE (TO_DAYS(created_at)) (
   PARTITION p2025_q1 VALUES LESS THAN (TO_DAYS('2025-04-01')),
   PARTITION p_future VALUES LESS THAN MAXVALUE
 );
--- LIST (discrete categories — unlisted values cause errors, ensure full coverage)
+-- LIST (discrete categories , unlisted values cause errors, ensure full coverage)
 PARTITION BY LIST COLUMNS (region) (
   PARTITION p_americas VALUES IN ('us', 'ca', 'br'),
   PARTITION p_europe  VALUES IN ('uk', 'de', 'fr')

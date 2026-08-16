@@ -6,7 +6,7 @@ tags: mysql, ddl, schema-migration, alter-table, innodb
 
 # Online DDL
 
-Not all `ALTER TABLE` is equal — some block writes for the entire duration.
+Not all `ALTER TABLE` is equal , some block writes for the entire duration.
 
 ## Algorithm Spectrum
 

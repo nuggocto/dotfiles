@@ -8,7 +8,7 @@ tags: postgres, monitoring, pg_stat_statements, logging, pgbadger, metrics, oper
 
 ## Essential Views
 
-- **pg_stat_activity**: First stop when something is wrong — running queries, states, wait events, locks.
+- **pg_stat_activity**: First stop when something is wrong , running queries, states, wait events, locks.
 - **pg_stat_statements**: Execution stats for all SQL. Requires `shared_preload_libraries = 'pg_stat_statements'` and `CREATE EXTENSION pg_stat_statements`.
 - **pg_stat_database**: Cache hit ratio, temp files, deadlocks, connections per database.
 - **pg_stat_user_tables**: `seq_scan` vs `idx_scan`, dead tuples, last vacuum/analyze times.
@@ -34,7 +34,7 @@ SELECT relname, n_dead_tup, last_autovacuum FROM pg_stat_user_tables ORDER BY n_
 
 Blocking: use `pg_blocking_pids(pid)` with `pg_stat_activity` to find blocked and blocking sessions.
 
-## Logging — First Line of Defense
+## Logging , First Line of Defense
 
 PostgreSQL is extremely vocal about problems. **Always check logs first**: `tail -f /var/log/postgresql/postgresql-*.log`.
 
@@ -44,16 +44,16 @@ Key settings: `log_min_duration_statement` (OLTP: 1–3s, analytics: 30–60s, d
 
 Interactive top-like tool (pip install pg_activity). Run on DB host for OS metrics alongside PG metrics. Combines `pg_stat_activity` with CPU/memory/I/O context.
 
-## Host Metrics — Critical
+## Host Metrics , Critical
 
 PostgreSQL cannot report these. **Monitor them yourself:**
 
 - **CPU**: Steal time >10% in VMs bad; load average > core count; context switches >100k/sec.
 - **Memory**: Any swap = performance degradation. Check `dmesg` for OOM kills.
-- **Disk I/O**: `iostat -x` — `%util=100%` means saturated; `await` >10ms = high latency.
+- **Disk I/O**: `iostat -x` , `%util=100%` means saturated; `await` >10ms = high latency.
 - **Disk space**: >90% critical (VACUUM fails, writes fail). Check inode usage too.
 - **Network**: Packet loss >0% = problems; high retransmits = instability.
 
 ## Statistics Management
 
-Stats accumulate since last reset or restart; check `stats_reset` timestamp. `pg_stat_statements_reset()` clears query stats; `pg_stat_reset()` clears database stats. Reset after major maintenance, config changes, or perf testing — not routinely. Prefer snapshotting stats to external monitoring (Prometheus, Datadog) over resetting. **Always confirm with a human before resetting statistics** — resetting destroys historical performance baselines and can make it harder to identify unused indexes or regressions.
+Stats accumulate since last reset or restart; check `stats_reset` timestamp. `pg_stat_statements_reset()` clears query stats; `pg_stat_reset()` clears database stats. Reset after major maintenance, config changes, or perf testing , not routinely. Prefer snapshotting stats to external monitoring (Prometheus, Datadog) over resetting. **Always confirm with a human before resetting statistics** , resetting destroys historical performance baselines and can make it harder to identify unused indexes or regressions.

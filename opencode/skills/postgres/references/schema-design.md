@@ -28,7 +28,7 @@ Random UUID PKs (v4) can cause index fragmentation; UUIDs are also larger (16 vs
 | `TIMESTAMPTZ` | `TIMESTAMP` without time zone |
 | `BIGINT`, `INTEGER` | Platform-specific types |
 
-Prefer CHECK constraints over ENUM types — they're easier to modify:
+Prefer CHECK constraints over ENUM types , they're easier to modify:
 
 ```sql
 CREATE TABLE order (

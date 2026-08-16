@@ -2,7 +2,7 @@
 
 These cases match the MVP-row assertions in the Turnstile Spin PRD. Run them after editing this skill to confirm an agent loading it can still execute the wizard end-to-end.
 
-## Test 1 — Health check parses cleanly
+## Test 1 , Health check parses cleanly
 
 Given a deployed Worker, the agent should be able to parse `/health` without ambiguity.
 
@@ -12,9 +12,9 @@ curl -sf "${WORKER_URL}/health" | jq -e '.ok == true and (.version | type) == "s
 
 Expected exit code: 0.
 
-## Test 2 — Dummy siteverify returns a structured error
+## Test 2 , Dummy siteverify returns a structured error
 
-The wizard's Step 7b sends a deliberately-invalid token. The Worker must return `success: false`, a non-empty `error-codes` array, and a `_worker` block — not a bare 500.
+The wizard's Step 7b sends a deliberately-invalid token. The Worker must return `success: false`, a non-empty `error-codes` array, and a `_worker` block , not a bare 500.
 
 ```sh
 curl -s -X POST "${WORKER_URL}/" \
@@ -25,7 +25,7 @@ curl -s -X POST "${WORKER_URL}/" \
 
 Expected exit code: 0.
 
-## Test 3 — Hostname configuration
+## Test 3 , Hostname configuration
 
 ```sh
 npx wrangler turnstile widget show "${WIDGET_ID}" | \
@@ -34,7 +34,7 @@ npx wrangler turnstile widget show "${WIDGET_ID}" | \
 
 Expected exit code: 0.
 
-## Test 4 — Telemetry marker is in every written snippet
+## Test 4 , Telemetry marker is in every written snippet
 
 After the wizard completes, grep the written files:
 
@@ -44,7 +44,7 @@ rg -l 'data-action="turnstile-spin-v1"' <(echo "$WRITTEN_FILES")
 
 Expected: every written file matches. If a snippet was written without the marker, the wizard skipped Step 6 (or the agent edited the template). Re-run.
 
-## Test 5 — Skill persists to the right location
+## Test 5 , Skill persists to the right location
 
 After Step 8:
 

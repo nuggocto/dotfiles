@@ -8,18 +8,18 @@ tags: postgres, mvcc, transactions, isolation, xid-wraparound, concurrency, seri
 
 ## Transaction Isolation Levels
 
-- **READ UNCOMMITTED** — treated as READ COMMITTED in PostgreSQL; no dirty reads ever.
+- **READ UNCOMMITTED** , treated as READ COMMITTED in PostgreSQL; no dirty reads ever.
 - **READ COMMITTED** (default): new snapshot per statement; can see different data within same tx.
 - **REPEATABLE READ**: snapshot at first query; can cause serialization errors on write conflicts.
 - **SERIALIZABLE**: strongest; transactions appear serial; requires retry logic in app code.
 
-Readers never block writers; writers never block readers (only writer-writer conflicts on same row). No lock escalation — row locks never degrade to table locks.
+Readers never block writers; writers never block readers (only writer-writer conflicts on same row). No lock escalation , row locks never degrade to table locks.
 
 ## XID Wraparound
 
-32-bit transaction IDs wrap at ~2 billion (2^31). `VACUUM FREEZE` replaces old XIDs with FrozenXID (value 2, always visible). Without freeze: after wraparound, old rows appear "in the future" and become **invisible**. Data physically exists but is invisible to all queries — looks like total data loss. PostgreSQL emergency shutdown at 2B XIDs to prevent this. XID wraparound should be avoided at all cost.
+32-bit transaction IDs wrap at ~2 billion (2^31). `VACUUM FREEZE` replaces old XIDs with FrozenXID (value 2, always visible). Without freeze: after wraparound, old rows appear "in the future" and become **invisible**. Data physically exists but is invisible to all queries , looks like total data loss. PostgreSQL emergency shutdown at 2B XIDs to prevent this. XID wraparound should be avoided at all cost.
 
-Warning messages start at ~1.4B XIDs; shutdown at 2B. Recovery requires single-user mode VACUUM — can take hours to days on large DBs. **Never disable autovacuum** — it's your protection against wraparound.
+Warning messages start at ~1.4B XIDs; shutdown at 2B. Recovery requires single-user mode VACUUM , can take hours to days on large DBs. **Never disable autovacuum** , it's your protection against wraparound.
 
 ## XID Age Monitoring
 

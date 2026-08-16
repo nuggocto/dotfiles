@@ -1,5 +1,5 @@
 /**
- * tests/4 — Validation surface.
+ * tests/4 , Validation surface.
  *
  * Tests the endpoints that Turnstile Spin's wizard relies on during its
  * post-deploy validation step:
@@ -24,7 +24,7 @@ const ENV: Env = {
 	ALLOWED_ORIGIN: '*',
 };
 
-describe('validation surface — /health', () => {
+describe('validation surface , /health', () => {
 	it('returns ok:true and a semver version', async () => {
 		const res = await worker.fetch(new Request('https://w/health'), ENV);
 		expect(res.status).toBe(200);
@@ -52,7 +52,7 @@ describe('validation surface — /health', () => {
 	});
 });
 
-describe('validation surface — dummy siteverify returns structured error', () => {
+describe('validation surface , dummy siteverify returns structured error', () => {
 	beforeEach(() => vi.restoreAllMocks());
 	afterEach(() => vi.restoreAllMocks());
 
@@ -117,7 +117,7 @@ describe('validation surface — dummy siteverify returns structured error', () 
 	});
 });
 
-describe('validation surface — hostname mismatch', () => {
+describe('validation surface , hostname mismatch', () => {
 	beforeEach(() => vi.restoreAllMocks());
 	afterEach(() => vi.restoreAllMocks());
 
@@ -145,7 +145,7 @@ describe('validation surface — hostname mismatch', () => {
 	});
 });
 
-describe('validation surface — telemetry marker passthrough', () => {
+describe('validation surface , telemetry marker passthrough', () => {
 	beforeEach(() => vi.restoreAllMocks());
 	afterEach(() => vi.restoreAllMocks());
 
@@ -178,7 +178,7 @@ describe('validation surface — telemetry marker passthrough', () => {
 	});
 });
 
-describe('validation surface — post-deploy form is reachable', () => {
+describe('validation surface , post-deploy form is reachable', () => {
 	it('GET /post-deploy returns 404 when ASSETS binding is missing (test env)', async () => {
 		// In the unit-test env we don't have the ASSETS binding wired, so the
 		// handler falls through. The real Worker has the binding from wrangler.toml.

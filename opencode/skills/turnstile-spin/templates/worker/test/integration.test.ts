@@ -6,16 +6,16 @@
  *   https://developers.cloudflare.com/turnstile/troubleshooting/testing/
  *
  * Test secrets:
- *   1x0000000000000000000000000000000AA  — always passes
- *   2x0000000000000000000000000000000AA  — always fails
- *   3x0000000000000000000000000000000AA  — already-spent token (timeout-or-duplicate)
+ *   1x0000000000000000000000000000000AA  , always passes
+ *   2x0000000000000000000000000000000AA  , always fails
+ *   3x0000000000000000000000000000000AA  , already-spent token (timeout-or-duplicate)
  *
  * Test sitekeys:
- *   1x00000000000000000000AA  — visible, always passes
- *   2x00000000000000000000AB  — visible, always blocks
- *   1x00000000000000000000BB  — invisible, always passes
- *   2x00000000000000000000BB  — invisible, always blocks
- *   3x00000000000000000000FF  — forces an interactive challenge
+ *   1x00000000000000000000AA  , visible, always passes
+ *   2x00000000000000000000AB  , visible, always blocks
+ *   1x00000000000000000000BB  , invisible, always passes
+ *   2x00000000000000000000BB  , invisible, always blocks
+ *   3x00000000000000000000FF  , forces an interactive challenge
  *
  * These tests make real network calls. Run with `npm run test:integration`.
  */

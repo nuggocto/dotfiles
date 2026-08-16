@@ -6,7 +6,7 @@ tags: mysql, data-types, numeric, varchar, datetime, json
 
 # Data Types
 
-Choose the smallest correct type — more rows per page, better cache, faster queries.
+Choose the smallest correct type , more rows per page, better cache, faster queries.
 
 ## Numeric Sizes
 | Type | Bytes | Unsigned Max |
@@ -17,10 +17,10 @@ Choose the smallest correct type — more rows per page, better cache, faster qu
 | `INT` | 4 | 4.3B |
 | `BIGINT` | 8 | 18.4 quintillion |
 
-Use `BIGINT UNSIGNED` for PKs — `INT` exhausts at ~4.3B rows. Use `DECIMAL(19,4)` for money, never `FLOAT`.
+Use `BIGINT UNSIGNED` for PKs , `INT` exhausts at ~4.3B rows. Use `DECIMAL(19,4)` for money, never `FLOAT`.
 
 ## Strings
-- `VARCHAR(N)` over `TEXT` when bounded — can be indexed directly.
+- `VARCHAR(N)` over `TEXT` when bounded , can be indexed directly.
 - **`N` matters**: `VARCHAR(255)` vs `VARCHAR(50)` affects memory allocation for temp tables and sorts.
 
 ## TEXT/BLOB Indexing
@@ -66,4 +66,4 @@ ALTER TABLE products
 Choose **VIRTUAL** for simple expressions when space matters. Choose **STORED** when indexing is required or the expression is expensive.
 
 ## ENUM/SET
-Prefer lookup tables — `ENUM`/`SET` changes require `ALTER TABLE`, which can be slow on large tables.
+Prefer lookup tables , `ENUM`/`SET` changes require `ALTER TABLE`, which can be slow on large tables.

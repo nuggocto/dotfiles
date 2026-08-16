@@ -12,7 +12,7 @@ Use physical (byte-for-byte) replication via WAL stream from primary to standbys
 
 ## Replication Slots
 
-Postgres supports Physical slots (streaming) and logical slots (logical replication). Slots prevent WAL deletion even if standby is offline — can exhaust `pg_wal/` disk. Use `max_slot_wal_keep_size` to cap retained WAL per slot. Use `idle_replication_slot_timeout` (PG 17+) to auto-invalidate idle slots. `wal_keep_size` is a simpler alternative to slots for WAL retention. Drop inactive slots immediately to prevent disk exhaustion.
+Postgres supports Physical slots (streaming) and logical slots (logical replication). Slots prevent WAL deletion even if standby is offline , can exhaust `pg_wal/` disk. Use `max_slot_wal_keep_size` to cap retained WAL per slot. Use `idle_replication_slot_timeout` (PG 17+) to auto-invalidate idle slots. `wal_keep_size` is a simpler alternative to slots for WAL retention. Drop inactive slots immediately to prevent disk exhaustion.
 
 Slot lag (MB behind): `SELECT slot_name, pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)/1024/1024 AS mb_behind FROM pg_replication_slots;`
 
@@ -34,11 +34,11 @@ Configure with `synchronous_standby_names`. Use `ANY N` for quorum or `FIRST N` 
 
 ## Quorum and Failure
 
-`FIRST 2 (s1, s2, s3)` is priority-based: waits for the 2 highest-priority connected standbys (s1+s2; s3 takes over only if one disconnects). `ANY 2 (s1, s2, s3)` is quorum-based: waits for any 2. With either, if only 1 is healthy, commits hang. Provision at least N+1 standbys: need 2 confirmations → provision 3. PostgreSQL never commits unless required standbys confirm — no inconsistency, but clients may timeout.
+`FIRST 2 (s1, s2, s3)` is priority-based: waits for the 2 highest-priority connected standbys (s1+s2; s3 takes over only if one disconnects). `ANY 2 (s1, s2, s3)` is quorum-based: waits for any 2. With either, if only 1 is healthy, commits hang. Provision at least N+1 standbys: need 2 confirmations → provision 3. PostgreSQL never commits unless required standbys confirm , no inconsistency, but clients may timeout.
 
 ## Failover
 
-`pg_ctl promote` or `SELECT pg_promote()` (SQL function, PG 12+) converts standby to primary. One-way: promoted standby cannot rejoin as standby without rebuild. `pg_rewind` can resync old primary to new primary (requires `wal_log_hints=on` or data checksums) — faster than full rebuild. After promotion: update connection strings, rebuild old primary as standby, reconfigure other standbys.
+`pg_ctl promote` or `SELECT pg_promote()` (SQL function, PG 12+) converts standby to primary. One-way: promoted standby cannot rejoin as standby without rebuild. `pg_rewind` can resync old primary to new primary (requires `wal_log_hints=on` or data checksums) , faster than full rebuild. After promotion: update connection strings, rebuild old primary as standby, reconfigure other standbys.
 
 ## Monitoring
 
@@ -46,4 +46,4 @@ On the primary, query `pg_stat_replication` for each connected standby's `state`
 
 Replication lag (MB): `SELECT application_name, pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn)/1024/1024 AS lag_mb FROM pg_stat_replication;`
 
-Enable `wal_compression` (`pglz`, `lz4`, or `zstd`) to compress full page images in WAL (not all WAL data) — reduces WAL size for bandwidth-limited replication.
+Enable `wal_compression` (`pglz`, `lz4`, or `zstd`) to compress full page images in WAL (not all WAL data) , reduces WAL size for bandwidth-limited replication.

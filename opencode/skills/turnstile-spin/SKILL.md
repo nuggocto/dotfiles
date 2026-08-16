@@ -1,6 +1,6 @@
 ---
 name: turnstile-spin
-description: Set up Cloudflare Turnstile end-to-end in a project — scan the codebase, create the widget via the Cloudflare API, deploy the managed siteverify Worker, write the frontend snippets, validate, and persist the skill. Load this when a user asks to add Turnstile, set up CAPTCHA, protect a form from bots, or fix a Turnstile integration. Mirrors developers.cloudflare.com/turnstile/spin.
+description: Set up Cloudflare Turnstile end-to-end in a project , scan the codebase, create the widget via the Cloudflare API, deploy the managed siteverify Worker, write the frontend snippets, validate, and persist the skill. Load this when a user asks to add Turnstile, set up CAPTCHA, protect a form from bots, or fix a Turnstile integration. Mirrors developers.cloudflare.com/turnstile/spin.
 ---
 
 # Turnstile Spin skill
@@ -145,7 +145,7 @@ Edge cases to surface to the user:
 | Worker name conflict | `worker-deploy.sh` retries automatically with a hash suffix |
 | Token expired mid-flow | Stop, re-run `scripts/auth-probe.sh`, prompt for fresh credentials |
 | Step 11 returns `missing-input-secret` | Secret didn't propagate. Re-set: `echo "$WIDGET_SECRET" \| npx wrangler secret put TURNSTILE_SECRET_KEY --name <worker_name from worker-deploy.sh output>`, wait 10s, re-validate. Use the `worker_name` field returned by `worker-deploy.sh`; do not rely on a `$WORKER_NAME` env var. |
-| `worker-deploy.sh` returns `set_secret_failed` | Worker is deployed but secret is not set. Re-run only the secret-put using the returned `worker_name`: `echo "$WIDGET_SECRET" \| npx wrangler secret put TURNSTILE_SECRET_KEY --name <worker_name>`. Surface the `detail` field to the user — it carries the wrangler error. |
+| `worker-deploy.sh` returns `set_secret_failed` | Worker is deployed but secret is not set. Re-run only the secret-put using the returned `worker_name`: `echo "$WIDGET_SECRET" \| npx wrangler secret put TURNSTILE_SECRET_KEY --name <worker_name>`. Surface the `detail` field to the user , it carries the wrangler error. |
 
 ## Telemetry marker
 

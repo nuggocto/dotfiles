@@ -8,22 +8,22 @@ tags: postgres, storage, pgdata, toast, fillfactor, tablespaces, disk, operation
 
 ## PGDATA Structure
 
-- **base/** — database files (one subdirectory per database, named by OID)
-- **global/** — cluster-wide shared catalogs (pg_database, pg_authid, pg_tablespace)
-- **pg_wal/** — WAL files
-- **pg_xact/** — transaction commit status
+- **base/** , database files (one subdirectory per database, named by OID)
+- **global/** , cluster-wide shared catalogs (pg_database, pg_authid, pg_tablespace)
+- **pg_wal/** , WAL files
+- **pg_xact/** , transaction commit status
 
 "Cluster" in PostgreSQL = single instance with one PGDATA, not an HA cluster. Each table/index = one or more files, split into 1GB segments. Tables have companion **_fsm** (free space map) and **_vm** (visibility map); indexes have **_fsm** only (no _vm), except hash indexes.
 
 ## Visibility Map and Free Space Map
 
-- **_vm** tracks all-visible pages — VACUUM skips these
-- **_fsm** tracks free space per page — INSERT uses this to find pages with room
+- **_vm** tracks all-visible pages , VACUUM skips these
+- **_fsm** tracks free space per page , INSERT uses this to find pages with room
 - Both are small files but critical for performance
 
 ## TOAST
 
-TOAST triggers when a **row** exceeds ~2KB. Large values are compressed and/or moved out-of-line to `pg_toast.pg_toast_<oid>` tables. **Strategies:** PLAIN (no TOAST), EXTENDED (compress+out-of-line, default for text/bytea), EXTERNAL (out-of-line, no compression — use for pre-compressed data), MAIN (compress, avoid out-of-line). TOAST tables bloat like regular tables — they need VACUUM. `SELECT *` fetches all TOAST columns; always SELECT only needed columns. Move large rarely-accessed columns to separate tables.
+TOAST triggers when a **row** exceeds ~2KB. Large values are compressed and/or moved out-of-line to `pg_toast.pg_toast_<oid>` tables. **Strategies:** PLAIN (no TOAST), EXTENDED (compress+out-of-line, default for text/bytea), EXTERNAL (out-of-line, no compression , use for pre-compressed data), MAIN (compress, avoid out-of-line). TOAST tables bloat like regular tables , they need VACUUM. `SELECT *` fetches all TOAST columns; always SELECT only needed columns. Move large rarely-accessed columns to separate tables.
 
 ## Fillfactor
 
@@ -37,5 +37,5 @@ Controls how full pages are packed (default 100%). Lower fillfactor (70–80%) l
 
 - `pg_database_size('dbname')`, `pg_total_relation_size('tablename')`, `pg_relation_size('tablename')`
 - Monitor disk usage: >80% = at risk; >90% = critical (VACUUM may fail if disk capacity is insufficient)
-- Check inode usage (`df -i`) — can run out even with free space
+- Check inode usage (`df -i`) , can run out even with free space
 - `pg_wal/` suddenly large = check replication slots and archiving

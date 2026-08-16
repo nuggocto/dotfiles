@@ -11,7 +11,7 @@ MySQL replication is asynchronous by default. Reads from a replica may return st
 ## The Core Problem
 1. App writes to primary: `INSERT INTO orders ...`
 2. App immediately reads from replica: `SELECT * FROM orders WHERE id = ?`
-3. Replica hasn't applied the write yet — returns empty or stale data.
+3. Replica hasn't applied the write yet , returns empty or stale data.
 
 ## Detecting Lag
 ```sql

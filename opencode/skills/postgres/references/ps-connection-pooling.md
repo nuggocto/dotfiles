@@ -30,9 +30,9 @@ PlanetScale offers three PgBouncer options. All use port `6432`.
 | **Dedicated Primary** | Separate node | Primary | Connections persist through resizes, upgrades, and most failovers |
 | **Dedicated Replica** | Separate node | Replicas | Read-only traffic; supports AZ affinity for lower latency |
 
-- **Local PgBouncer** — use same credentials as direct, just change port to `6432`. Always routes to primary regardless of username.
-- **Dedicated Primary** — runs off-server for improved HA. Use for production OLTP write traffic.
-- **Dedicated Replica** — runs off-server for read-heavy workloads. Supports AZ affinity to prefer same-zone replicas. Multiple can be created for capacity or per-app isolation.
+- **Local PgBouncer** , use same credentials as direct, just change port to `6432`. Always routes to primary regardless of username.
+- **Dedicated Primary** , runs off-server for improved HA. Use for production OLTP write traffic.
+- **Dedicated Replica** , runs off-server for read-heavy workloads. Supports AZ affinity to prefer same-zone replicas. Multiple can be created for capacity or per-app isolation.
 
 To connect to a dedicated PgBouncer, append `|pgbouncer-name` to the username (e.g., `postgres.xxx|write-pool` or `postgres.xxx|read-bouncer`).
 

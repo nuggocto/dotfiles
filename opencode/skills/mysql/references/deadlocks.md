@@ -9,10 +9,10 @@ tags: mysql, deadlocks, innodb, transactions, locking, concurrency
 InnoDB auto-detects deadlocks and rolls back one transaction (the "victim").
 
 ## Common Causes
-1. **Opposite row ordering** — Transactions accessing the same rows in different order can deadlock. Fix: always access rows in a consistent order (typically by primary key or a common index) so locks are acquired in the same sequence.
-2. **Next-key lock conflicts** (REPEATABLE READ) — InnoDB uses next-key locks (row + gap) to prevent phantoms. Fix: use READ COMMITTED (reduces gap locking) or narrow lock scope.
-3. **Missing index on WHERE column** — UPDATE/DELETE without an index may require a full table scan, locking many rows unnecessarily and increasing deadlock risk.
-4. **AUTO_INCREMENT lock contention** — Concurrent INSERT patterns can deadlock while contending on the auto-inc lock. Fix: use `innodb_autoinc_lock_mode=2` (interleaved) for better concurrency when safe for your workload, or batch inserts.
+1. **Opposite row ordering** , Transactions accessing the same rows in different order can deadlock. Fix: always access rows in a consistent order (typically by primary key or a common index) so locks are acquired in the same sequence.
+2. **Next-key lock conflicts** (REPEATABLE READ) , InnoDB uses next-key locks (row + gap) to prevent phantoms. Fix: use READ COMMITTED (reduces gap locking) or narrow lock scope.
+3. **Missing index on WHERE column** , UPDATE/DELETE without an index may require a full table scan, locking many rows unnecessarily and increasing deadlock risk.
+4. **AUTO_INCREMENT lock contention** , Concurrent INSERT patterns can deadlock while contending on the auto-inc lock. Fix: use `innodb_autoinc_lock_mode=2` (interleaved) for better concurrency when safe for your workload, or batch inserts.
 
 Note: SERIALIZABLE also uses gap/next-key locks. READ COMMITTED reduces some gap-lock deadlocks but doesn't eliminate deadlocks from opposite ordering or missing indexes.
 
@@ -66,7 +66,7 @@ def execute_with_retry(db, fn, max_retries=3):
 ```
 
 ## Common Misconceptions
-- **"Deadlocks are bugs"** — deadlocks are a normal part of concurrent systems. The goal is to minimize frequency, not eliminate them entirely.
-- **"READ COMMITTED eliminates deadlocks"** — it reduces gap/next-key lock deadlocks, but deadlocks still happen from opposite ordering, missing indexes, and lock contention.
-- **"All deadlocks are from gap locks"** — many are caused by opposite row ordering even without gap locks.
-- **"Victim selection is random"** — InnoDB generally chooses the transaction with lower rollback cost (fewer rows changed).
+- **"Deadlocks are bugs"** , deadlocks are a normal part of concurrent systems. The goal is to minimize frequency, not eliminate them entirely.
+- **"READ COMMITTED eliminates deadlocks"** , it reduces gap/next-key lock deadlocks, but deadlocks still happen from opposite ordering, missing indexes, and lock contention.
+- **"All deadlocks are from gap locks"** , many are caused by opposite row ordering even without gap locks.
+- **"Victim selection is random"** , InnoDB generally chooses the transaction with lower rollback cost (fewer rows changed).

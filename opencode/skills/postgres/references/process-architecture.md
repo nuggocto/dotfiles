@@ -33,7 +33,7 @@ FROM pg_stat_activity, (SELECT setting::int AS max_conn FROM pg_settings WHERE n
 WHERE backend_type = 'client backend';
 ```
 
-Use `pg_activity` for interactive top-like monitoring. Alert at 80% connection usage, critical at 95%. Count by state to find idle-in-transaction leaks — these hold locks and **block VACUUM** from reclaiming dead tuples.
+Use `pg_activity` for interactive top-like monitoring. Alert at 80% connection usage, critical at 95%. Count by state to find idle-in-transaction leaks , these hold locks and **block VACUUM** from reclaiming dead tuples.
 
 ## Common Problems
 
@@ -41,6 +41,6 @@ Use `pg_activity` for interactive top-like monitoring. Alert at 80% connection u
 | ------- | --- |
 | `too many clients already` | Implement pooling; find idle connections; check for connection leaks |
 | High memory / OOM | Reduce `work_mem`; add pooling; set `statement_timeout` |
-| Stuck process | `SELECT pg_cancel_backend(pid);` then `SELECT pg_terminate_backend(pid);` — **always confirm with a human before terminating backends**, as this may abort in-flight transactions and cause data issues for the application |
+| Stuck process | `SELECT pg_cancel_backend(pid);` then `SELECT pg_terminate_backend(pid);` , **always confirm with a human before terminating backends**, as this may abort in-flight transactions and cause data issues for the application |
 
 Prefer pooling + conservative `max_connections` over raising limits reactively.

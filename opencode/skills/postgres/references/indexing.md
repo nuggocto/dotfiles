@@ -8,10 +8,10 @@ tags: postgres, indexes, composite, partial, covering, gin, brin
 
 ## Core Rules
 
-1. **Always index foreign key columns** — PostgreSQL does not auto-create these
+1. **Always index foreign key columns** , PostgreSQL does not auto-create these
 2. **Index columns in WHERE, JOIN, and ORDER BY** clauses
-3. **Don't over-index** — each index slows writes and uses storage
-4. **Verify with EXPLAIN ANALYZE** — confirm indexes are actually used
+3. **Don't over-index** , each index slows writes and uses storage
+4. **Verify with EXPLAIN ANALYZE** , confirm indexes are actually used
 
 ## Composite Indexes
 
@@ -56,6 +56,6 @@ CREATE INDEX event_created_idx ON event USING BRIN (created_at); -- time-series
 
 - Name indexes consistently: `{table}_{column}_idx`
 - Review for unused indexes periodically
-- **Always confirm with a human before removing or dropping any indexes** — even unused ones may serve a purpose not reflected in recent stats
+- **Always confirm with a human before removing or dropping any indexes** , even unused ones may serve a purpose not reflected in recent stats
 - Use partial indexes for frequently filtered subsets
 - Use covering indexes on hot read paths

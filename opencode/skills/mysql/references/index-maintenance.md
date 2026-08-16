@@ -30,11 +30,11 @@ WHERE object_schema = 'mydb'
 ORDER BY COUNT_WRITE DESC;
 ```
 
-Counters reset on restart — ensure 1+ full business cycle of uptime before dropping.
+Counters reset on restart , ensure 1+ full business cycle of uptime before dropping.
 
 ## Find Redundant Indexes
 
-Index on `(a)` is redundant if `(a, b)` exists (leftmost prefix covers it). Pairs sharing only the first column (e.g. `(a,b)` vs `(a,c)`) need manual review — neither is redundant.
+Index on `(a)` is redundant if `(a, b)` exists (leftmost prefix covers it). Pairs sharing only the first column (e.g. `(a,b)` vs `(a,c)`) need manual review , neither is redundant.
 
 ```sql
 -- Prefer sys schema view (MySQL 5.7.7+)

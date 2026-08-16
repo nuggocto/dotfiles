@@ -1,5 +1,5 @@
 /**
- * tests/3 — Deploy-to-clean-account smoke test.
+ * tests/3 , Deploy-to-clean-account smoke test.
  *
  * Asserts that a clean `wrangler deploy` of this Worker into an empty account
  * completes in under 4 seconds (Spin's MVP target). This test is gated on
@@ -45,7 +45,7 @@ describeIfCreds('deploy-to-clean-account speed', () => {
 	}, 30_000);
 
 	it('cleans up the test Worker', () => {
-		// Idempotent — if the dry-run never produced a real Worker, this is a no-op.
+		// Idempotent , if the dry-run never produced a real Worker, this is a no-op.
 		execSync(`npx wrangler delete --name ${workerName} 2>&1 || true`, { stdio: 'ignore' });
 	});
 });

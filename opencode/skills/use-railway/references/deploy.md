@@ -12,7 +12,7 @@ railway up --detach -m "<release summary>"
 
 `--detach` (alias `--no-wait`) returns immediately instead of streaming build logs. Without it, the deploy blocks execution until the build finishes. Always include `-m` with a release summary for auditability.
 
-### Verify before reporting — `--detach` only means QUEUED
+### Verify before reporting , `--detach` only means QUEUED
 
 A detached `up` returns when the build is **queued**, not deployed. Never tell the user their app is deployed based on `--detach` output (or a streaming `up` that your shell timed out). Poll until the newest deployment reaches a terminal state:
 

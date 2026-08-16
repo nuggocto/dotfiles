@@ -10,7 +10,7 @@ compatibility_flags = ["nodejs_compat"]
 directory = "./public"
 binding = "ASSETS"
 
-# Workers Observability — structured logs, latency tracking, error rates
+# Workers Observability , structured logs, latency tracking, error rates
 # all surface in the Worker's Observability tab in the dashboard.
 [observability]
 enabled = true
@@ -30,7 +30,7 @@ ALLOWED_ORIGIN = "*"
 # Log verbosity. One of: debug, info, warn, error.
 LOG_LEVEL = "info"
 
-# Secrets — never commit. Set via:
+# Secrets , never commit. Set via:
 #   wrangler secret put TURNSTILE_SECRET_KEY
 # For local dev, create .dev.vars (gitignored) with:
 #   TURNSTILE_SECRET_KEY=your-secret-here

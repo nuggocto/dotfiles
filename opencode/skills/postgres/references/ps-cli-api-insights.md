@@ -6,7 +6,7 @@ tags: postgres, planetscale, cli, insights, query-patterns, api
 
 # Query Insights via pscale CLI
 
-Analyze slow queries and missing indexes using `pscale api`. Endpoints may change—see https://planetscale.com/docs/api/reference/getting-started-with-planetscale-api for current API docs.
+Analyze slow queries and missing indexes using `pscale api`. Endpoints may change,see https://planetscale.com/docs/api/reference/getting-started-with-planetscale-api for current API docs.
 
 ## Using pscale api
 

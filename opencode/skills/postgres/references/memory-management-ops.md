@@ -8,9 +8,9 @@ tags: postgres, memory, shared_buffers, work_mem, oom, architecture, operations
 
 ## Memory Areas
 
-- **Shared memory**: `shared_buffers` — main data cache, all processes, requires restart to change.
+- **Shared memory**: `shared_buffers` , main data cache, all processes, requires restart to change.
 - **Private per backend**: `work_mem` (sorts/hashes/joins, per-operation); `maintenance_work_mem` (VACUUM, CREATE INDEX, ALTER TABLE ADD FOREIGN KEY); `temp_buffers` (8MB default).
-- **Planner hint only**: `effective_cache_size` is NOT allocated — set to ~50–75% of total RAM.
+- **Planner hint only**: `effective_cache_size` is NOT allocated , set to ~50–75% of total RAM.
 - **Hash multiplier**: `hash_mem_multiplier` (default 2.0) means hash ops use up to 2× `work_mem`.
 
 ## Memory Multiplication Danger
@@ -35,5 +35,5 @@ Data exists in both `shared_buffers` and OS page cache. A miss in shared_buffers
 - Tune per-session first, global last.
 - Suspect OOM when memory spikes during high concurrency, dashboards, or large batch jobs.
 - Increase memory only after confirming spill behavior (`temp_blks_written > 0`).
-- `maintenance_work_mem` can be set much higher (1–2GB) — fewer processes use it. Cap autovacuum with `autovacuum_work_mem` to avoid `autovacuum_max_workers × maintenance_work_mem` memory spikes.
+- `maintenance_work_mem` can be set much higher (1–2GB) , fewer processes use it. Cap autovacuum with `autovacuum_work_mem` to avoid `autovacuum_max_workers × maintenance_work_mem` memory spikes.
 - `shared_buffers` change requires full restart; `work_mem` is per-session changeable.

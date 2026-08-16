@@ -41,5 +41,5 @@ The canonical source of truth is `src/content/docs/turnstile/spin/index.mdx` in 
 ## Related
 
 - [Canonical docs page](https://developers.cloudflare.com/turnstile/spin/)
-- [`cloudflare/turnstile-siteverify`](https://github.com/cloudflare/turnstile-siteverify) — the managed Worker that this skill deploys
-- [`cloudflare/skills`](https://github.com/cloudflare/skills) — root index for all Cloudflare agent skills
+- [`cloudflare/turnstile-siteverify`](https://github.com/cloudflare/turnstile-siteverify) , the managed Worker that this skill deploys
+- [`cloudflare/skills`](https://github.com/cloudflare/skills) , root index for all Cloudflare agent skills

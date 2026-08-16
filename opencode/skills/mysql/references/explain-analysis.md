@@ -25,9 +25,9 @@ Target `ref` or better. `ALL` on >1000 rows almost always needs an index.
 | `Using filesort` | Sort not via index | Index the ORDER BY columns |
 | `Using temporary` | Temp table for GROUP BY | Index the grouped columns |
 | `Using join buffer` | No index on join column | Add index on join column |
-| `Using index condition` | ICP — engine filters at index level | Generally good |
+| `Using index condition` | ICP , engine filters at index level | Generally good |
 
-## key_len — How Much of Composite Index Is Used
+## key_len , How Much of Composite Index Is Used
 Byte sizes: `TINYINT`=1, `INT`=4, `BIGINT`=8, `DATE`=3, `DATETIME`=5, `VARCHAR(N)` utf8mb4: N×4+1 (or +2 when N×4>255). Add 1 byte per nullable column.
 
 ```sql

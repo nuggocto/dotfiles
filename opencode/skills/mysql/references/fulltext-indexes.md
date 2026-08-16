@@ -25,4 +25,4 @@ WHERE MATCH(title, body) AGAINST('+mysql -postgres +optim*' IN BOOLEAN MODE);
 - **No partial matching**: unlike `LIKE '%term%'`, requires whole tokens (except `*` in boolean mode).
 - **MATCH() columns must correspond to an index definition**: `MATCH(title, body)` needs a FULLTEXT index that covers the same column set (e.g. `(title, body)`).
 - Boolean mode without required terms (no leading `+`) can match a very large portion of the index and be slow.
-- Fulltext adds write overhead — consider Elasticsearch/Meilisearch for complex search needs.
+- Fulltext adds write overhead , consider Elasticsearch/Meilisearch for complex search needs.

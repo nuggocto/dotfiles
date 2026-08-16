@@ -1,5 +1,5 @@
 /**
- * turnstile-siteverify — the managed siteverify backend for Turnstile Spin.
+ * turnstile-siteverify , the managed siteverify backend for Turnstile Spin.
  *
  * A drop-in implementation of Cloudflare Turnstile server-side validation
  * built entirely on Workers. Customers deploy this Worker into their account
@@ -121,7 +121,7 @@ async function handleSiteverify(request: Request, env: Env): Promise<Response> {
 			idempotencyKeyPresent: !!parsed.idempotency_key,
 		});
 
-		// Per spec, return 200 even on validation failure — callers should check
+		// Per spec, return 200 even on validation failure , callers should check
 		// response.success, not the HTTP status. (Matches Cloudflare's own
 		// siteverify behavior; the Worker is a thin proxy.)
 		return jsonResponse(response, 200, env);

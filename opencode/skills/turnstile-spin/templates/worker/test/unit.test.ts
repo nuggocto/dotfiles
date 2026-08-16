@@ -1,5 +1,5 @@
 /**
- * Unit tests for the Worker. These don't hit Cloudflare's real siteverify —
+ * Unit tests for the Worker. These don't hit Cloudflare's real siteverify ,
  * see integration.test.ts for that.
  */
 
@@ -67,7 +67,7 @@ describe('Health endpoints', () => {
 	});
 });
 
-describe('POST / (siteverify proxy) — JSON body', () => {
+describe('POST / (siteverify proxy) , JSON body', () => {
 	beforeEach(() => vi.restoreAllMocks());
 	afterEach(() => vi.restoreAllMocks());
 
@@ -163,7 +163,7 @@ describe('POST / (siteverify proxy) — JSON body', () => {
 	});
 });
 
-describe('POST / (siteverify proxy) — form body', () => {
+describe('POST / (siteverify proxy) , form body', () => {
 	beforeEach(() => vi.restoreAllMocks());
 	afterEach(() => vi.restoreAllMocks());
 

@@ -63,7 +63,7 @@ CREATE TABLE order_default PARTITION OF order DEFAULT;  -- catches unmatched val
 - Use `DETACH PARTITION ... CONCURRENTLY` (PG 14+) to avoid `ACCESS EXCLUSIVE` locks on the parent table.
 - Drop old partitions for data retention instead of `DELETE` to avoid vacuum overhead and bloat.
 - Create future partitions ahead of time to avoid insert failures.
-- **Always confirm with a human before detaching or dropping partitions.** These are destructive actions — detaching removes data from the partitioned table, and dropping permanently deletes the data.
+- **Always confirm with a human before detaching or dropping partitions.** These are destructive actions , detaching removes data from the partitioned table, and dropping permanently deletes the data.
 
 ```sql
 -- DESTRUCTIVE: confirm with a human before executing

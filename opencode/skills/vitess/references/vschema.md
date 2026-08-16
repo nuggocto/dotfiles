@@ -58,7 +58,7 @@ Both tables shard on `customer_id` (**shared vindex**), so rows with the same `c
 
 ## Lookup vindexes
 
-Provide secondary routing to avoid scatter queries on non-primary-vindex columns. Backed by a separate lookup table mapping column values to keyspace IDs. **Lookup vindexes are expensive** — consider schema redesign or alternative access patterns before using.
+Provide secondary routing to avoid scatter queries on non-primary-vindex columns. Backed by a separate lookup table mapping column values to keyspace IDs. **Lookup vindexes are expensive** , consider schema redesign or alternative access patterns before using.
 
 ```json
 "customer_email_lookup": {
@@ -114,7 +114,7 @@ Use `SHOW VSCHEMA TABLES` to quickly confirm whether a table is recognized by VT
 
 ## Sharding guidelines
 
-Optimal shard size depends on hardware (CPUs, RAM, disk I/O) and workload characteristics — there is no universal number. Highest-QPS query's WHERE clause dictates primary vindex. Co-locate joined tables; keep transactions local. For multi-tenant apps, use multi-column vindexes. `MoveTables` can change sharding keys later.
+Optimal shard size depends on hardware (CPUs, RAM, disk I/O) and workload characteristics , there is no universal number. Highest-QPS query's WHERE clause dictates primary vindex. Co-locate joined tables; keep transactions local. For multi-tenant apps, use multi-column vindexes. `MoveTables` can change sharding keys later.
 
 ## Advanced properties
 

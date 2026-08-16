@@ -23,21 +23,21 @@ SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;  -- per-session only
 - **Locking reads**: `SELECT ... FOR UPDATE` (exclusive) or `SELECT ... FOR SHARE` (shared) acquire locks and can block concurrent modifications.
 - `UPDATE` and `DELETE` statements are implicitly locking reads.
 
-## REPEATABLE READ (Default — Prefer This)
+## REPEATABLE READ (Default , Prefer This)
 - Consistent reads: snapshot established at first read; all plain SELECTs within the transaction read from that same snapshot (MVCC). Plain SELECTs are non-locking and don't block writers.
-- Locking reads/writes use **next-key locks** (row + gap) — prevents phantoms. Exception: a unique index with a unique search condition locks only the index record, not the gap.
+- Locking reads/writes use **next-key locks** (row + gap) , prevents phantoms. Exception: a unique index with a unique search condition locks only the index record, not the gap.
 - **Use for**: OLTP, check-then-insert, financial logic, reports needing consistent snapshots.
-- **Avoid mixing** locking statements (`SELECT ... FOR UPDATE`, `UPDATE`, `DELETE`) with non-locking `SELECT` statements in the same transaction — they can observe different states (current vs snapshot) and lead to surprises.
+- **Avoid mixing** locking statements (`SELECT ... FOR UPDATE`, `UPDATE`, `DELETE`) with non-locking `SELECT` statements in the same transaction , they can observe different states (current vs snapshot) and lead to surprises.
 
 ## READ COMMITTED (Per-Session Only, When Needed)
-- Fresh snapshot per SELECT; **record locks only** (gap locks disabled for searches/index scans, but still used for foreign-key and duplicate-key checks) — more concurrency, but phantoms possible.
+- Fresh snapshot per SELECT; **record locks only** (gap locks disabled for searches/index scans, but still used for foreign-key and duplicate-key checks) , more concurrency, but phantoms possible.
 - **Switch only when**: gap-lock deadlocks confirmed via `SHOW ENGINE INNODB STATUS`, bulk imports with contention, or high-write concurrency on overlapping ranges.
-- **Never switch globally.** Check-then-insert patterns break — use `INSERT ... ON DUPLICATE KEY` or `FOR UPDATE` instead.
+- **Never switch globally.** Check-then-insert patterns break , use `INSERT ... ON DUPLICATE KEY` or `FOR UPDATE` instead.
 
-## SERIALIZABLE — Avoid
-Converts all plain SELECTs to `SELECT ... FOR SHARE` **if autocommit is disabled**. If autocommit is enabled, SELECTs are consistent (non-locking) reads. SERIALIZABLE can cause massive contention when autocommit is disabled. Prefer explicit `SELECT ... FOR UPDATE` at REPEATABLE READ instead — same safety, far less lock scope.
+## SERIALIZABLE , Avoid
+Converts all plain SELECTs to `SELECT ... FOR SHARE` **if autocommit is disabled**. If autocommit is enabled, SELECTs are consistent (non-locking) reads. SERIALIZABLE can cause massive contention when autocommit is disabled. Prefer explicit `SELECT ... FOR UPDATE` at REPEATABLE READ instead , same safety, far less lock scope.
 
-## READ UNCOMMITTED — Never Use
+## READ UNCOMMITTED , Never Use
 Dirty reads with no valid production use case.
 
 ## Decision Guide

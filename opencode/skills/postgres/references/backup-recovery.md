@@ -15,7 +15,7 @@ Exports as SQL or custom format; portable across PG versions and architectures. 
 Copies raw PGDATA; same major version and platform required; cross-architecture works if same endianness (e.g., x86_64 ↔ ARM64). Faster for large clusters; includes all databases. Flags: `-Ft -z -P` for compressed tar with progress. Manual alternative: `pg_backup_start()` → copy PGDATA → `pg_backup_stop()` (complex; must write returned `backup_label`).
 
 ## PITR (Point-in-Time Recovery)
-Requires base backup + continuous WAL archiving. Restores to any timestamp, transaction, or named restore point. Without PITR: restore only to backup time (potentially lose hours). With PITR: RPO = minutes. `archive_command` must return 0 ONLY when file is safely stored—premature 0 = data loss risk. `wal_level` must be `replica` or `logical` (not `minimal`).
+Requires base backup + continuous WAL archiving. Restores to any timestamp, transaction, or named restore point. Without PITR: restore only to backup time (potentially lose hours). With PITR: RPO = minutes. `archive_command` must return 0 ONLY when file is safely stored,premature 0 = data loss risk. `wal_level` must be `replica` or `logical` (not `minimal`).
 
 ## WAL Archiving
 `archive_mode=on`, `archive_command='test ! -f /archive/%f && cp %p /archive/%f'`. **Test archive command as postgres user** (not root) since permission issues are common. Monitor `pg_stat_archiver` for `failed_count`, `last_archived_time`. Archive failures prevent WAL recycling → disk fills.
@@ -25,7 +25,7 @@ Requires base backup + continuous WAL archiving. Restores to any timestamp, tran
 |------|----------|
 | pg_dump | Small DBs, migrations, selective restore |
 | pg_basebackup | Basic PITR, built-in |
-| pgBackRest | Production—parallel, incremental, S3/GCS/Azure, retention |
+| pgBackRest | Production,parallel, incremental, S3/GCS/Azure, retention |
 | Barman | Enterprise PITR, retention policies |
 | WAL-G | Cloud-native, S3/GCS/Azure |
 

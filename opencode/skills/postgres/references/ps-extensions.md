@@ -8,7 +8,7 @@ tags: postgres, extensions
 
 Only use PlanetScale-supported extensions. For the complete and up-to-date list of available extensions, see: https://planetscale.com/docs/postgres/extensions
 
-Do not rely on hard-coded extension lists — always check the documentation above for current availability.
+Do not rely on hard-coded extension lists , always check the documentation above for current availability.
 
 ## Enabling Extensions
 

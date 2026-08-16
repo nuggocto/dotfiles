@@ -10,7 +10,7 @@ MySQL 5.7+ supports native JSON columns. Useful, but with important caveats.
 
 ## When JSON Is Appropriate
 - Truly schema-less data (user preferences, metadata bags, webhook payloads).
-- Rarely filtered/joined — if you query a JSON path frequently, extract it to a real column.
+- Rarely filtered/joined , if you query a JSON path frequently, extract it to a real column.
 
 ## Indexing JSON: Use Generated Columns
 You **cannot** index a JSON column directly. Create a virtual generated column and index that:
@@ -72,6 +72,6 @@ WHERE data->>'$.status' COLLATE utf8mb4_0900_as_cs = 'Active'
 - **Heavy update cost**: `JSON_SET`/`JSON_REPLACE` can touch large portions of a JSON document and generate significant redo/undo work on large blobs.
 - **No partial indexes**: You can only index extracted scalar paths via generated columns.
 - **Large documents hurt**: JSON stored inline in the row. Documents >8 KB spill to overflow pages, hurting read performance.
-- **Type mismatches**: `JSON_EXTRACT` returns a JSON type. Comparing with `= 'foo'` may not match — use `->>` or `JSON_UNQUOTE`.
+- **Type mismatches**: `JSON_EXTRACT` returns a JSON type. Comparing with `= 'foo'` may not match , use `->>` or `JSON_UNQUOTE`.
 - **VIRTUAL vs STORED generated columns**: VIRTUAL columns compute on read (less storage, more CPU). STORED columns materialize on write (more storage, faster reads if selected often). Both can be indexed; for indexed paths, the index stores the computed value either way.
 

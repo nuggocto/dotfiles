@@ -6,7 +6,7 @@ tags: mysql, indexes, covering-index, query-optimization, explain
 
 # Covering Indexes
 
-A covering index contains all columns a query needs — InnoDB satisfies it from the index alone (`Using index` in EXPLAIN Extra).
+A covering index contains all columns a query needs , InnoDB satisfies it from the index alone (`Using index` in EXPLAIN Extra).
 
 ```sql
 -- Query: SELECT user_id, status, total FROM orders WHERE user_id = 42
@@ -29,7 +29,7 @@ EXPLAIN SELECT user_id, status, total FROM orders WHERE user_id = 42;
 -- Extra: Using index ✓
 ```
 
-If you see `Using index condition` instead, the index is helping but not covering — you may need to add selected columns to the index.
+If you see `Using index condition` instead, the index is helping but not covering , you may need to add selected columns to the index.
 
 ## When to Use
 - High-frequency reads selecting few columns from wide tables.
@@ -44,4 +44,4 @@ If you see `Using index condition` instead, the index is helping but not coverin
 - Add columns to existing indexes rather than creating new ones.
 - Order: filter columns first, then additional covered columns.
 - Verify `Using index` appears in EXPLAIN after adding the index.
-- **Pitfall**: `SELECT *` defeats covering indexes — select only the columns you need.
+- **Pitfall**: `SELECT *` defeats covering indexes , select only the columns you need.
