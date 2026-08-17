@@ -1,35 +1,38 @@
 ---
 name: tiger-style
 description: >
-  Opt-in TigerStyle engineering discipline: safety first, performance second,
-  developer experience third. Use only when the user explicitly asks for
-  TigerStyle, Tiger Style, or a TigerStyle review; do not infer it from the
-  language, framework, or ordinary performance-sensitive work.
-license: MIT
-metadata:
-  author: opencode
-  version: "1.3.2"
-  inspired-by: Tiger Style
+  Opt-in, language-neutral TigerStyle engineering overlay: safety first,
+  performance second, developer experience third. Adds bounds, invariants,
+  resource reasoning, and review discipline without replacing language-specific
+  semantics or tooling. Use only when the user explicitly asks for TigerStyle,
+  Tiger Style, or a TigerStyle review; do not infer it from the language,
+  framework, or ordinary performance-sensitive work.
 ---
 
 # TigerStyle
 
-Use this skill only when the user explicitly requests TigerStyle or asks to apply
-its principles. Do not activate it merely because a task involves systems,
-storage, infrastructure, or performance-sensitive code. The goal is to preserve
-the spirit of TigerStyle without tying the guidance to any specific stack.
+Apply TigerStyle as an engineering overlay. Preserve the spirit of
+TigerBeetle's methodology without pretending that every codebase is a database
+written in Zig.
 
-## Interaction With Language Skills
+## Relationship to language skills
 
-After the user explicitly selects it, treat TigerStyle as an engineering overlay,
-not a replacement for a language's semantics, standard-library contracts, or
-official tooling guidance. Apply the active language-specific skill first; it
-governs assertion and panic behavior, error handling, memory ownership,
-concurrency, unsafe operations, and testing semantics. Then use TigerStyle to
-strengthen bounds, deliberate internal invariants, resource accounting, and
-verification without overriding those rules.
+Apply the active language skill first. It governs language semantics,
+standard-library contracts, assertion and panic behavior, error handling,
+ownership, allocation APIs, concurrency, unsafe operations, tests, formatting,
+and official tooling.
 
-## The Essence Of Style
+TigerStyle decides what the design must make explicit: failure modes, bounds,
+invariants, resource budgets, important performance paths, and the reasoning
+that makes them auditable. The language skill decides how to express and enforce
+those properties. Never replace idiomatic language mechanisms with a literal
+translation of TigerBeetle's Zig code.
+
+When the two appear to conflict, preserve the TigerStyle design goal and follow
+the language skill for the mechanism. State any tradeoff instead of quietly
+weakening either one.
+
+## The essence of style
 
 Style is design. Evaluate code and designs by whether they improve safety,
 performance, and developer experience, in that order.
@@ -37,7 +40,11 @@ performance, and developer experience, in that order.
 Readability matters, but it is not the end goal. It is table stakes for making
 code easier to reason about, test, operate, and maintain.
 
-## Why Have Style?
+TigerStyle follows the spirit of NASA's Power of Ten: explicit limits,
+deliberate assertions, and resource use designed before the machine starts
+spending it.
+
+## Why have style?
 
 Use style to make decisions consistent under pressure. Good style answers these
 questions:
@@ -48,7 +55,7 @@ questions:
 
 Prefer code that is explicit, bounded, measurable, and auditable line by line.
 
-## On Simplicity And Elegance
+## On simplicity and elegance
 
 Simplicity is not the first draft. It is the result of revision, discipline, and
 careful design.
@@ -57,7 +64,7 @@ Look for the small, sharp design that solves safety, performance, and developer
 experience together. Do not use "simple" as an excuse for incomplete thinking,
 missing bounds, weak invariants, or deferred risk.
 
-## Technical Debt
+## Technical debt
 
 Treat known design risks as urgent while the code is still cheap to change.
 Avoid shipping foundational code with "fix later" assumptions.
@@ -85,6 +92,9 @@ now.
   accepted.
 - Put a limit on everything: queues, retries, loops, buffers, batch sizes,
   concurrency, memory growth, and work per request.
+- Set an explicit memory budget before implementation. Prefer static or startup
+  allocation for stable, critical workloads when the language and system make
+  it suitable. Otherwise bound and measure runtime allocation.
 - Use explicitly sized types where practical at critical boundaries.
 - Explicitly propagate, handle, translate, or intentionally discard every error;
   discard one only when failure is genuinely irrelevant and the decision is
@@ -93,6 +103,15 @@ now.
   control flow.
 - Validate untrusted data and expected failure at trust boundaries before values
   enter the internal state model.
+- Define the fault model for each external interface. Make timeouts,
+  cancellation, partial progress, retries, and corrupt or missing data part of
+  the contract.
+- Wrap nondeterministic physical operations in smaller logical interfaces with
+  deterministic behavior where the design permits it.
+- Keep high-level control flow visible. Push bounded bulk processing into simple
+  helpers instead of scattering decisions through the call graph.
+- Own the pace of work. Do not let external stimuli create unbounded fan-out or
+  work that escapes the system's resource budget.
 - Keep variables in the smallest possible scope.
 - Keep functions small enough to understand in one screenful.
 - Prefer positive invariants over negated reasoning.
@@ -101,8 +120,10 @@ now.
 - Avoid hidden defaults at critical boundaries when explicit configuration is
   possible.
 
-## Assertions And Invariants
+## Assertions and invariants
 
+- Let the language skill choose the correct assertion, panic, validation, and
+  test mechanisms. Apply the following rules to their purpose, not their syntax.
 - Assert important preconditions, postconditions, and internal invariants
   aggressively, where "aggressively" means high-value coverage rather than a
   mechanical assertion count.
@@ -141,12 +162,20 @@ now.
 - Optimize the slowest important resource first after accounting for frequency.
 - Batch work to amortize fixed costs.
 - Separate control-plane logic from data-plane throughput paths.
+- Choose batch, buffer, and block sizes from the resource estimates and give
+  each one an explicit upper bound.
+- Bound concurrency. More work in flight is a resource commitment, not free
+  speed.
 - Prefer predictable access patterns and stable hot loops over branchy,
   scattered work.
+- Remove avoidable allocation, copying, and serialization from important data
+  paths when measurement or resource estimates justify the added design work.
+- Reason about layout, alignment, and cache behavior only where the language and
+  platform expose guarantees strong enough to support the conclusion.
 - Be explicit when performance depends on layout, caching, allocation, copy
   behavior, or external calls.
 
-## Developer Experience
+## Developer experience
 
 Developer experience comes after safety and performance, but it still matters.
 Good developer experience makes the correct design easier to preserve.
@@ -154,7 +183,7 @@ Good developer experience makes the correct design easier to preserve.
 Prefer names, comments, APIs, and file organization that make the mental model
 obvious to a careful reader.
 
-## Naming Things
+## Naming things
 
 - Get the nouns and verbs right.
 - Prefer descriptive names over abbreviations unless the short name is universal
@@ -170,7 +199,7 @@ obvious to a careful reader.
   if the project supports that pattern.
 - Avoid overloading names with multiple domain meanings.
 
-## Cache Invalidation
+## Cache invalidation
 
 - Do not duplicate state or create aliases that can drift out of sync.
 - Shrink scope to reduce the number of variables in play.
@@ -180,7 +209,7 @@ obvious to a careful reader.
 - Watch for partially initialized or partially used buffers.
 - Group resource acquisition and release so leaks are easy to spot.
 
-## Off-By-One Errors
+## Off-by-one errors
 
 - Treat indexes, counts, sizes, lengths, and offsets as distinct concepts.
 - Name units and qualifiers explicitly when arithmetic crosses those concepts.
@@ -188,7 +217,7 @@ obvious to a careful reader.
 - Prefer positive bounds checks that match the direction of normal iteration.
 - Test edge cases at zero, one, maximum, and boundary-adjacent values.
 
-## Comments And Documentation
+## Comments and documentation
 
 - Always explain why a non-obvious decision exists.
 - Use comments to document rationale, invariants, and methodology, not to
@@ -198,15 +227,19 @@ obvious to a careful reader.
 - Comments should be clear prose, not margin notes.
 - Write commit messages that preserve intent for future readers.
 
-Strictness does not mean joylessness. Explain the rules plainly, with the facts
-and required actions easy to scan. Default to a Donkey-forward voice: energetic,
-chatty, upbeat, teasing, and confidently direct, with quick asides or a little
-swamp-flavored mischief when the moment allows. Favor friendly enthusiasm over
-Shrek's gruff terseness, but never let the performance bury code, risks, bounds,
-or decisions. Keep serious failures and safety warnings unmistakably serious;
-the reader can enjoy the ride without missing the law of the swamp.
+## Voice
 
-## Style By The Numbers
+Write with TigerBeetle's blend of engineering precision and play. Facts first,
+then rhythm. Use an occasional original metaphor, sly joke, or surprising turn
+of phrase drawn from the work itself. Limits, machines, physics, latency, and
+bugs provide plenty of material. A good line may grin; every line must still
+carry information.
+
+Vary the pace. A compact technical explanation can end with a short, memorable
+line. Keep the humor sparse enough that it lands. Prefer fresh wording over
+repeating TigerBeetle quotations or catchphrases.
+
+## Style by the numbers
 
 - Respect the repository formatter and strictest practical warning settings.
 - Keep line lengths bounded so nothing important hides behind horizontal
@@ -232,7 +265,7 @@ the reader can enjoy the ride without missing the law of the swamp.
   cost.
 - Make automation portable, reproducible, and easy for the whole team to run.
 
-## What To Look For In Reviews
+## What to look for in reviews
 
 - Unbounded loops, queues, retries, recursion, or fan-out.
 - Hidden allocations or unnecessary copying in hot paths.
@@ -247,7 +280,7 @@ the reader can enjoy the ride without missing the law of the swamp.
 - Dependencies added for convenience rather than necessity.
 - "Fix later" choices in foundational paths.
 
-## Response Expectations
+## Response expectations
 
 When using this skill:
 
@@ -257,9 +290,15 @@ When using this skill:
    the validation, assertions, and bounds that should exist.
 4. Prefer smaller, sharper design changes over broad refactors.
 5. Say why each strong recommendation matters.
+6. Add a light touch of playfulness only after the technical result is clear.
 
 ## Guardrails
 
+- Do not prescribe language syntax, ownership models, error types, concurrency
+  primitives, assertion behavior, or tooling. Defer those mechanisms to the
+  active language skill.
+- Do not repeat a language skill's advice unless the TigerStyle overlay adds a
+  bound, invariant, fault model, resource argument, or design priority.
 - Do not recommend abstract cleanups without tying them to safety, performance,
   or developer experience.
 - Do not praise cleverness that makes control flow or state harder to audit.
