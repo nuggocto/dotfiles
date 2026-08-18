@@ -4,7 +4,8 @@
   "lsp": true,
   "plugin": [
     "opencode-kimi-subscription",
-    "opencode-chatgpt-websearch"
+    "opencode-chatgpt-websearch",
+    "@dietrichgebert/ponytail"
   ],
   "mcp": {
     "chrome-devtools": {
