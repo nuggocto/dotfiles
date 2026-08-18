@@ -46,3 +46,6 @@ fish_add_path $HOME/.grok/bin
 # >>> railway initialize >>>
 source "$HOME/.railway/env.fish"
 # <<< railway initialize <<<
+
+# Entire CLI shell completion
+entire completion fish | source
