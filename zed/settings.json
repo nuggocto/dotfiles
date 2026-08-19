@@ -38,9 +38,29 @@
   },
   "vim_mode": true,
   "agent": {
+    "favorite_models": [
+      {
+        "provider": "zed.dev",
+        "model": "gpt-5.6-sol",
+        "enable_thinking": true,
+        "effort": "medium"
+      },
+      {
+        "provider": "zed.dev",
+        "model": "gpt-5.6-terra",
+        "enable_thinking": true,
+        "effort": "medium"
+      },
+      {
+        "provider": "zed.dev",
+        "model": "gpt-5.6-luna",
+        "enable_thinking": true,
+        "effort": "medium"
+      }
+    ],
     "inline_assistant_model": {
       "provider": "zed.dev",
-      "model": "gpt-5.6-sol",
+      "model": "gpt-5.6-terra",
       "enable_thinking": false,
     },
     "dock": "right",
