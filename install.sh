@@ -51,6 +51,7 @@ AGENT_SKILLS=(
   postgres
   python
   qa
+  review
   rust
   security
   show-me
