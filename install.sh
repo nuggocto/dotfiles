@@ -116,85 +116,6 @@ link_file() {
   printf '  link  %-44s -> %s\n' "$relative_path" "$src"
 }
 
-link_external_file() {
-  local relative_path="$1"
-  local dest="$2"
-  local backup_relative="$3"
-  local src="$REPO_DIR/$relative_path"
-  local backup="$BACKUP_DIR/$backup_relative"
-
-  if [ ! -f "$src" ]; then
-    printf '  skip  %-44s (not in repo)\n' "$relative_path"
-    return
-  fi
-
-  if [ -L "$dest" ] && [ "$(readlink -f "$dest")" = "$(readlink -f "$src")" ]; then
-    printf '  ok    %-44s (already linked)\n' "$relative_path"
-    return
-  fi
-
-  if [ -e "$dest" ] || [ -L "$dest" ]; then
-    mkdir -p "$(dirname "$backup")"
-    mv "$dest" "$backup"
-    printf '  back  %-44s -> %s\n' "$relative_path" "$backup"
-  fi
-
-  mkdir -p "$(dirname "$dest")"
-  ln -s "$src" "$dest"
-  printf '  link  %-44s -> %s\n' "$relative_path" "$src"
-}
-
-configure_pi_theme() {
-  local settings_dir="$HOME/.pi/agent"
-  local settings_file="$settings_dir/settings.json"
-  local colors_file="$HOME/.local/state/omarchy/current/theme/colors.toml"
-  local theme="solitude"
-  local tmp_file
-
-  if [ -f "$colors_file" ] && grep -Eq '^mode[[:space:]]*=[[:space:]]*"light"' "$colors_file"; then
-    theme="rose-pine-dawn"
-  fi
-
-  mkdir -p "$settings_dir"
-  if [ -f "$settings_file" ]; then
-    if ! command -v jq >/dev/null 2>&1; then
-      printf '  skip  %-44s (jq not installed)\n' "pi theme selection"
-      return
-    fi
-
-    tmp_file=$(mktemp)
-    jq --arg theme "$theme" '.theme = $theme' "$settings_file" >"$tmp_file"
-    mv "$tmp_file" "$settings_file"
-  else
-    printf '{\n  "theme": "%s"\n}\n' "$theme" >"$settings_file"
-  fi
-
-  printf '  set   %-44s -> %s\n' "pi theme selection" "$theme"
-}
-
-install_pi_packages() {
-  local settings_file="$HOME/.pi/agent/settings.json"
-  local package
-  local pi_packages=(
-    "npm:@nicknisi/pi-cloak@0.1.2"
-    "npm:pi-lens@4.0.0"
-    "npm:pi-web-access@0.23.0"
-    "npm:@ff-labs/pi-fff@0.10.3"
-  )
-
-  command -v pi >/dev/null 2>&1 || return
-
-  for package in "${pi_packages[@]}"; do
-    if [ -f "$settings_file" ] && command -v jq >/dev/null 2>&1 \
-      && jq -e --arg package "$package" '(.packages // []) | index($package) != null' "$settings_file" >/dev/null; then
-      printf '  ok    %-44s (already installed)\n' "$package"
-      continue
-    fi
-
-    pi install "$package"
-  done
-}
-
 link_agent_skill() {
   local agent="$1"
   local skills_dir="$2"
@@ -324,27 +245,17 @@ for f in "${CONFIG_FILES[@]}"; do link_file "$f"; done
 for f in "${OMARCHY_FILES[@]}"; do link_file "$f"; done
 reconcile_agent_skills "agents" "$HOME/.agents/skills"
 reconcile_agent_skills "codex" "$HOME/.codex/skills"
-reconcile_agent_skills "pi" "$HOME/.pi/agent/skills"
 for skill in test_quality tiger_style; do
   remove_legacy_skill_link "agents" "$HOME/.agents/skills" "$skill"
   remove_legacy_skill_link "codex" "$HOME/.codex/skills" "$skill"
-  remove_legacy_skill_link "pi" "$HOME/.pi/agent/skills" "$skill"
 done
 for skill in "${AGENT_SKILLS[@]}"; do
   # Kimi CLI and Grok CLI both discover the shared Agent Skills directory.
   link_agent_skill "agents" "$HOME/.agents/skills" "$skill"
   link_agent_skill "codex" "$HOME/.codex/skills" "$skill"
-  link_agent_skill "pi" "$HOME/.pi/agent/skills" "$skill"
 done
 install_solitude_theme
 OMARCHY_THEME_SKIP_OPENCODE_RELOAD=1 bash "$CONFIG_DIR/omarchy/hooks/theme-set.d/25-terminal-app-themes.sh"
-link_external_file "pi/themes/solitude.json" "$HOME/.pi/agent/themes/solitude.json" "pi-agent/themes/solitude.json"
-link_external_file "pi/themes/rose-pine-dawn.json" "$HOME/.pi/agent/themes/rose-pine-dawn.json" "pi-agent/themes/rose-pine-dawn.json"
-link_external_file "pi/extensions/omarchy-system-theme.ts" "$HOME/.pi/agent/extensions/omarchy-system-theme.ts" "pi-agent/extensions/omarchy-system-theme.ts"
-link_external_file "pi/cloak.json" "$HOME/.pi/agent/cloak.json" "pi-agent/cloak.json"
-rm -f "$HOME/.pi/agent/themes/omarchy-system.json"
-configure_pi_theme
-install_pi_packages
 echo
 
 if [ -d "$BACKUP_DIR" ]; then

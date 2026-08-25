@@ -22,7 +22,7 @@ into place. It is safe to re-run. It leaves correct links alone and removes
 obsolete skill links only when they point back into this repository.
 
 The installer also exposes the shared language and workflow skills from
-`opencode/skills` to Codex, Kimi CLI, Grok CLI, and Pi. Kimi and Grok use
+`opencode/skills` to Codex, Kimi CLI, and Grok CLI. Kimi and Grok use
 the shared `~/.agents/skills` links; each tool reads the same tracked files
 without copied skill bundles drifting apart.
 
@@ -47,8 +47,7 @@ Afterwards:
 | `ghostty` | Primary terminal config |
 | `nvim` | Neovim (LazyVim) config, plugin specs, lockfile |
 | `zed` | Zed settings + keymap |
-| `opencode` | OpenCode config, TUI settings, and canonical agent skills shared with Codex, Kimi CLI, Grok CLI, and Pi |
-| `pi` | Pi coding agent Solitude theme (credentials and sessions remain local) |
+| `opencode` | OpenCode config, TUI settings, and canonical agent skills shared with Codex, Kimi CLI, and Grok CLI |
 | `omarchy` | Solitude patch plus selective theme hooks/templates |
 
 ## Notes
