@@ -54,8 +54,6 @@ Afterwards:
 ## Notes
 
 - This is config only; system packages are installed separately by Omarchy.
-- The bar is Omarchy 4's Quickshell-based Omarchy Shell, not Waybar. The clock
-  uses Omarchy's standard weekday/time format; the old Chinese clock is gone.
 - Omarchy's generated `current/` directory is intentionally not tracked. The
   installer links only custom hooks/templates and applies `solitude.patch` to
   a clone of the upstream Solitude theme.
