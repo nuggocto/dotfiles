@@ -34,6 +34,8 @@ CONFIG_FILES=(
 # Selective Omarchy files. Never link the whole directory because current/
 # contains generated runtime state.
 OMARCHY_FILES=(
+  omarchy/shell.json
+  omarchy/shell.toml
   omarchy/hooks/theme-set.d/00-fish.sh
   omarchy/hooks/theme-set.d/25-terminal-app-themes.sh
   omarchy/themed/ghostty.conf.tpl
@@ -46,8 +48,8 @@ AGENT_SKILLS=(
   benchmark
   choose-data-structures
   fastapi
-  gleam
   go
+  impeccable
   postgres
   python
   qa
@@ -143,6 +145,36 @@ link_agent_skill() {
   mkdir -p "$skills_dir"
   ln -s "$src" "$dest"
   printf '  link  %-44s -> %s\n' "$agent/$skill" "$src"
+}
+
+install_impeccable() {
+  if ! command -v npx >/dev/null 2>&1; then
+    printf '  skip  %-44s (npx not installed)\n' "impeccable providers"
+    return
+  fi
+
+  if (cd "$HOME" && npx --yes impeccable@latest install \
+    --providers=codex,grok \
+    --scope=global \
+    --yes >/dev/null); then
+    printf '  ok    %-44s\n' "impeccable providers"
+  else
+    printf '  warn  %-44s (shared skill links still work)\n' "impeccable providers"
+  fi
+}
+
+install_navbar_cat() {
+  local plugin="io.github.tallsam.navbar-cat"
+  local plugin_dir="$CONFIG_DIR/omarchy/plugins/$plugin"
+
+  if [ -f "$plugin_dir/manifest.json" ]; then
+    printf '  ok    %-44s (already installed)\n' "$plugin"
+  elif command -v omarchy >/dev/null 2>&1 &&
+    omarchy plugin add https://github.com/tallsam/omarchy-navbar-cat.git --enable --yes >/dev/null; then
+    printf '  add   %-44s\n' "$plugin"
+  else
+    printf '  warn  %-44s (install with omarchy plugin add)\n' "$plugin"
+  fi
 }
 
 reconcile_agent_skills() {
@@ -250,10 +282,12 @@ for skill in test_quality tiger_style; do
   remove_legacy_skill_link "codex" "$HOME/.codex/skills" "$skill"
 done
 for skill in "${AGENT_SKILLS[@]}"; do
-  # Kimi CLI and Grok CLI both discover the shared Agent Skills directory.
+  # Kimi reads the shared directory; Grok can use it as a fallback.
   link_agent_skill "agents" "$HOME/.agents/skills" "$skill"
   link_agent_skill "codex" "$HOME/.codex/skills" "$skill"
 done
+install_impeccable
+install_navbar_cat
 install_solitude_theme
 OMARCHY_THEME_SKIP_OPENCODE_RELOAD=1 bash "$CONFIG_DIR/omarchy/hooks/theme-set.d/25-terminal-app-themes.sh"
 echo
@@ -264,13 +298,14 @@ fi
 
 cat <<'NOTE'
 
-Done. A couple of per-machine things to check by hand:
+Done. Per-machine things to check by hand:
   - hypr/monitors.lua   : display layout/resolution/scale is machine-specific.
                           Run `hyprctl monitors` and edit it for this machine.
   - Fonts               : install your Nerd Fonts (VictorMono / JetBrainsMono)
                           if they're missing.
   - Reload              : log out/in (or `hyprctl reload`) to apply Hyprland,
-                           and restart waybar/terminals to pick up changes.
+                           then run `omarchy restart shell` and
+                           `omarchy restart terminal` if needed.
   - Solitude theme      : run `omarchy theme set solitude` to regenerate all
                           app themes after first install.
 NOTE
