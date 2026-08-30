@@ -23,10 +23,11 @@
   "agent_buffer_font_size": 20.0,
   "agent_ui_font_size": 22.0,
   "agent_servers": {
-    "codex-acp": {
-      "type": "registry",
-    },
     "opencode": {
+      "default_config_options": {
+        "effort": "high",
+        "model": "opencode-go/glm-5.3"
+      },
       "type": "registry",
     },
     "cursor": {

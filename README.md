@@ -22,9 +22,7 @@ into place. It is safe to re-run. It leaves correct links alone and removes
 obsolete skill links only when they point back into this repository.
 
 The installer also exposes the shared language and workflow skills from
-`opencode/skills` through `~/.codex/skills` and `~/.agents/skills`. When `npx`
-is available, it generates Impeccable's provider-specific Grok copy and
-detector hooks.
+`opencode/skills` through `~/.agents/skills`.
 
 Afterwards:
 - `hypr/monitors.lua` currently targets a BenQ EX271UZ on `HDMI-A-1` at
@@ -48,7 +46,7 @@ Afterwards:
 | `ghostty` | Primary terminal config |
 | `nvim` | Neovim (LazyVim) config, plugin specs, lockfile |
 | `zed` | Zed settings + keymap |
-| `opencode` | OpenCode config, TUI settings, shared agent skills, and provider-specific Impeccable setup |
+| `opencode` | OpenCode config, TUI settings, and shared agent skills |
 | `omarchy` | Omarchy Shell bar/idle config, shell text size, Navbar Cat setup, Solitude patch, and theme hooks/templates |
 
 ## Notes

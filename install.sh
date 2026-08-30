@@ -49,7 +49,6 @@ AGENT_SKILLS=(
   choose-data-structures
   fastapi
   go
-  impeccable
   postgres
   python
   qa
@@ -145,22 +144,6 @@ link_agent_skill() {
   mkdir -p "$skills_dir"
   ln -s "$src" "$dest"
   printf '  link  %-44s -> %s\n' "$agent/$skill" "$src"
-}
-
-install_impeccable() {
-  if ! command -v npx >/dev/null 2>&1; then
-    printf '  skip  %-44s (npx not installed)\n' "impeccable providers"
-    return
-  fi
-
-  if (cd "$HOME" && npx --yes impeccable@latest install \
-    --providers=codex,grok \
-    --scope=global \
-    --yes >/dev/null); then
-    printf '  ok    %-44s\n' "impeccable providers"
-  else
-    printf '  warn  %-44s (shared skill links still work)\n' "impeccable providers"
-  fi
 }
 
 install_navbar_cat() {
@@ -276,17 +259,13 @@ for c in "${CONFIGS[@]}"; do link "$c"; done
 for f in "${CONFIG_FILES[@]}"; do link_file "$f"; done
 for f in "${OMARCHY_FILES[@]}"; do link_file "$f"; done
 reconcile_agent_skills "agents" "$HOME/.agents/skills"
-reconcile_agent_skills "codex" "$HOME/.codex/skills"
 for skill in test_quality tiger_style; do
   remove_legacy_skill_link "agents" "$HOME/.agents/skills" "$skill"
-  remove_legacy_skill_link "codex" "$HOME/.codex/skills" "$skill"
 done
 for skill in "${AGENT_SKILLS[@]}"; do
   # Kimi reads the shared directory; Grok can use it as a fallback.
   link_agent_skill "agents" "$HOME/.agents/skills" "$skill"
-  link_agent_skill "codex" "$HOME/.codex/skills" "$skill"
 done
-install_impeccable
 install_navbar_cat
 install_solitude_theme
 OMARCHY_THEME_SKIP_OPENCODE_RELOAD=1 bash "$CONFIG_DIR/omarchy/hooks/theme-set.d/25-terminal-app-themes.sh"
