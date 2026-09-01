@@ -72,7 +72,7 @@
     "dark": "Catppuccin Mocha",
   },
   "base_keymap": "VSCode",
-  "ui_font_size": 22.0,
+  "ui_font_size": 24.0,
   "buffer_font_size": 22.0,
 
   "theme": {

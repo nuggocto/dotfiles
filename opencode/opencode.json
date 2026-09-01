@@ -5,8 +5,7 @@
   "permission": "allow",
   "plugin": [
     "opencode-kimi-subscription",
-    "opencode-chatgpt-websearch",
-    "@dietrichgebert/ponytail"
+    "opencode-chatgpt-websearch"
   ],
   "mcp": {
     "chrome-devtools": {
