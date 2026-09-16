@@ -12,7 +12,7 @@ Railway feature flags are **project- or workspace-scoped** configuration values 
 
 Project flags are managed in **Project Settings → Feature Flags**. Workspace flags are visible there read-only.
 
-Runtime apps read **one scope** at a time (`project:<id>` or `workspace:<id>`) via the [TypeScript SDK](https://github.com/railwayapp/railway-ts-sdk) or GraphQL , flags from other scopes are separate registries.
+Runtime apps read **one scope** at a time (`project:<id>` or `workspace:<id>`) via the [TypeScript SDK](https://github.com/railwayapp/railway-ts-sdk) or GraphQL — flags from other scopes are separate registries.
 
 ## Agent / MCP workflow
 
@@ -35,30 +35,37 @@ List feature flags for project 6adb5ae3-0e3a-4ead-b42c-1fd36f217ffb
 Set feature flag checkout-v2 on project 6adb5ae3-0e3a-4ead-b42c-1fd36f217ffb to true (bool)
 ```
 
-For targeting rules and rollouts, use the dashboard UI or GraphQL (`signalRuleSet`) until MCP rule tools exist.
+For targeting rules and rollouts, use the CLI commands below when MCP has no matching rule tool. The dashboard or GraphQL (`signalRuleSet`) remains a fallback.
 
-## CLI (when available)
+## CLI defaults, rules, and rollouts
 
-The Railway CLI exposes `railway flag` (alias `railway signal`) for registry CRUD. Upgrade the CLI if the command is missing:
+CLI 5.24+ exposes `railway flag` (alias `railway flags`). Use `--scope project:<id>` for explicit targeting; `--project` is not a flag option. On 5.26.2+, omitted scope can come from the project token or linked project.
 
 ```bash
-railway upgrade --yes
-railway flag list --project <project-id> --json
-railway flag checkout-v2 true --project <project-id>
+railway flag list --scope project:<project-id> --json
+railway flag list --scope project:<project-id> --full
+railway flag set checkout-v2 true --scope project:<project-id>
+railway flag set theme blue --type string --scope project:<project-id>
+railway flag set checkout-v2 true --scope project:<project-id> --when 'plan == "enterprise"' --rule-id enterprise
+railway flag set checkout-v2 true --scope project:<project-id> --when 'bucket(key) < 0.25' --rule-id rollout-25
+railway flag unset checkout-v2 --scope project:<project-id> --rule-id enterprise
+railway flag delete checkout-v2 --scope project:<project-id>
 ```
 
-Use `--project` (or link first) so scope is explicit in agent workflows.
+`set` changes the default unless `--when` is supplied. Rules accept a CEL expression subset or raw JSON; `bucket(key)` gives deterministic percentage targeting using the evaluation context's key. Use a stable `--rule-id` when updating a rule, and list/read back the rules afterward. `unset` removes one rule; `delete` removes the entire flag. CLI mutations target project flags; do not assume workspace mutation support.
+
+Types are inferred unless `--type bool|string|number|json` is given. `--force` permits replacing a flag's type and **clears its rules**; use it only when that replacement is intended.
 
 ## GraphQL fallback
 
-When MCP and CLI are unavailable, use the public GraphQL API (`signals`, `signalCreate`, `signalDefaultSet`, `signalRuleSet`, `signalDelete`) with owner `project:<projectId>` or `workspace:<workspaceId>`. See https://docs.railway.com/docs/feature-flags
+For API operations beyond these commands, inspect the public GraphQL API (`signals`, `signalCreate`, `signalDefaultSet`, `signalRuleSet`, `signalDelete`) using [request.md](request.md). Owners use `project:<projectId>` or `workspace:<workspaceId>`; access remains subject to the API's scope and permission checks.
 
 ```bash
-scripts/railway-api.sh '{"owner":"project:<projectId>"}' <<'EOF'
-query projectSignals($owner: String!) {
-  signals(owner: $owner) { name type default rules version }
-}
-EOF
+railway api \
+  'query projectSignals($owner: String!) {
+    signals(owner: $owner) { name type default rules version }
+  }' \
+  --variables '{"owner":"project:<projectId>"}'
 ```
 
 ## Runtime SDK
@@ -80,10 +87,15 @@ Poll interval defaults are suitable for most apps; flags refresh when registry v
 
 ## Do not confuse with
 
-- **Environment variables** , static per-environment config (`railway variable set`). Use flags when you need typed defaults, targeting, and central registry semantics.
-- **Priority Boarding / account toggles** , internal beta switches on your Railway account, unrelated to project feature flags.
-- **Platform feature flags** , Railway staff tooling only.
+- **Environment variables** — static per-environment config (`railway variable set`). Use flags when you need typed defaults, targeting, and central registry semantics.
+- **Priority Boarding / account toggles** — internal beta switches on your Railway account, unrelated to project feature flags.
+- **Platform feature flags** — Railway staff tooling only.
 
 ## Dashboard
 
 Human-friendly CRUD: open the project → **Settings → Feature Flags**. Workspace-scoped flags appear in a read-only section when they exist.
+
+## Validated against
+
+- Docs: [Feature flags](https://docs.railway.com/feature-flags), [CLI flags](https://docs.railway.com/cli/flag)
+- CLI source (v5.49.1): [flag.rs](https://github.com/railwayapp/cli/blob/v5.49.1/src/commands/flag.rs), [signals.rs](https://github.com/railwayapp/cli/blob/v5.49.1/src/controllers/signals.rs)
