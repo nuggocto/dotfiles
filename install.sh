@@ -60,6 +60,7 @@ AGENT_SKILLS=(
   tiger-style
   unslop
   use-railway
+  visual-pr
   zig
 )
 
