@@ -1,6 +1,6 @@
 {
   "LazyVim": { "branch": "main", "commit": "999700997f72227187d49d8b92667183dc7fc809" },
-  "SchemaStore.nvim": { "branch": "main", "commit": "be687d17e4a9443e918c48c3c915b1f2ffd0f718" },
+  "SchemaStore.nvim": { "branch": "main", "commit": "626485da21ad1df21bbb25359be759e8936876a9" },
   "aether.nvim": { "branch": "v3", "commit": "567efb778534e11ee1072d4fe27178f705a27d8a" },
   "ashen.nvim": { "branch": "main", "commit": "bfb04bd50b69d863469b2deb9fb361cf0d945ba7" },
   "bamboo.nvim": { "branch": "master", "commit": "1309bc88bffcf1bedc3e84e7fa9004de93da774a" },
@@ -32,7 +32,7 @@
   "matteblack.nvim": { "branch": "main", "commit": "a8a039f5d6189b28d76fa0221e64965efec7e996" },
   "miasma.nvim": { "branch": "main", "commit": "466456f08d1a114c983c0d24e8fc01339e3b0a27" },
   "mini.ai": { "branch": "main", "commit": "6c39ae7b11abe479fbe1bc81bf00ac6bca7afa07" },
-  "mini.icons": { "branch": "main", "commit": "98faae31e9be1cc054ae63485e58ceb185efcad0" },
+  "mini.icons": { "branch": "main", "commit": "f642e3ba8c12afbc8f32f6d77ef6597eac56786f" },
   "mini.pairs": { "branch": "main", "commit": "b1c5a726921b7a8c9321e9a7a208aa0571de5810" },
   "monokai-pro.nvim": { "branch": "master", "commit": "a68e38b8e55d69a215d0f02598900a79c356da9d" },
   "neo-tree.nvim": { "branch": "main", "commit": "162f9b953a692b559afe43e38d60afee81e8e79b" },
