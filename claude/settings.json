@@ -1,0 +1,39 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
+  "model": "opus[1m]",
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "sentry@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true,
+    "cloudflare@claude-plugins-official": true,
+    "terraform@claude-plugins-official": true,
+    "railway@claude-plugins-official": true,
+    "planetscale@claude-plugins-official": true,
+    "resend@claude-plugins-official": true,
+    "greptile@claude-plugins-official": true,
+    "linear@claude-plugins-official": true,
+    "postman@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {},
+  "effortLevel": "medium",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
+  "skipWorkflowUsageWarning": true,
+  "theme": "dark"
+}

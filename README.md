@@ -24,6 +24,12 @@ obsolete skill links only when they point back into this repository.
 The installer also exposes the shared language and workflow skills from
 `opencode/skills` through `~/.agents/skills`.
 
+Claude Code settings are linked separately into `~/.claude/settings.json`.
+The installer requires `jq` and merges the public MCP endpoints from
+`claude/mcp.json` into the machine-local `~/.claude.json`, preserving unrelated
+servers and account/project state. Run `./install.sh --claude-only` to apply just
+this configuration. See [Claude setup and authentication](claude/README.md).
+
 Afterwards:
 - `hypr/monitors.lua` currently targets a BenQ EX271UZ on `HDMI-A-1` at
   3840x2160@120 with 1.6 scale. Edit it for another display (`hyprctl monitors`).
@@ -47,6 +53,7 @@ Afterwards:
 | `nvim` | Neovim (LazyVim) config, plugin specs, lockfile |
 | `zed` | Zed settings + keymap |
 | `opencode` | OpenCode config, TUI settings, and shared agent skills |
+| `claude` | Claude Code settings and public MCP endpoints; credentials and runtime state stay local |
 | `omarchy` | Omarchy Shell bar/idle config, shell text size, Navbar Cat setup, Solitude patch, and theme hooks/templates |
 
 ## Notes

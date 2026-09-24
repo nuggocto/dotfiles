@@ -10,8 +10,14 @@
 # Usage (clone anywhere — the script resolves its own location):
 #   git clone git@github.com:nuggocto/dotfiles.git ~/.dotfiles
 #   ~/.dotfiles/install.sh
+#   ~/.dotfiles/install.sh --claude-only
 #
 set -euo pipefail
+
+if [ "$#" -gt 1 ] || { [ "$#" -eq 1 ] && [ "$1" != "--claude-only" ]; }; then
+  printf 'Usage: %s [--claude-only]\n' "$0" >&2
+  exit 1
+fi
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -117,6 +123,64 @@ link_file() {
   ln -s "$src" "$dest"
   printf '  link  %-44s -> %s\n' "$relative_path" "$src"
 }
+
+install_claude() (
+  # Keep auth, project state, and backups private and outside the repository.
+  umask 077
+  local settings="$HOME/.claude/settings.json"
+  local state="$HOME/.claude.json"
+  local backup="$BACKUP_DIR/claude"
+  local tmp
+
+  if ! command -v jq >/dev/null 2>&1; then
+    printf 'Claude setup requires jq. Install it and re-run this script.\n' >&2
+    exit 1
+  fi
+
+  jq -e 'type == "object"' "$REPO_DIR/claude/settings.json" >/dev/null
+  jq -e '.mcpServers | type == "object"' "$REPO_DIR/claude/mcp.json" >/dev/null
+
+  # This file also holds account and session metadata. Never link it into git.
+  if [ -L "$state" ]; then
+    printf 'Refusing to merge MCP config into a symlink: %s\n' "$state" >&2
+    exit 1
+  fi
+
+  tmp="$(mktemp "$HOME/.claude.json.XXXXXX")"
+  trap 'rm -f "$tmp"' EXIT
+  if [ -e "$state" ]; then
+    jq -e 'type == "object" and ((.mcpServers // {}) | type == "object")' "$state" >/dev/null
+    jq --slurpfile servers "$REPO_DIR/claude/mcp.json" \
+      '.mcpServers = ((.mcpServers // {}) + $servers[0].mcpServers)' "$state" > "$tmp"
+  else
+    jq . "$REPO_DIR/claude/mcp.json" > "$tmp"
+  fi
+
+  if [ -f "$state" ] && jq -e --slurpfile merged "$tmp" '. == $merged[0]' "$state" >/dev/null; then
+    printf '  ok    %-44s (MCP servers already configured)\n' "claude/mcp.json"
+  else
+    if [ -e "$state" ]; then
+      mkdir -p "$backup"
+      cp -p "$state" "$backup/state.json"
+      chmod 600 "$backup/state.json"
+    fi
+    mv "$tmp" "$state"
+    printf '  merge %-44s -> %s\n' "claude/mcp.json" "$state"
+  fi
+
+  if [ -L "$settings" ] && [ "$(readlink -f "$settings")" = "$REPO_DIR/claude/settings.json" ]; then
+    printf '  ok    %-44s (already linked)\n' "claude/settings.json"
+  else
+    if [ -e "$settings" ] || [ -L "$settings" ]; then
+      mkdir -p "$backup"
+      mv "$settings" "$backup/settings.json"
+      printf '  back  %-44s -> %s/\n' "claude/settings.json" "$backup"
+    fi
+    mkdir -p "$HOME/.claude"
+    ln -s "$REPO_DIR/claude/settings.json" "$settings"
+    printf '  link  %-44s -> %s\n' "claude/settings.json" "$REPO_DIR/claude/settings.json"
+  fi
+)
 
 link_agent_skill() {
   local agent="$1"
@@ -255,6 +319,14 @@ install_solitude_theme() {
 echo "Dotfiles : $REPO_DIR"
 echo "Target   : $CONFIG_DIR"
 echo
+install_claude
+if [ "${1:-}" = "--claude-only" ]; then
+  if [ -d "$BACKUP_DIR/claude" ]; then
+    printf '\nClaude backups: %s/claude\n' "$BACKUP_DIR"
+  fi
+  printf '\nClaude configuration installed. See claude/README.md for plugin setup and MCP authentication.\n'
+  exit 0
+fi
 mkdir -p "$CONFIG_DIR"
 for c in "${CONFIGS[@]}"; do link "$c"; done
 for f in "${CONFIG_FILES[@]}"; do link_file "$f"; done
@@ -279,6 +351,7 @@ fi
 cat <<'NOTE'
 
 Done. Per-machine things to check by hand:
+  - Claude Code         : see claude/README.md for plugins and MCP authentication.
   - hypr/monitors.lua   : display layout/resolution/scale is machine-specific.
                           Run `hyprctl monitors` and edit it for this machine.
   - Fonts               : install your Nerd Fonts (VictorMono / JetBrainsMono)
