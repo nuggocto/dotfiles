@@ -47,7 +47,6 @@ Afterwards:
 | `fish` | Shell config (`fish_variables` is gitignored) |
 | `starship.toml` | Prompt layout and semantic ANSI colors |
 | `git`, `lazygit` | Git behavior, diff colors, and Lazygit theme |
-| `zellij` | Zellij keybinds and generated Omarchy theme integration |
 | `btop` | btop config (theme symlink is per-machine, gitignored) |
 | `ghostty` | Primary terminal config |
 | `nvim` | Neovim (LazyVim) config, plugin specs, lockfile |

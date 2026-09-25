@@ -62,5 +62,4 @@ fish/completions/grok.fish
 !/claude/README.md
 
 # Generated from the active Omarchy palette by the theme hook
-zellij/themes/omarchy-active.kdl
 opencode/themes/omarchy-current.json

@@ -26,7 +26,7 @@ BACKUP_DIR="$CONFIG_DIR/dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 # Repo entries that map 1:1 to ~/.config/<name>.
 CONFIGS=(
   # Editors / terminals / tools
-  ghostty nvim zed opencode zellij btop fastfetch git lazygit
+  ghostty nvim zed opencode btop fastfetch git lazygit
   # Omarchy desktop layer (your overrides on top of Omarchy defaults)
   hypr fish
 )
