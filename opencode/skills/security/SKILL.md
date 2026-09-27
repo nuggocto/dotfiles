@@ -21,10 +21,8 @@ with green ticks. A clean scan is not proof of safety.
 Stay defensive. Establish risk with the least-invasive evidence that is safe and
 authorized; never cause the harm being demonstrated.
 
-For resource-exhaustion and bounds issues, load the `tiger-style` skill only when
-the user explicitly asks for TigerStyle. To confirm a fix behaves correctly,
-load the `qa` skill. To add focused regression coverage, load the `test-quality`
-skill.
+To confirm a fix behaves correctly, load the `qa` skill. To add focused regression
+coverage, load the `test-quality` skill.
 
 ## Engagement mode and authorization
 

@@ -63,7 +63,6 @@ AGENT_SKILLS=(
   security
   show-me
   test-quality
-  tiger-style
   unslop
   use-railway
   visual-pr
@@ -332,9 +331,7 @@ for c in "${CONFIGS[@]}"; do link "$c"; done
 for f in "${CONFIG_FILES[@]}"; do link_file "$f"; done
 for f in "${OMARCHY_FILES[@]}"; do link_file "$f"; done
 reconcile_agent_skills "agents" "$HOME/.agents/skills"
-for skill in test_quality tiger_style; do
-  remove_legacy_skill_link "agents" "$HOME/.agents/skills" "$skill"
-done
+remove_legacy_skill_link "agents" "$HOME/.agents/skills" "test_quality"
 for skill in "${AGENT_SKILLS[@]}"; do
   # Kimi reads the shared directory; Grok can use it as a fallback.
   link_agent_skill "agents" "$HOME/.agents/skills" "$skill"

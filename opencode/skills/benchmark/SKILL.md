@@ -20,9 +20,7 @@ artifact, control the environment, collect enough samples, and report the result
 with the uncertainty and caveats attached.
 
 Pair this skill with the relevant language skill when the repository makes the
-runtime obvious: `rust`, `zig`, `go`, or `python`. Load the
-`tiger-style` skill for systems, storage, infrastructure, hot paths, or
-resource-exhaustion concerns only when the user explicitly asks for TigerStyle.
+runtime obvious: `rust`, `zig`, `go`, or `python`.
 Load the `qa` skill for real end-user verification, the `test-quality` skill for
 regression tests, and the `security` skill for denial-of-service or quota risks.
 Load the `web-perf` skill for browser Core Web Vitals and page-load work.
