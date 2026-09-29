@@ -47,6 +47,11 @@
       "type": "remote",
       "url": "https://mcp.context7.com/mcp"
     },
+    "planetscale": {
+      "enabled": true,
+      "type": "remote",
+      "url": "https://mcp.pscale.dev/mcp/planetscale"
+    },
     "playwright": {
       "command": [
         "bun",
