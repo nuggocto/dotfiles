@@ -51,15 +51,11 @@ opencode/bun.lock
 **/id_ed25519*
 fish/completions/grok.fish
 
-# Claude runtime state stays local; only portable config belongs in git.
+# Local tool settings and runtime state
 **/.claude/
 **/.claude.json
 **/.claude.json.*
 **/settings.local.json
-/claude/*
-!/claude/settings.json
-!/claude/mcp.json
-!/claude/README.md
 
 # Generated from the active Omarchy palette by the theme hook
 opencode/themes/omarchy-current.json
