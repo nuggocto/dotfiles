@@ -52,6 +52,7 @@ OMARCHY_FILES=(
 AGENT_SKILLS=(
   benchmark
   choose-data-structures
+  explaining-code
   fastapi
   go
   postgres
