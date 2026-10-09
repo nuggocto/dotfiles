@@ -8,14 +8,14 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Python
 
 Use this skill for production-grade Python applications, libraries, services, CLIs, workers, data pipelines, and tooling. Apply framework-specific guidance only when that framework is present; load the `fastapi` skill for FastAPI applications. Preserve the repository's supported interpreter, architecture, packages, frameworks, and tooling during scoped maintenance. Prefer uv, Ruff, and ty for new projects; migrate existing tooling only when requested. Read `references/astral-tooling.md` when setting up, using, or deliberately migrating to that toolchain.
 
-Resolve the supported Python range and actual execution interpreter from `[project].requires-python`, lockfiles, CI, containers, deployment configuration, and version-manager files before using syntax or APIs. `requires-python` is a compatibility contract, not an exact runtime pin. Run supported Python lines on their latest maintenance or security patch release. Pin the full interpreter version in owned artifacts when possible; on managed or distribution-provided runtimes, use the strongest reproducibility control the platform supports. Use version-matched Python and dependency documentation; do not assume the newest local interpreter represents the project. For interpreter upgrades or version-sensitive runtime behavior, read `references/runtime-upgrades.md`.
+Resolve the supported Python range and actual execution interpreter from `[project].requires-python`, lockfiles, CI, containers, deployment configuration, and version-manager files before using syntax or APIs. `requires-python` is a compatibility contract, not an exact runtime pin. For new applications, use Python 3.14.8 when dependencies and deployment support it (latest stable verified 2026-10-09); run supported lines on their latest maintenance or security patch. Pin the full interpreter version in owned artifacts when possible; on managed or distribution-provided runtimes, use the strongest reproducibility control the platform supports. Use version-matched Python and dependency documentation; do not assume the newest local interpreter represents the project. For interpreter upgrades or version-sensitive runtime behavior, read `references/runtime-upgrades.md`.
 
 ## Workflow
 
@@ -58,7 +58,7 @@ Resolve the supported Python range and actual execution interpreter from `[proje
 - Keep every `cast`, `# type: ignore`, and checker suppression narrow and justified. Include diagnostic codes where supported and detect unused suppressions.
 - Use typing syntax supported by the minimum declared Python. Use `typing_extensions` for maintained backports instead of silently raising the runtime floor.
 - Published annotations are library API. Test complex typing contracts and preserve their compatibility deliberately.
-- Treat runtime annotation introspection as potentially executable behavior. Use the selected interpreter's documented annotation API, and do not add future imports or change annotation evaluation semantics without checking runtime consumers.
+- Treat runtime annotation introspection as potentially executable behavior. Python 3.14 defers annotation evaluation; use `annotationlib.get_annotations()` with the required format and check runtime consumers before changing future imports or evaluation semantics. Use version-matched introspection APIs for older interpreters.
 
 ## Exceptions And Assertions
 
@@ -84,7 +84,7 @@ Resolve the supported Python range and actual execution interpreter from `[proje
 
 ## Asyncio And Task Ownership
 
-- Use `asyncio.run()` or `asyncio.Runner` at application boundaries. Libraries must not call `asyncio.run()` inside a caller-owned event loop.
+- Use `asyncio.run()` or `asyncio.Runner` at application boundaries, with `loop_factory` for custom loops; Python 3.14 deprecates event-loop policies. Use `get_running_loop()` inside coroutines and callbacks. Libraries must not call `asyncio.run()` inside a caller-owned event loop.
 - Prefer structured concurrency with `asyncio.TaskGroup` on supported Python versions for related work whose scope owns completion and failure.
 - Every created task needs an owner that retains it, observes exceptions, handles cancellation, and shuts it down. Do not create untracked fire-and-forget tasks.
 - Treat cancellation as normal control flow. Put cleanup in `finally`; if catching `CancelledError`, perform bounded cleanup and normally re-raise. Do not swallow cancellation or use `uncancel()` casually.

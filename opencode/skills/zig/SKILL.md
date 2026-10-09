@@ -9,7 +9,7 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Zig
@@ -25,12 +25,12 @@ the repository's toolchain pin, `build.zig.zon`, `build.zig`, CI, and editor
 configuration. Use the matching versioned language reference, standard-library
 docs, release notes, installed source, and compiler help. Use master docs only
 for a project pinned to a development build. Compile every generated example;
-do not assume an older Zig example still works. For new projects, use the latest
-stable Zig release. For existing projects, preserve the pin unless an upgrade is
-part of the request, then move to the latest compatible release after reviewing
-the migration notes. Read `references/toolchain-changes.md` when the task depends
-on version-sensitive standard-library, build, package, testing, or C-translation
-behavior.
+do not assume an older Zig example still works. For new projects, use Zig 0.17.0
+(latest stable verified 2026-10-09). For existing projects, preserve the pin unless
+an upgrade is part of the request, then move to the latest compatible release
+after reviewing the migration notes. Read `references/toolchain-changes.md` when
+the task depends on version-sensitive standard-library, build, package, testing,
+or C-translation behavior.
 
 For performance-sensitive, storage, engine, or infrastructure code, make bounds,
 resource accounting, internal invariants, and measurements proportionate to the

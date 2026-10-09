@@ -25,13 +25,15 @@ Go releases.
   change. Toolchain defaults are amended to match the main module or workspace
   `go` version, then overridden by `godebug` or `//go:debug` directives. Use
   `go list -f '{{.DefaultGODEBUG}}'` on affected main packages to inspect the
-  compiled defaults when compatibility behavior matters.
+  compiled defaults when compatibility behavior matters. Go 1.27 removes settings
+  such as `asynctimerchan`; a removed setting cannot restore its old behavior.
 - Confirm `GOTOOLCHAIN`, CI images, local tooling, release builders, and
   production use the intended version.
 - Run the existing test, race, static-analysis, benchmark, cgo, platform, and
   build-tag matrix affected by the upgrade.
-- Regression-test public `net/http`, URL, proxy, cookie, TLS, crypto, and parser
-  behavior when release notes mention those packages.
+- Regression-test public `net/http`, URL, proxy, cookie, TLS, crypto, JSON, and
+  parser behavior. Go 1.27's v2-backed `encoding/json` preserves v1 semantics but
+  can change error text; direct v2 adoption changes decoding defaults.
 - Inspect the selected release's `go fix` support. Review its diff before
   applying modernizations, and keep optional cleanup out of unrelated work.
 - Re-run representative allocation, GC, latency, memory, cgo, and profile checks

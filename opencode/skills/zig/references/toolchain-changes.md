@@ -18,7 +18,9 @@ I/O, concurrency, or C translation.
 - Container initialization, allocator arguments, ownership transfer, and
   deinitialization.
 - Type-creation and reflection builtins, lazy declaration and field resolution,
-  compile-time timing flags, and declaration-reference test helpers.
+  compile-time timing flags, and declaration-reference test helpers. In Zig 0.17,
+  `@hasDecl` reports only public declarations, and `@backingInt`/`@fromBackingInt`
+  replace the deprecated enum-conversion builtins.
 - Entry-point forms, filesystem, process, reader/writer, task, future,
   cancellation, synchronization, and concurrency APIs.
 - `build.zig` APIs, package identity, names, fingerprints, hashes, package paths,
@@ -30,20 +32,20 @@ I/O, concurrency, or C translation.
 
 ## C translation
 
-- Treat `@cImport`, `zig translate-c`, and build-system translation as separate
-  choices with release-specific APIs.
-- Zig 0.16 still provides `@cImport`, but its release notes deprecate the builtin
-  and move C translation to the build system. Prefer `b.addTranslateC`, expose
-  `createModule()` through the root module's imports, and consume it with
-  `@import("name")` for new 0.16 code.
-- An existing `@cImport` can remain during a scoped change when migration is not
-  required, but do not present it as the preferred long-term 0.16 design.
+- In Zig 0.17, use build-system C translation through the official `translate-c`
+  package; `@cImport` is removed and `std.Build.Step.TranslateC` is deprecated.
+- Pin a Zig 0.17-compatible `translate_c` dependency, initialize its `Translator`
+  with the C source, target, optimization, and linked-library options, expose
+  `translator.mod` through the root module's imports, and consume it with
+  `@import("name")`.
+- Follow the pinned translator package's API rather than carrying forward
+  `b.addTranslateC` and `createModule()` examples from an older Zig release.
 - Use translated source when the generated code needs review or edits. Use the
   build graph when cflags, targets, linked libraries, or generated-module
   ownership must be explicit.
 - Match target triples and cflags between translation and final compilation.
 
-## Zig 0.16 futures
+## Zig 0.17 futures
 
 - Treat every live `std.Io.Future(T)` as a lifecycle obligation. Call `await` or
   `cancel` on every path that owns it, and do not copy or concurrently operate on
@@ -71,7 +73,7 @@ I/O, concurrency, or C translation.
   `https://ziglang.org/documentation/`
 - Downloads and release notes: `https://ziglang.org/download/`
 - Build-system guide: `https://ziglang.org/learn/build-system/`
-- Zig 0.16 C translation comparison:
-  `https://ziglang.org/documentation/0.16.0/#cImport-vs-translate-c`
-- Zig 0.16 `@cImport` migration notes:
-  `https://ziglang.org/download/0.16.0/release-notes.html#cImport-Moving-to-Build-System`
+- Official C translation package:
+  `https://codeberg.org/ziglang/translate-c`
+- Zig 0.17 C translation migration notes:
+  `https://ziglang.org/download/0.17.0/release-notes.html#C-Translation-Moving-to-External-Package`

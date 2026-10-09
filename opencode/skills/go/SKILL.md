@@ -7,14 +7,14 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "2.3.0"
+  version: "2.3.1"
 ---
 
 # Go
 
 Use this skill for production-grade Go applications, libraries, services, APIs, workers, and tooling. Apply the backend stack options only when creating or extending a backend service. Prefer the repository's existing patterns over generic defaults.
 
-Resolve the mandatory minimum and language semantics from the `go` directive. When present in the main module or workspace, also resolve the optional `toolchain` preference, `GOTOOLCHAIN` policy, dependency versions, build tags, CI matrix, module checksums, and deployment configuration from `go.mod`, `go.work`, `go.sum`, and automation before consulting APIs. Confirm that CI, release builds, and production use the latest patch release of a supported Go line. Patch releases carry security and correctness fixes, and the `go` directive alone does not keep the building toolchain current. Use documentation matching those versions; pkg.go.dev hosting does not make a recommendation official Go-project policy. For toolchain upgrades, read `references/toolchain-upgrades.md`.
+Resolve the mandatory minimum and language semantics from the `go` directive. When present in the main module or workspace, also resolve the optional `toolchain` preference, `GOTOOLCHAIN` policy, dependency versions, build tags, CI matrix, module checksums, and deployment configuration from `go.mod`, `go.work`, `go.sum`, and automation before consulting APIs. Use Go 1.27.2 for new projects (latest stable verified 2026-10-09); confirm that CI, release builds, and production use the latest patch release of a supported Go line. Patch releases carry security and correctness fixes, and the `go` directive alone does not keep the building toolchain current. Use documentation matching those versions; pkg.go.dev hosting does not make a recommendation official Go-project policy. For toolchain upgrades, read `references/toolchain-upgrades.md`.
 
 ## Workflow
 
@@ -67,7 +67,7 @@ Keep tests beside the code as `*_test.go` by default.
 - Use `ErrX` for sentinel errors. Name constructors `New` when the package already supplies the type context, `NewX` when it distinguishes among exported types, or use a descriptive factory name when construction semantics matter.
 - Use an unexported custom type for context keys.
 - Give exported declarations useful doc comments beginning with the declared name. Error strings normally start lowercase and omit terminal punctuation because callers compose them.
-- Use `new(expression)` and self-referential generic constraints only when the module's `go` directive and supported toolchains permit them.
+- Gate syntax on the module's `go` directive and supported toolchains: `new(expression)` and self-referential generic constraints require Go 1.26+, and generic methods require Go 1.27+. Interface methods cannot declare type parameters or be implemented by generic methods.
 
 ## Interfaces, packages, and dependency flow
 
@@ -104,10 +104,10 @@ Keep tests beside the code as `*_test.go` by default.
 
 ## JSON and API contracts
 
-- Use `encoding/json` unless the repository standardizes on another encoder.
+- Preserve the repository's JSON encoder and wire behavior. In Go 1.27, `encoding/json` uses the v2 implementation with v1-compatible semantics, though error text may change; choose `encoding/json/v2` for new contracts only when its stricter defaults fit.
 - Use boundary-owned request and response types when the transport contract differs from the internal representation; do not duplicate identical structs merely to avoid JSON tags.
 - Treat JSON tags, omitted fields, defaults, unknown-field handling, and time formats as API contract decisions.
-- Use `json.Decoder` with `DisallowUnknownFields` only when rejecting unknown input is intentional.
+- Reject unknown input only when intentional: use `json.Decoder.DisallowUnknownFields` with v1 or `json.RejectUnknownMembers(true)` with v2. Verify duplicate-name, invalid-UTF-8, and field-matching behavior when changing encoders.
 - Avoid `map[string]any` for structured payloads unless the schema is genuinely dynamic.
 
 ## Testing and verification

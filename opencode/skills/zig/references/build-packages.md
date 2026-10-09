@@ -3,9 +3,11 @@
 Read this reference when changing the build graph, package metadata, generated
 code, test steps, or release artifacts. Resolve APIs from the pinned compiler.
 
-- Treat `build.zig` as code that declares a dependency graph. Use explicit step
-  dependencies and lazy paths; do not perform build actions eagerly while
-  constructing the graph.
+- Treat `build.zig` as code that declares a dependency graph. Zig 0.17 separates
+  configuration from execution and caches configuration; declare file/directory
+  reads with the `dependOn*` APIs or deliberately poison the cache. Use explicit
+  step dependencies and lazy paths, including `findProgramLazy` for execution-time
+  program discovery; do not perform build actions while constructing the graph.
 - Use `standardTargetOptions` and `standardOptimizeOption` when creating a new
   conventional project, unless the artifact intentionally constrains them.
 - Do not hardcode `zig-out` or cache paths, mutate source files during a normal

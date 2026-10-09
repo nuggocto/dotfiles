@@ -8,7 +8,7 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "2.4.0"
+  version: "2.4.1"
 ---
 
 # Rust
@@ -40,7 +40,7 @@ Use these only for a new backend application when its requirements fit. They are
 
 | Area | Default | Notes |
 | --- | --- | --- |
-| Toolchain | Rust stable | Keep CI and local tooling aligned |
+| Toolchain | Rust 1.99.0 (stable, verified 2026-10-09) | Keep CI and local tooling aligned; recheck release notes before selecting a toolchain |
 | Edition | 2024 for new unconstrained crates | Requires Rust 1.85+ and defaults to resolver 3; follow repository MSRV policy |
 | HTTP | Axum + Tower | Good default for composable services |
 | Async runtime | Tokio | Use one runtime consistently |
@@ -105,7 +105,7 @@ migrations/
 ## Library contracts
 
 - For reusable crates, treat public items, trait implementations, error chains, feature names/defaults, auto-trait behavior, and MSRV as compatibility contracts.
-- Check Cargo's SemVer guidance before changing public structs, enums, traits, generic bounds, or exposed dependency errors. Keep features additive and test supported combinations rather than assuming `--all-features` is valid.
+- Check Cargo's SemVer guidance before changing public structs, enums, traits, generic bounds, or exposed dependency errors. Keep features additive and test supported combinations. Cargo 1.99+ lets edition-2024 members override inherited `default-features`; older toolchains may ignore or reject that configuration, so verify the resolved features on the MSRV as well as stable.
 - Preserve the declared `rust-version` unless the requested change intentionally raises the project's MSRV under its documented policy. When raising it, update the declaration explicitly, treat it as a compatibility decision, and verify the declared version in CI. Document public APIs, error and panic conditions, and safety contracts; run doctests for changed public behavior.
 - Follow the repository's lockfile policy. Commit `Cargo.lock` for applications and shipped workspace artifacts. Reusable libraries may commit it for contributor and CI reproducibility or omit it deliberately because downstream consumers do not use the published lockfile. Use `--locked` where a committed lockfile defines the build; use `--frozen` only when dependencies are already available and network access must also be prohibited.
 - For an edition upgrade, run `cargo fix --edition` on the old edition for supported feature and target configurations, then change the manifest edition and rerun formatting, checks, tests, doctests, and release builds. Manually audit macros, generated code, unsafe changes, and doctests; automated fixes establish compatibility, not soundness.

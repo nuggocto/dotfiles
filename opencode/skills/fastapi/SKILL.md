@@ -10,14 +10,14 @@ description: >
 license: MIT
 metadata:
   author: opencode
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # FastAPI
 
 Load the `python` skill first for Python semantics, typing, exceptions, task ownership, packaging, security, testing, and performance. This skill adds guidance for FastAPI and its Starlette, Pydantic, ASGI, and deployment integrations. Follow the Python skill's tooling policy: prefer uv, Ruff, and ty for new projects, preserve existing tooling during scoped maintenance, and migrate only when requested.
 
-FastAPI remains pre-1.0. For new services, use the latest stable mutually compatible FastAPI, Starlette, Pydantic, AnyIO, HTTPX, Uvicorn, Python, ORM, and security-library releases. For existing services, resolve the exact stack from `pyproject.toml`, repository lockfiles, installed metadata, and CI, then preserve it unless an upgrade is requested or required. Pin and test the complete resolved stack; do not assume current online docs match the repository or independently upgrade FastAPI's constrained transitive internals without evidence.
+FastAPI remains pre-1.0. For new services, use FastAPI 0.143.0 (latest stable verified 2026-10-09) with mutually compatible Starlette, Pydantic, AnyIO, HTTPX, Uvicorn, Python, ORM, and security-library releases. For existing services, resolve the exact stack from `pyproject.toml`, repository lockfiles, installed metadata, and CI, then preserve it unless an upgrade is requested or required. Pin and test the complete resolved stack; do not assume current online docs match the repository or independently override dependency constraints without evidence.
 
 ## Workflow
 
@@ -35,7 +35,7 @@ FastAPI remains pre-1.0. For new services, use the latest stable mutually compat
 - Use an app factory when tests or deployments need different configuration or resources.
 - Keep process-owned resources in lifespan and request-owned resources in dependencies. Avoid import-time network connections, model loading, event-loop work, and mutable singleton initialization.
 - Before editing generated OpenAPI clients, schemas, or ORM output, change generator inputs and regenerate with pinned tools.
-- Do not traverse `router.routes` as a flat public list for advanced inspection; nested router inclusion preserves router and route context, so use the pinned version's supported route-context API.
+- Do not traverse `router.routes` as a flat public list for advanced inspection; nested router inclusion preserves router and route context, so use `iter_route_contexts()` on the current release or the pinned version's supported equivalent.
 
 ## Lifespan And Process Resources
 
@@ -173,14 +173,14 @@ FastAPI remains pre-1.0. For new services, use the latest stable mutually compat
 
 - Use `UploadFile` for non-trivial uploads; a `bytes` file parameter reads the entire body into memory. Treat filenames and declared content types as untrusted.
 - Enforce total request limits and timeouts at the edge/server plus endpoint-specific size, file-count, part-count, and decompression limits. Multipart parser limits do not replace a total body limit.
-- If multipart field and part-size limits are security controls, verify that the resolved Starlette release contains the parser-limit fix shipped in 1.3.1 or its corresponding backport.
+- Starlette 1.7.0 includes the 1.3.1 URL-encoded `FormParser` field-count and field-size fixes. Verify multipart limits separately: `max_part_size` limits non-file fields, not uploaded file sizes or the total body.
 - Generate storage names, prevent path traversal, inspect or scan hostile formats where required, clean temporary files, and prefer direct object-storage uploads for very large objects.
 - When consuming `Request.stream()`, do not later expect `.body()`, `.json()`, or `.form()` to remain available. Bound each upstream read and total bytes.
 - Raw `StreamingResponse` chunks bypass response-model validation. Native typed
   JSONL and SSE generator endpoints validate, filter, document, and serialize
   each yielded plain item; transport wrappers and raw chunks remain
-  application-owned. Use FastAPI 0.140.13 or newer when relying on these native
-  stream contracts. Own disconnect behavior, cleanup, and backpressure.
+  application-owned. These contracts were verified against FastAPI 0.143.0;
+  own disconnect behavior, cleanup, and backpressure.
 - Authenticate WebSockets during handshake, authorize each subscription/action, validate every message, and bound message size, rate, outbound queue, and idle lifetime.
 - Catch disconnects and clean resources. In-memory connection registries work only in one process and disappear on restart; use external coordination for multiple workers.
 - CORS does not secure WebSockets. Validate allowed origins where browser-origin policy matters.
@@ -218,8 +218,8 @@ FastAPI remains pre-1.0. For new services, use the latest stable mutually compat
   multi-process deployments.
 - Separate startup, readiness, and liveness. Readiness waits for required resources and turns false before termination; graceful shutdown needs enough time for requests, streams, WebSockets, queue publication, and lifespan cleanup.
 - Configure concurrency, keep-alive, graceful timeout, request duration, header/body limits, WebSocket limits, and trusted proxy IPs against the pinned server version.
-- Emit bounded structured logs, metrics, and traces with request/trace ID, route template, method, status, latency, in-flight work, downstream timing, pool saturation, validation failures, worker restarts, and job outcomes.
-- Capture unhandled exceptions once, propagate trace context to outbound calls and jobs, and keep telemetry export non-blocking and bounded.
+- FastAPI 0.143.0 provides native OpenTelemetry traces, metrics, and logs. Automatic exporter setup requires `FASTAPI_OTEL_AUTO_CONFIGURE=true` or `telemetry={"auto_configure": True}` and the exporter dependencies. Keep application-owned providers and avoid duplicate export to the same destination; verify delivery after upgrades.
+- Capture unhandled exceptions once, including FastAPI's native exception logs; redact sensitive messages and traces or disable its `logs` option when needed. Propagate trace context to outbound calls and jobs, and keep telemetry export non-blocking and bounded.
 
 ## Guardrails
 
@@ -238,8 +238,8 @@ FastAPI remains pre-1.0. For new services, use the latest stable mutually compat
 
 - FastAPI release notes: `https://fastapi.tiangolo.com/release-notes/`
 - FastAPI advanced guide: `https://fastapi.tiangolo.com/advanced/`
-- Dependency teardown and response serialization in FastAPI 0.140.13:
-  `https://github.com/fastapi/fastapi/blob/0.140.13/fastapi/routing.py`
+- Dependency teardown and response serialization in FastAPI 0.143.0:
+  `https://github.com/fastapi/fastapi/blob/0.143.0/fastapi/routing.py`
 - Starlette documentation: `https://starlette.dev/`
 - Pydantic documentation: `https://docs.pydantic.dev/latest/`
 - AnyIO documentation: `https://anyio.readthedocs.io/`

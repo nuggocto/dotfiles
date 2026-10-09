@@ -11,8 +11,9 @@ free-threaded support.
 - For a new application, choose the latest stable Python release supported by
   its dependencies and deployment platform.
 - For each supported Python line, use its latest maintenance or security patch.
-  Check `https://www.python.org/downloads/` at execution time rather than
-  freezing a patch number here.
+  Check release status as well as patch numbers: Python 3.10 reached end of life
+  on 2026-10-01. Preserve library compatibility separately from selecting a
+  maintained production runtime.
 - Pin the full interpreter version in owned containers, standalone artifacts,
   and tool-managed runtimes. On managed platforms or distribution packages,
   use the strongest available control and record the resolved runtime in build
@@ -22,8 +23,10 @@ free-threaded support.
 
 - Read the versioned What's New document and changelog for every skipped minor
   version.
-- Audit syntax and standard-library availability against the minimum supported
-  Python, not the newest developer machine.
+- Audit syntax, standard-library availability, and event-loop setup against the
+  supported versions. In Python 3.14, `asyncio.get_event_loop()` raises without a
+  current loop; customize application runners with `loop_factory` instead of
+  deprecated event-loop policies.
 - Check annotation evaluation, direct `__annotations__` access, forward
   references, runtime introspection, and consumers of `from __future__ import
   annotations` when crossing an annotation-semantics change.
